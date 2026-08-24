@@ -1,0 +1,196 @@
+/* =============================================================================
+   CRDB KONEKT — DESIGN TOKENS
+   The single source of truth. Every colour, type size, duration and geometry
+   value in this codebase resolves through a variable declared here.
+   Nothing outside this file may contain a raw hex value.
+   (Enforced by `npm run check:tokens`.)
+   ========================================================================== */
+
+:root {
+  /* ---------------------------------------------------------------------
+     1. PALETTE — extracted from the official Konekt logo artwork.
+        Exact values. Do not substitute.
+     ------------------------------------------------------------------ */
+  --konekt-teal:   #37A694; /* PRIMARY   — the chevron mark, the K, the T   */
+  --konekt-green:  #44AC34; /* SECONDARY — "ONE" in wordmark, "Na CRDB"     */
+  --konekt-yellow: #F6B30B; /* ACCENT    — upper triangle of the mark       */
+  --konekt-pink:   #EC4363; /* ACCENT    — lower triangle of the mark       */
+  --konekt-ink:    #0E1F1C; /* near-black, teal-biased. NEVER pure black    */
+  --konekt-paper:  #FAFBFA; /* off-white body canvas                        */
+  --konekt-mist:   #E6F4F2; /* teal tint, from the logo's own antialiasing  */
+  --konekt-slate:  #5B6E6A; /* muted body text on paper                     */
+
+  /* --- Accessible variants -------------------------------------------
+     Measured against --konekt-paper (#FAFBFA):
+       teal   2.87:1  FAILS AA
+       green  2.81:1  FAILS AA
+     Neither brand teal nor brand green may carry text on the paper canvas.
+     These darkened variants hold the same hue and clear AA for body text.
+       teal-deep  #226E62  5.83:1  AA
+       green-deep #2E7524  5.49:1  AA
+     Use the pure brand values on ink, where they clear AA on their own
+     (teal 5.72:1, green 5.84:1, yellow 9.23:1).                        */
+  --konekt-teal-deep:  #226E62;
+  --konekt-green-deep: #2E7524;
+
+  /* --- Teal on tinted dark surfaces -----------------------------------
+     Brand teal clears AA on flat ink (5.72:1), but the map tiles carry a
+     data-driven teal wash, and the busier the zone the lighter its tile —
+     which drops brand teal to 3.33:1 on the densest zone. A label that gets
+     harder to read exactly where the data is most interesting is the wrong
+     failure. This tint holds 4.75:1 on the lightest tile the scale can
+     produce and 8.13:1 on flat ink. Dark surfaces only; it is 2.02:1 on
+     paper and must never carry text there.                              */
+  --konekt-teal-light: #73C1B4;
+
+  /* --- Surface roles ------------------------------------------------- */
+  --surface-canvas:   var(--konekt-paper);
+  --surface-inverse:  var(--konekt-ink);
+  --surface-tint:     var(--konekt-mist);
+  --surface-raised:   #FFFFFF;
+  --surface-ink-soft: #16302B; /* one step up from ink, for cards on ink   */
+
+  /* --- Text roles ---------------------------------------------------- */
+  --text-strong:      var(--konekt-ink);
+  --text-body:        var(--konekt-slate);
+  --text-on-inverse:  var(--konekt-paper);
+  --text-muted-on-inverse: #9DB5B0; /* 7.85:1 on ink */
+  --text-accent:      var(--konekt-teal-deep);
+
+  /* --- Line / border roles ------------------------------------------- */
+  --line-soft:      #DCE7E4;
+  --line-strong:    #B9CDC9;
+  --line-on-inverse: #2A4741;
+
+  /* ---------------------------------------------------------------------
+     2. EVENT COLOURS — usage law
+        Yellow and pink are event colours, not decoration. They appear only
+        where something is live, urgent, or marks a place. Never a generic
+        button fill.
+     ------------------------------------------------------------------ */
+  --signal-live:     var(--konekt-yellow);
+  --signal-place:    var(--konekt-pink);
+  --signal-deadline: var(--konekt-pink);
+
+  /* ---------------------------------------------------------------------
+     3. TYPOGRAPHY
+        Display face is Gotham (the logo face). Gotham requires a paid web
+        licence — see docs/OPEN-ITEMS.md. Shipping on Archivo until that is
+        resolved; swapping in licensed Gotham is a one-line change to
+        --font-display. Both Archivo and Inter cover Latin Extended, which
+        Swahili needs.
+     ------------------------------------------------------------------ */
+  --font-display: var(--font-archivo), 'Archivo', 'Montserrat', system-ui, sans-serif;
+  --font-body:    var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-data:    var(--font-inter), 'Inter', system-ui, sans-serif;
+
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+  --weight-black:    900;
+
+  --size-hero:    clamp(2.75rem, 9vw, 6.5rem);
+  --size-h1:      clamp(2rem, 5vw, 3.5rem);
+  --size-h2:      clamp(1.5rem, 3.5vw, 2.25rem);
+  --size-h3:      clamp(1.125rem, 2vw, 1.375rem);
+  --size-body:    1.0625rem;
+  --size-body-lg: clamp(1.0625rem, 1.6vw, 1.25rem);
+  --size-caption: 0.875rem;
+  --size-micro:   0.75rem;
+
+  --leading-hero:    0.94;
+  --leading-tight:   1.08;
+  --leading-snug:    1.25;
+  --leading-body:    1.6;
+
+  --tracking-hero:    -0.03em;
+  --tracking-display: -0.02em;
+  --tracking-normal:  0;
+  --tracking-wide:    0.08em;
+
+  /* ---------------------------------------------------------------------
+     4. GEOMETRY — the chevron
+        The Konekt "K" is a teal arrow with a yellow triangle above and a
+        pink triangle below, built on a single angle. That angle is the
+        entire structural vocabulary. One angle, used consistently, reads
+        as identity; multiple angles read as noise.
+     ------------------------------------------------------------------ */
+  --chevron-angle: 58deg;        /* from horizontal — measured off the mark */
+  --chevron-skew: -32deg;        /* 90deg - 58deg, for skewX() wipes        */
+  --chevron-ratio: 1.6;          /* tan(58deg), rise over run               */
+
+  /* Section-edge chevron notch. Width and depth are both in px so the
+     58deg angle survives every viewport: depth / (width / 2) = 1.6.
+     Two sizes only — one for phones, one above.                          */
+  --chev-notch-w: 64px;
+  --chev-notch-d: 51px;          /* 51 / 32 = 1.594 -> 57.9deg             */
+  --chev-notch-x: 14%;           /* apex position along the edge           */
+
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  /* ---------------------------------------------------------------------
+     5. SPACE
+     ------------------------------------------------------------------ */
+  --space-2xs: 0.25rem;
+  --space-xs:  0.5rem;
+  --space-sm:  0.75rem;
+  --space-md:  1rem;
+  --space-lg:  1.5rem;
+  --space-xl:  2.5rem;
+  --space-2xl: 4rem;
+  --space-3xl: clamp(4rem, 10vw, 8rem);
+
+  --gutter: clamp(1.25rem, 5vw, 3rem);
+  --measure: 62ch;
+  --shell-max: 1240px;
+
+  /* ---------------------------------------------------------------------
+     6. MOTION
+        Gen Z motion is snappy and slightly overshooting, not slow and
+        cinematic. Nothing waits for the user to admire it.
+     ------------------------------------------------------------------ */
+  --ease-konekt: cubic-bezier(0.34, 1.36, 0.64, 1); /* subtle overshoot */
+  --ease-out:    cubic-bezier(0.22, 0.61, 0.36, 1);
+  --dur-fast: 180ms;
+  --dur-base: 340ms;
+  --dur-slow: 480ms;
+
+  /* ---------------------------------------------------------------------
+     7. FOCUS
+        Yellow alone fails non-text contrast on paper (1.78:1). The ring is
+        two-tone: a yellow core that sings on ink, backed by an ink hairline
+        that carries the 3:1 on paper. One ring token, correct on both
+        canvases.
+     ------------------------------------------------------------------ */
+  --focus-core: var(--konekt-yellow);
+  --focus-edge: var(--konekt-ink);
+  --focus-ring:
+    0 0 0 2px var(--surface-canvas),
+    0 0 0 5px var(--focus-core),
+    0 0 0 7px var(--focus-edge);
+  --focus-ring-inverse:
+    0 0 0 2px var(--surface-inverse),
+    0 0 0 5px var(--focus-core);
+
+  /* ---------------------------------------------------------------------
+     8. ELEVATION
+     ------------------------------------------------------------------ */
+  --shadow-sm: 0 1px 2px rgb(14 31 28 / 0.06), 0 2px 8px rgb(14 31 28 / 0.04);
+  --shadow-md: 0 2px 4px rgb(14 31 28 / 0.06), 0 12px 28px rgb(14 31 28 / 0.08);
+  --shadow-lift: 0 4px 8px rgb(14 31 28 / 0.08), 0 18px 40px rgb(14 31 28 / 0.12);
+
+  --z-base: 0;
+  --z-sticky: 50;
+  --z-overlay: 100;
+}
+
+@media (min-width: 40rem) {
+  :root {
+    --chev-notch-w: 112px;
+    --chev-notch-d: 90px;       /* 90 / 56 = 1.607 -> 58.1deg */
+  }
+}

@@ -1,0 +1,2516 @@
+{
+  "_meta": {
+    "source": "CRDB-supplied mapping lists, Aug 2026",
+    "note": "Coordinates NOT included — must be geocoded before map build. See prompt §3.4."
+  },
+  "zones": [
+    "CENTRAL ZONE",
+    "COASTAL ZONE",
+    "DAR ES SALAAM ZONE",
+    "HIGHLAND ZONE",
+    "LAKE ZONE",
+    "NORTHERN ZONE",
+    "SOUTHERN ZONE",
+    "WESTERN ZONE"
+  ],
+  "regions_seen": [
+    "ARUSHA",
+    "DAR ES SALAAM",
+    "DODOMA",
+    "IRINGA",
+    "KATAVI",
+    "KILIMANJARO",
+    "MARA",
+    "MBEYA",
+    "MOROGORO",
+    "MTWARA",
+    "MWANZA",
+    "NORTH UNGUJA",
+    "PWANI",
+    "SHINYANGA",
+    "SUMBAWANGA",
+    "TABORA",
+    "URBAN WEST"
+  ],
+  "branches": [
+    {
+      "sn": 1,
+      "name": "Dodoma",
+      "year_established": "1990",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 2,
+      "name": "UDOM",
+      "year_established": "2007",
+      "year_refurbished": null
+    },
+    {
+      "sn": 3,
+      "name": "Chamwino Dodoma",
+      "year_established": "2012",
+      "year_refurbished": "2023 (by RE & FM)"
+    },
+    {
+      "sn": 4,
+      "name": "LAPF Dodoma",
+      "year_established": "2017",
+      "year_refurbished": null
+    },
+    {
+      "sn": 5,
+      "name": "Chamwino IKULU",
+      "year_established": "Q2 - 2021",
+      "year_refurbished": null
+    },
+    {
+      "sn": 6,
+      "name": "Kambarage Premier Center",
+      "year_established": "Q2 - 2021",
+      "year_refurbished": null
+    },
+    {
+      "sn": 7,
+      "name": "Morogoro",
+      "year_established": "1986",
+      "year_refurbished": "Q3 - Aug. 2024"
+    },
+    {
+      "sn": 8,
+      "name": "Mandela",
+      "year_established": "2005",
+      "year_refurbished": null
+    },
+    {
+      "sn": 9,
+      "name": "Kilombero",
+      "year_established": "2007",
+      "year_refurbished": null
+    },
+    {
+      "sn": 10,
+      "name": "Ifakara",
+      "year_established": "2013",
+      "year_refurbished": null
+    },
+    {
+      "sn": 11,
+      "name": "Iringa",
+      "year_established": "1988",
+      "year_refurbished": "Q2 - 2022"
+    },
+    {
+      "sn": 12,
+      "name": "Mafinga",
+      "year_established": "2014",
+      "year_refurbished": null
+    },
+    {
+      "sn": 13,
+      "name": "Singida",
+      "year_established": "1985",
+      "year_refurbished": "Q2 - 2023"
+    },
+    {
+      "sn": 14,
+      "name": "Mzumbe",
+      "year_established": "2005",
+      "year_refurbished": "Q1 - 2022"
+    },
+    {
+      "sn": 15,
+      "name": "Gairo",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 16,
+      "name": "Mazimbu",
+      "year_established": "2007",
+      "year_refurbished": "Q2 - 2024"
+    },
+    {
+      "sn": 17,
+      "name": "Mkwawa",
+      "year_established": "2007",
+      "year_refurbished": null
+    },
+    {
+      "sn": 18,
+      "name": "Chief Kingalu (Former Moro Ag",
+      "year_established": "2010",
+      "year_refurbished": "Q4 - 2021"
+    },
+    {
+      "sn": 19,
+      "name": "Bunge",
+      "year_established": "2012",
+      "year_refurbished": "Q3 - 2021"
+    },
+    {
+      "sn": 20,
+      "name": "Mpwapwa",
+      "year_established": "2014",
+      "year_refurbished": null
+    },
+    {
+      "sn": 21,
+      "name": "SUA",
+      "year_established": "2010",
+      "year_refurbished": "2023 (by RE & FM)"
+    },
+    {
+      "sn": 22,
+      "name": "Turiani",
+      "year_established": "Q3 - Aug. 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 23,
+      "name": "Kilosa",
+      "year_established": "2013",
+      "year_refurbished": null
+    },
+    {
+      "sn": 24,
+      "name": "Majengo",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 25,
+      "name": "Msamvu",
+      "year_established": "2017",
+      "year_refurbished": "Q4 - 2024 (RE & FM)"
+    },
+    {
+      "sn": 26,
+      "name": "Kondoa",
+      "year_established": "2014",
+      "year_refurbished": null
+    },
+    {
+      "sn": 27,
+      "name": "Ulanga (Mahenge)",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 28,
+      "name": "Ilula",
+      "year_established": "Q3 - Aug. 2024",
+      "year_refurbished": null
+    },
+    {
+      "sn": 29,
+      "name": "Kibaigwa",
+      "year_established": "Q4 - Oct. 2024",
+      "year_refurbished": null
+    },
+    {
+      "sn": 30,
+      "name": "Manyoni",
+      "year_established": "2014",
+      "year_refurbished": null
+    },
+    {
+      "sn": 31,
+      "name": "Mikumi",
+      "year_established": "2017",
+      "year_refurbished": null
+    },
+    {
+      "sn": 32,
+      "name": "Bagamoyo",
+      "year_established": "2011",
+      "year_refurbished": "Q4 - 2024 (RE & FM)"
+    },
+    {
+      "sn": 33,
+      "name": "Kibaha",
+      "year_established": "2009",
+      "year_refurbished": "2019"
+    },
+    {
+      "sn": 34,
+      "name": "Mkuranga",
+      "year_established": "2020",
+      "year_refurbished": null
+    },
+    {
+      "sn": 35,
+      "name": "Mlandizi",
+      "year_established": "2018",
+      "year_refurbished": null
+    },
+    {
+      "sn": 36,
+      "name": "Bunju",
+      "year_established": "2016",
+      "year_refurbished": "Q4 - Dec. 2023"
+    },
+    {
+      "sn": 37,
+      "name": "Buza",
+      "year_established": "2016",
+      "year_refurbished": "Q1 - 2022"
+    },
+    {
+      "sn": 38,
+      "name": "Msasani",
+      "year_established": "2014",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 39,
+      "name": "Mwananyamala",
+      "year_established": "2019",
+      "year_refurbished": null
+    },
+    {
+      "sn": 40,
+      "name": "Mbezi Beach",
+      "year_established": "2008",
+      "year_refurbished": "Q4 - 2022"
+    },
+    {
+      "sn": 41,
+      "name": "Mbagala",
+      "year_established": "2007",
+      "year_refurbished": null
+    },
+    {
+      "sn": 42,
+      "name": "Mikocheni",
+      "year_established": "2010",
+      "year_refurbished": null
+    },
+    {
+      "sn": 43,
+      "name": "Tegeta",
+      "year_established": "2009",
+      "year_refurbished": "Q3 - Sept. 2023"
+    },
+    {
+      "sn": 44,
+      "name": "Dar Village (Kijitonyama)",
+      "year_established": "2003",
+      "year_refurbished": "Q2 - May 2025"
+    },
+    {
+      "sn": 45,
+      "name": "Oysterbay",
+      "year_established": "2012",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 46,
+      "name": "Temeke",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 47,
+      "name": "Kisarawe",
+      "year_established": "Q4 - Nov. 2024",
+      "year_refurbished": null
+    },
+    {
+      "sn": 48,
+      "name": "Mafia",
+      "year_established": "Q1 - 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 49,
+      "name": "Ikwiriri",
+      "year_established": "Q1 - 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 50,
+      "name": "Zanzibar",
+      "year_established": "2010",
+      "year_refurbished": "2019"
+    },
+    {
+      "sn": 51,
+      "name": "Pemba",
+      "year_established": "2017",
+      "year_refurbished": null
+    },
+    {
+      "sn": 52,
+      "name": "Mwenge",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 53,
+      "name": "Magomeni",
+      "year_established": "2016",
+      "year_refurbished": "2019"
+    },
+    {
+      "sn": 54,
+      "name": "Mtoni Kijichi",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 55,
+      "name": "JN Hydropower",
+      "year_established": "Q3 - 2021",
+      "year_refurbished": null
+    },
+    {
+      "sn": 56,
+      "name": "Kinondoni Municipal",
+      "year_established": "2015",
+      "year_refurbished": "Q2 - Jul. 2024"
+    },
+    {
+      "sn": 57,
+      "name": "Chalinze",
+      "year_established": "Q2 - June 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 58,
+      "name": "Wete",
+      "year_established": "Q2 - 2022",
+      "year_refurbished": null
+    },
+    {
+      "sn": 59,
+      "name": "Temeke Taifa",
+      "year_established": "2015",
+      "year_refurbished": "2019"
+    },
+    {
+      "sn": 60,
+      "name": "Tandika",
+      "year_established": "2016",
+      "year_refurbished": "Q2 - April 2024"
+    },
+    {
+      "sn": 61,
+      "name": "Mbande (Former Charambe)",
+      "year_established": "2015",
+      "year_refurbished": "Q3 - Aug. 2024"
+    },
+    {
+      "sn": 62,
+      "name": "Kawe",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 63,
+      "name": "Bureau - Z'bar (Amaan Abeid K",
+      "year_established": "2019",
+      "year_refurbished": "Q1 - Jan. 2025"
+    },
+    {
+      "sn": 64,
+      "name": "Michenzani Mall",
+      "year_established": "Q1 - 2021",
+      "year_refurbished": null
+    },
+    {
+      "sn": 65,
+      "name": "Goba",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 66,
+      "name": "Kibada",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 67,
+      "name": "Ardhi University",
+      "year_established": "2010",
+      "year_refurbished": null
+    },
+    {
+      "sn": 68,
+      "name": "Azam ICD",
+      "year_established": "2014",
+      "year_refurbished": null
+    },
+    {
+      "sn": 69,
+      "name": "Azikiwe",
+      "year_established": "1989",
+      "year_refurbished": "Q4 - 2022"
+    },
+    {
+      "sn": 70,
+      "name": "Banana",
+      "year_established": "2015",
+      "year_refurbished": "Q2 - April 2024"
+    },
+    {
+      "sn": 71,
+      "name": "Chanika",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 72,
+      "name": "Tower",
+      "year_established": "2000",
+      "year_refurbished": null
+    },
+    {
+      "sn": 73,
+      "name": "Vijana",
+      "year_established": "1993",
+      "year_refurbished": null
+    },
+    {
+      "sn": 74,
+      "name": "Lumumba",
+      "year_established": "1984",
+      "year_refurbished": "2019"
+    },
+    {
+      "sn": 75,
+      "name": "Palm Beach Premier Branch",
+      "year_established": "2016",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 76,
+      "name": "TPA (Former Waterfront)",
+      "year_established": "2006",
+      "year_refurbished": "2020"
+    },
+    {
+      "sn": 77,
+      "name": "Mlimani City",
+      "year_established": "2007",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 78,
+      "name": "UDSM",
+      "year_established": "2005",
+      "year_refurbished": "2023 (by RE & FM)"
+    },
+    {
+      "sn": 79,
+      "name": "Tabata",
+      "year_established": "2012",
+      "year_refurbished": null
+    },
+    {
+      "sn": 80,
+      "name": "Pugu Road",
+      "year_established": "2004",
+      "year_refurbished": null
+    },
+    {
+      "sn": 81,
+      "name": "TAZARA (Former Quality Cent",
+      "year_established": "2012",
+      "year_refurbished": "2020"
+    },
+    {
+      "sn": 82,
+      "name": "Ubungo",
+      "year_established": "2012",
+      "year_refurbished": null
+    },
+    {
+      "sn": 83,
+      "name": "Kariakoo Narung'ombe",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 84,
+      "name": "Holland House",
+      "year_established": "1990",
+      "year_refurbished": null
+    },
+    {
+      "sn": 85,
+      "name": "Kimara",
+      "year_established": "2017",
+      "year_refurbished": null
+    },
+    {
+      "sn": 86,
+      "name": "Kinyerezi",
+      "year_established": "2018",
+      "year_refurbished": null
+    },
+    {
+      "sn": 87,
+      "name": "Gongo la Mboto",
+      "year_established": "2015",
+      "year_refurbished": "Q3 - Aug. 2024"
+    },
+    {
+      "sn": 88,
+      "name": "Kariakoo Uhuru",
+      "year_established": "2010",
+      "year_refurbished": null
+    },
+    {
+      "sn": 89,
+      "name": "Ilala Municipal",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 90,
+      "name": "Mbezi Luis",
+      "year_established": "2013",
+      "year_refurbished": null
+    },
+    {
+      "sn": 91,
+      "name": "TRA- Samora",
+      "year_established": "2002",
+      "year_refurbished": null
+    },
+    {
+      "sn": 92,
+      "name": "JNIA BUREAU DE CHANGE T",
+      "year_established": "2020",
+      "year_refurbished": null
+    },
+    {
+      "sn": 93,
+      "name": "JNIA BUREAU DE CHANGE T",
+      "year_established": "2020",
+      "year_refurbished": null
+    },
+    {
+      "sn": 94,
+      "name": "Ludewa",
+      "year_established": "Q4 - 2021",
+      "year_refurbished": null
+    },
+    {
+      "sn": 95,
+      "name": "Mbeya",
+      "year_established": "1998",
+      "year_refurbished": "Q3 - Sept. 2024"
+    },
+    {
+      "sn": 96,
+      "name": "Kyela",
+      "year_established": "2014",
+      "year_refurbished": null
+    },
+    {
+      "sn": 97,
+      "name": "Mbarali",
+      "year_established": "2014",
+      "year_refurbished": null
+    },
+    {
+      "sn": 98,
+      "name": "Mbozi",
+      "year_established": "2008",
+      "year_refurbished": null
+    },
+    {
+      "sn": 99,
+      "name": "Mwanjelwa",
+      "year_established": "2011",
+      "year_refurbished": null
+    },
+    {
+      "sn": 100,
+      "name": "Tunduma",
+      "year_established": "2016",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 101,
+      "name": "Sumbawanga",
+      "year_established": "1991",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 102,
+      "name": "Mpanda",
+      "year_established": "2010",
+      "year_refurbished": null
+    },
+    {
+      "sn": 103,
+      "name": "Njombe",
+      "year_established": "2007",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 104,
+      "name": "Makambako",
+      "year_established": "2013",
+      "year_refurbished": "Q2 - 2024 (by RE & FM)"
+    },
+    {
+      "sn": 105,
+      "name": "Mbalizi",
+      "year_established": "2010",
+      "year_refurbished": "Q3 - Sept. 2024"
+    },
+    {
+      "sn": 106,
+      "name": "Mt Livingstone",
+      "year_established": "2017",
+      "year_refurbished": null
+    },
+    {
+      "sn": 107,
+      "name": "Majimoto",
+      "year_established": "Q2 - June 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 108,
+      "name": "Uyole",
+      "year_established": "2016",
+      "year_refurbished": "Q3 - Aug. 2024"
+    },
+    {
+      "sn": 109,
+      "name": "Mlowo",
+      "year_established": "2016",
+      "year_refurbished": "Q3 - Sept. 2024"
+    },
+    {
+      "sn": 110,
+      "name": "Chunya",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 111,
+      "name": "Rungwe",
+      "year_established": "2015",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 112,
+      "name": "Nkasi",
+      "year_established": "Q1 - 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 113,
+      "name": "Songwe",
+      "year_established": "2017",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 114,
+      "name": "Mtwango",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 115,
+      "name": "Wanging'ombe",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 116,
+      "name": "Ikonda",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 117,
+      "name": "TRA- Tunduma",
+      "year_established": "2014",
+      "year_refurbished": null
+    },
+    {
+      "sn": 118,
+      "name": "Bunda",
+      "year_established": "2016",
+      "year_refurbished": "2023 (by RE & FM)"
+    },
+    {
+      "sn": 119,
+      "name": "Mwanza",
+      "year_established": "1985",
+      "year_refurbished": "2020"
+    },
+    {
+      "sn": 120,
+      "name": "Nyerere",
+      "year_established": "2004",
+      "year_refurbished": null
+    },
+    {
+      "sn": 121,
+      "name": "Nyanza",
+      "year_established": "2009",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 122,
+      "name": "Sirari",
+      "year_established": "Q3 - Aug. 2024",
+      "year_refurbished": null
+    },
+    {
+      "sn": 123,
+      "name": "Shirati",
+      "year_established": "Q1 - 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 124,
+      "name": "SAUT",
+      "year_established": "2016",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 125,
+      "name": "Bukoba",
+      "year_established": "1989",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 126,
+      "name": "Mugango",
+      "year_established": "Q4 - Nov. 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 127,
+      "name": "Karagwe",
+      "year_established": "1996",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 128,
+      "name": "Muleba",
+      "year_established": "2014",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 129,
+      "name": "Tarime",
+      "year_established": "2008",
+      "year_refurbished": "Q2 - 2022"
+    },
+    {
+      "sn": 130,
+      "name": "Musoma",
+      "year_established": "1997",
+      "year_refurbished": "Q2 - 2022"
+    },
+    {
+      "sn": 131,
+      "name": "Bariadi",
+      "year_established": "2011",
+      "year_refurbished": "Q3 - 2024 (by RE & FM)"
+    },
+    {
+      "sn": 132,
+      "name": "Buzuruga",
+      "year_established": "2015",
+      "year_refurbished": "Q3 - Aug. 2024"
+    },
+    {
+      "sn": 133,
+      "name": "Misungwi",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 134,
+      "name": "Rock City",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 135,
+      "name": "Rorya",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 136,
+      "name": "Nyamongo",
+      "year_established": "2020",
+      "year_refurbished": null
+    },
+    {
+      "sn": 137,
+      "name": "Nansio",
+      "year_established": "Q4 - 2021",
+      "year_refurbished": null
+    },
+    {
+      "sn": 138,
+      "name": "Ngara",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 139,
+      "name": "Mwaloni",
+      "year_established": "2011",
+      "year_refurbished": null
+    },
+    {
+      "sn": 140,
+      "name": "Bugando",
+      "year_established": "2003",
+      "year_refurbished": null
+    },
+    {
+      "sn": 141,
+      "name": "Meatu",
+      "year_established": "Q1 - 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 142,
+      "name": "Magu",
+      "year_established": "2015",
+      "year_refurbished": "Q3 - Aug. 2023"
+    },
+    {
+      "sn": 143,
+      "name": "Ilemela",
+      "year_established": "2015",
+      "year_refurbished": "Q3 - 2024 (by RE & FM)"
+    },
+    {
+      "sn": 144,
+      "name": "Mkuyuni",
+      "year_established": "2015",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 145,
+      "name": "Kwimba",
+      "year_established": "2015",
+      "year_refurbished": "Q3 - Aug. 2023"
+    },
+    {
+      "sn": 146,
+      "name": "Buhongwa",
+      "year_established": "2016",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 147,
+      "name": "Igoma",
+      "year_established": "2016",
+      "year_refurbished": "Q3 - 2022"
+    },
+    {
+      "sn": 148,
+      "name": "Kagera Sugar",
+      "year_established": "Q2 - 2022",
+      "year_refurbished": null
+    },
+    {
+      "sn": 149,
+      "name": "Nshamba",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 150,
+      "name": "Serengeti",
+      "year_established": "2016",
+      "year_refurbished": "Q2 - 2024 (by RE & FM)"
+    },
+    {
+      "sn": 151,
+      "name": "Rwamishenye",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 152,
+      "name": "Biharamulo",
+      "year_established": "2015",
+      "year_refurbished": "Q3 - Aug. 2023"
+    },
+    {
+      "sn": 153,
+      "name": "Rulenge",
+      "year_established": "Q3 - Aug. 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 154,
+      "name": "Kyerwa",
+      "year_established": "2015",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 155,
+      "name": "Mwanza Refinery",
+      "year_established": "2020",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 156,
+      "name": "Mutukula",
+      "year_established": "2020",
+      "year_refurbished": null
+    },
+    {
+      "sn": 157,
+      "name": "Maswa",
+      "year_established": "2014",
+      "year_refurbished": null
+    },
+    {
+      "sn": 158,
+      "name": "Sengerema",
+      "year_established": "2014",
+      "year_refurbished": "2023 (by RE & FM)"
+    },
+    {
+      "sn": 159,
+      "name": "Arusha",
+      "year_established": "1987",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 160,
+      "name": "Kwa Mromboo",
+      "year_established": "2014",
+      "year_refurbished": "Q2 - 2024 (by RE & FM)"
+    },
+    {
+      "sn": 161,
+      "name": "Mapato",
+      "year_established": "2006",
+      "year_refurbished": null
+    },
+    {
+      "sn": 162,
+      "name": "Meru",
+      "year_established": "2004",
+      "year_refurbished": "Q2 - 2022"
+    },
+    {
+      "sn": 163,
+      "name": "Dongobesh",
+      "year_established": "Q2 - 2022",
+      "year_refurbished": null
+    },
+    {
+      "sn": 164,
+      "name": "Monduli",
+      "year_established": "2015",
+      "year_refurbished": "Q1 - 2023"
+    },
+    {
+      "sn": 165,
+      "name": "Mto wa Mbu",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 166,
+      "name": "Ngaramtoni",
+      "year_established": "2013",
+      "year_refurbished": null
+    },
+    {
+      "sn": 167,
+      "name": "Njiro",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 168,
+      "name": "Sakina",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 169,
+      "name": "Namanga",
+      "year_established": "Q3 - Jul. 2025",
+      "year_refurbished": null
+    },
+    {
+      "sn": 170,
+      "name": "Soko Kuu",
+      "year_established": "2018",
+      "year_refurbished": null
+    },
+    {
+      "sn": 171,
+      "name": "Tengeru",
+      "year_established": "2015",
+      "year_refurbished": "Q3 - Aug. 2024"
+    },
+    {
+      "sn": 172,
+      "name": "Mererani Mineral Market",
+      "year_established": "Q2 - 2022",
+      "year_refurbished": null
+    },
+    {
+      "sn": 173,
+      "name": "Lushoto",
+      "year_established": "Q2 - 2022",
+      "year_refurbished": null
+    },
+    {
+      "sn": 174,
+      "name": "Cultural Heritage",
+      "year_established": "Q3 - 2021",
+      "year_refurbished": null
+    },
+    {
+      "sn": 175,
+      "name": "TFA",
+      "year_established": "2013",
+      "year_refurbished": null
+    },
+    {
+      "sn": 176,
+      "name": "Usa River",
+      "year_established": "2008",
+      "year_refurbished": null
+    },
+    {
+      "sn": 177,
+      "name": "Moshi",
+      "year_established": "1986",
+      "year_refurbished": "Q3 - Sept. 2024"
+    },
+    {
+      "sn": 178,
+      "name": "Hai",
+      "year_established": "1992",
+      "year_refurbished": "Q4 - 2024 (RE & FM)"
+    },
+    {
+      "sn": 179,
+      "name": "Marangu",
+      "year_established": "2009",
+      "year_refurbished": null
+    },
+    {
+      "sn": 180,
+      "name": "Babati",
+      "year_established": "2014",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 181,
+      "name": "Tanga",
+      "year_established": "1985",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 182,
+      "name": "Korogwe",
+      "year_established": "2008",
+      "year_refurbished": null
+    },
+    {
+      "sn": 183,
+      "name": "Handeni",
+      "year_established": "2017",
+      "year_refurbished": null
+    },
+    {
+      "sn": 184,
+      "name": "Muheza",
+      "year_established": "2017",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 185,
+      "name": "Mbuyuni",
+      "year_established": "2015",
+      "year_refurbished": "Q4 - Oct. 2023"
+    },
+    {
+      "sn": 186,
+      "name": "Siha",
+      "year_established": "2014",
+      "year_refurbished": null
+    },
+    {
+      "sn": 187,
+      "name": "Haydom",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 188,
+      "name": "Karatu",
+      "year_established": "2016",
+      "year_refurbished": "Q4 - Dec. 2023"
+    },
+    {
+      "sn": 189,
+      "name": "Mererani",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 190,
+      "name": "Katesh",
+      "year_established": "2017",
+      "year_refurbished": "2023 (by RE & FM)"
+    },
+    {
+      "sn": 191,
+      "name": "Tarakea",
+      "year_established": "2017",
+      "year_refurbished": null
+    },
+    {
+      "sn": 192,
+      "name": "Kiteto",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 193,
+      "name": "Mbulu",
+      "year_established": "2015",
+      "year_refurbished": "2022"
+    },
+    {
+      "sn": 194,
+      "name": "Mwanga",
+      "year_established": "2015",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 195,
+      "name": "Rombo Mkuu",
+      "year_established": "2015",
+      "year_refurbished": "Q4 - Nov. 2023"
+    },
+    {
+      "sn": 196,
+      "name": "Kilindi",
+      "year_established": "Q2 -  July 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 197,
+      "name": "Same",
+      "year_established": "2015",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 198,
+      "name": "Ngamiani",
+      "year_established": "2017",
+      "year_refurbished": null
+    },
+    {
+      "sn": 199,
+      "name": "KCMC",
+      "year_established": "2013",
+      "year_refurbished": "2021"
+    },
+    {
+      "sn": 200,
+      "name": "KIA- Bureau De Change",
+      "year_established": "2019",
+      "year_refurbished": null
+    },
+    {
+      "sn": 201,
+      "name": "TPC - MOSHI",
+      "year_established": "2001",
+      "year_refurbished": null
+    },
+    {
+      "sn": 202,
+      "name": "Mtwara",
+      "year_established": "1991",
+      "year_refurbished": "Q1 - 2021"
+    },
+    {
+      "sn": 203,
+      "name": "Lindi",
+      "year_established": "1989",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 204,
+      "name": "Masasi",
+      "year_established": "2012",
+      "year_refurbished": "2023 (by RE & FM)"
+    },
+    {
+      "sn": 205,
+      "name": "Nanyamba",
+      "year_established": "2020",
+      "year_refurbished": null
+    },
+    {
+      "sn": 206,
+      "name": "Newala",
+      "year_established": "2020",
+      "year_refurbished": null
+    },
+    {
+      "sn": 207,
+      "name": "Nanyumbu",
+      "year_established": "Q3 - Aug. 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 208,
+      "name": "Mbinga",
+      "year_established": "2008",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 209,
+      "name": "Songea",
+      "year_established": "1997",
+      "year_refurbished": null
+    },
+    {
+      "sn": 210,
+      "name": "Ruangwa",
+      "year_established": "2017",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 211,
+      "name": "Kilwa Kivinje",
+      "year_established": "Q1 - 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 212,
+      "name": "Liwale",
+      "year_established": "Q1 - 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 213,
+      "name": "Tandahimba",
+      "year_established": "2015",
+      "year_refurbished": "Q1 - 2023"
+    },
+    {
+      "sn": 214,
+      "name": "Nyasa",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 215,
+      "name": "Namtumbo",
+      "year_established": "2015",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 216,
+      "name": "Tunduru",
+      "year_established": "2015",
+      "year_refurbished": "Q4 - Nov. 2023"
+    },
+    {
+      "sn": 217,
+      "name": "Nachingwea",
+      "year_established": "2019",
+      "year_refurbished": null
+    },
+    {
+      "sn": 218,
+      "name": "Tabora",
+      "year_established": "1999",
+      "year_refurbished": "Q3 - Aug. 2024"
+    },
+    {
+      "sn": 219,
+      "name": "Urambo",
+      "year_established": "2013",
+      "year_refurbished": "2023 (by RE & FM)"
+    },
+    {
+      "sn": 220,
+      "name": "Kaliua",
+      "year_established": "Q1 - 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 221,
+      "name": "Kigoma",
+      "year_established": "2001",
+      "year_refurbished": "Q4 - Oct. 2023"
+    },
+    {
+      "sn": 222,
+      "name": "Kasulu",
+      "year_established": "2016",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 223,
+      "name": "Shinyanga",
+      "year_established": "1993",
+      "year_refurbished": null
+    },
+    {
+      "sn": 224,
+      "name": "Kahama",
+      "year_established": "2001",
+      "year_refurbished": "2024 (by RE & FM)"
+    },
+    {
+      "sn": 225,
+      "name": "Geita",
+      "year_established": "2008",
+      "year_refurbished": "2022 (by RE & FM)"
+    },
+    {
+      "sn": 226,
+      "name": "Chato",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 227,
+      "name": "Katoro",
+      "year_established": "2014",
+      "year_refurbished": null
+    },
+    {
+      "sn": 228,
+      "name": "Maganzo",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 229,
+      "name": "Mbogwe",
+      "year_established": "2015",
+      "year_refurbished": "2020"
+    },
+    {
+      "sn": 230,
+      "name": "Nzega",
+      "year_established": "2016",
+      "year_refurbished": "2024 (by RE & FM)"
+    },
+    {
+      "sn": 231,
+      "name": "Buhigwe",
+      "year_established": "Q3 - Aug. 2024",
+      "year_refurbished": null
+    },
+    {
+      "sn": 232,
+      "name": "Kibondo",
+      "year_established": "2015",
+      "year_refurbished": "Q4 - 2022"
+    },
+    {
+      "sn": 233,
+      "name": "Nyang'hwale",
+      "year_established": "2015",
+      "year_refurbished": null
+    },
+    {
+      "sn": 234,
+      "name": "Runzewe",
+      "year_established": "2016",
+      "year_refurbished": null
+    },
+    {
+      "sn": 235,
+      "name": "Igunga",
+      "year_established": "Q2 - June 2023",
+      "year_refurbished": null
+    },
+    {
+      "sn": 236,
+      "name": "Kakola",
+      "year_established": "2016",
+      "year_refurbished": "Q1 - 2022"
+    },
+    {
+      "sn": 237,
+      "name": "Tinde",
+      "year_established": null,
+      "year_refurbished": "2016"
+    },
+    {
+      "sn": 238,
+      "name": "Bukombe",
+      "year_established": null,
+      "year_refurbished": "2015"
+    },
+    {
+      "sn": 239,
+      "name": "Kahama Social",
+      "year_established": null,
+      "year_refurbished": "2016"
+    },
+    {
+      "sn": 240,
+      "name": "Nguruka",
+      "year_established": null,
+      "year_refurbished": "2015"
+    },
+    {
+      "sn": 241,
+      "name": "Sikonge",
+      "year_established": null,
+      "year_refurbished": "2014"
+    },
+    {
+      "sn": 242,
+      "name": "Kakonko",
+      "year_established": null,
+      "year_refurbished": "2015"
+    },
+    {
+      "sn": 243,
+      "name": "Geita Gold Market",
+      "year_established": null,
+      "year_refurbished": "2019"
+    },
+    {
+      "sn": 244,
+      "name": "MOBILE 4 - Itigi",
+      "year_established": null,
+      "year_refurbished": "2010"
+    },
+    {
+      "sn": 245,
+      "name": "MOBILE 7 - Momba",
+      "year_established": null,
+      "year_refurbished": "2012"
+    },
+    {
+      "sn": 246,
+      "name": "MOBILE 8 - At Pangani (Tanga",
+      "year_established": null,
+      "year_refurbished": "2012"
+    },
+    {
+      "sn": 247,
+      "name": "MOBILE 9 - A to Z",
+      "year_established": null,
+      "year_refurbished": "2012"
+    },
+    {
+      "sn": 248,
+      "name": "MOBILE 11 - Kasumulu",
+      "year_established": null,
+      "year_refurbished": "2013"
+    },
+    {
+      "sn": 249,
+      "name": "MOBILE 13 - Mwl. Nyerere Col",
+      "year_established": "l",
+      "year_refurbished": "2012"
+    },
+    {
+      "sn": 250,
+      "name": "MOBILE 15 - Sotta Mining (Ny",
+      "year_established": "a",
+      "year_refurbished": "2008"
+    },
+    {
+      "sn": 251,
+      "name": "MOBILE 16 - Lupatingatinga",
+      "year_established": null,
+      "year_refurbished": "2015"
+    },
+    {
+      "sn": 252,
+      "name": "MOBILE 19 - Makongolosi",
+      "year_established": null,
+      "year_refurbished": "2015"
+    }
+  ],
+  "institutions": {
+    "universities_and_colleges": [
+      {
+        "name": "OPEN UNIVERSITY OF TANZANIA (OUT – HQ)",
+        "year_established": 1992,
+        "ownership": "PUBLIC",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "BIMA ROAD",
+        "ward": "MIKOCHENI",
+        "district": "KINONDONI",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "MIKOCHENI",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "MUHIMBILI UNIVERSITY OF HEALTH & ALLIED SCIENCES (MUHAS)",
+        "year_established": 2006,
+        "ownership": "PUBLIC",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "MUHIMBILI",
+        "ward": "UPANGA WEST",
+        "district": "ILALA MC",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "PALM BEACH PREMIER",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "AGA KHAN UNIVERSITY (AKU)",
+        "year_established": 2001,
+        "ownership": "PRIVATE",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "UPANGA",
+        "ward": "UPANGA EAST",
+        "district": "ILALA MC",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "PALM BEACH PREMIER",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "ST. JOSEPH UNIVERSITY IN TANZANIA (SJUIT)",
+        "year_established": 2004,
+        "ownership": "PRIVATE",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "MIBURANI",
+        "ward": "KURASINI",
+        "district": "ILALA MC",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "AZIKIWE",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "KAMPALA INTERNATIONAL UNIVERSITY IN TANZANIA (KIUT)",
+        "year_established": 2008,
+        "ownership": "PRIVATE",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "GONGO LA MBOTO",
+        "ward": "GONGO LA MBOTO",
+        "district": "ILALA MC",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "GONGO LA MBOTO",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "RABININSIA MEMORIAL UNIVERSITY OF HEALTH & ALLIED SCIENCES (RMUHAS)",
+        "year_established": 2023,
+        "ownership": "PRIVATE",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "KIMARA",
+        "ward": "KIMARA",
+        "district": "UBUNGO MC",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "UBUNGO",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Provisional Lisence"
+      },
+      {
+        "name": "UNIVERSITY OF MEDICAL SCIENCES AND TECHNOLOGY (UMST)",
+        "year_established": 2023,
+        "ownership": "PRIVATE",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "SALASALA",
+        "ward": "KUNDUCHI",
+        "district": "KINONDONI",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "TEGETA",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Provisional Lisence"
+      },
+      {
+        "name": "MZUMBE UNIVERSITY – DAR ES SALAAM CAMPUS COLLEGE",
+        "year_established": 2005,
+        "ownership": "PUBLIC",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": "CAMPUS COLLEGE UNDER MU",
+        "street": "UPANGA",
+        "ward": "UPANGA WEST",
+        "district": "ILALA MC",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "CRDB UPANGA",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "ST. JOSEPH UNIVERSITY COLLEGE OF HEALTH AND ALLIED SCIENCES (SJCHAS)",
+        "year_established": 2015,
+        "ownership": "PRIVATE",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": "UNIVERSITY COLLEGE UNDER SJUIT",
+        "street": "MIBURANI",
+        "ward": "KURASINI",
+        "district": "ILALA MC",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "CRDB KURASINI",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "ST. AUGUSTINE UNIVERSITY OF TANZANIA (SAUT) –DAR ES SALAAM CENTRE",
+        "year_established": 2007,
+        "ownership": "PRIVATE",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": "UNIVERSITY CENTRE UNDER SAUT",
+        "street": "MSIMBAZI",
+        "ward": "ILALA",
+        "district": "ILALA MC",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "KARIAKOO NARUNG'OMBE",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "As per status of mother University"
+      },
+      {
+        "name": "HUBERT KAIRUKI MEMORIAL UNIVERSITY (HKMU)",
+        "year_established": 1996,
+        "ownership": "PRIVATE",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "REGENT ESTATE",
+        "ward": "MIKOCHENI",
+        "district": "KINONDONI",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "MIKOCHENI",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "UNITED AFRICAN UNIVERSITY OF TANZANIA (UAUT)",
+        "year_established": 2011,
+        "ownership": "PRIVATE",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "KIMARA",
+        "ward": "KIMARA",
+        "district": "KINONDONI",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "UBUNGO",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "DAR ES SALAAM TUMAINI UNIVERSITY  (DarTU) formally TUDARCo",
+        "year_established": 2023,
+        "ownership": "PRIVATE",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "KIJITONYAMA",
+        "ward": "KIJITONYAMA",
+        "district": "KINONDONI",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "DAR VILLAGE (KIJITONYAMA)",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "DAR ES SALAAM UNIVERSITY COLLEGE OF EDUCATION (DUCE)",
+        "year_established": 2005,
+        "ownership": "PUBLIC",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": "UNIVERSITY COLLEGE UNDER UDSM",
+        "street": "MLIMANI",
+        "ward": "CHANGANYIKENI",
+        "district": "KINONDONI",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "UDSM",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "UNIVERSITY OF DAR ES SALAAM (UDSM)",
+        "year_established": 1961,
+        "ownership": "PUBLIC",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "MLIMANI",
+        "ward": "UBUNGO",
+        "district": "KINONDONI",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "UDSM",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "ARDHI UNIVERSITY (ARU)",
+        "year_established": 2007,
+        "ownership": "PUBLIC",
+        "head_office": "DAR ES SALAAM",
+        "affiliation": null,
+        "street": "OBSERVATION HILL",
+        "ward": "UBUNGO",
+        "district": "UBUNGO MC",
+        "region": "DAR ES SALAAM",
+        "coordinating_branch": "ARDHI",
+        "zone": "DAR ES SALAAM ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "MARIAN UNIVERSITY COLLEGE (MARUCo)",
+        "year_established": 2015,
+        "ownership": "PRIVATE",
+        "head_office": "BAGAMOYO",
+        "affiliation": "UNIVERSITY COLLEGE UNDER SAUT",
+        "street": "BAGAMOYO TOWN",
+        "ward": "DUNDA",
+        "district": "BAGAMOYO",
+        "region": "PWANI",
+        "coordinating_branch": "BAGAMOYO",
+        "zone": "COASTAL ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "STATE UNIVERSITY OF ZANZIBAR (SUZA)",
+        "year_established": 1999,
+        "ownership": "PUBLIC",
+        "head_office": "ZANZIBAR",
+        "affiliation": null,
+        "street": "TUNGUU",
+        "ward": "TUNGUU",
+        "district": "MAGHARIBI B",
+        "region": "URBAN WEST",
+        "coordinating_branch": "ZANZIBAR",
+        "zone": "COASTAL ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "ABDULRAHMAN AL‑SUMAIT UNIVERSITY (SUMAIT)",
+        "year_established": 1998,
+        "ownership": "PRIVATE",
+        "head_office": "ZANZIBAR",
+        "affiliation": null,
+        "street": "CHUKWANI",
+        "ward": "CHUKWANI",
+        "district": "MAGHARIBI B",
+        "region": "URBAN WEST",
+        "coordinating_branch": "ZANZIBAR",
+        "zone": "COASTAL ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "INSTITUTE OF MARINE SCIENCES (IMS)",
+        "year_established": 1979,
+        "ownership": "PUBLIC",
+        "head_office": "ZANZIBAR",
+        "affiliation": "UNIVERSITY COLLEGE UNDER UDSM",
+        "street": "VUGA",
+        "ward": "STONE TOWN",
+        "district": "URBAN",
+        "region": "URBAN WEST",
+        "coordinating_branch": "ZANZIBAR",
+        "zone": "COASTAL ZONE",
+        "accreditation_status": "As per status of mother University"
+      },
+      {
+        "name": "ZANZIBAR UNIVERSITY (ZU)",
+        "year_established": 1998,
+        "ownership": "PRIVATE",
+        "head_office": "ZANZIBAR",
+        "affiliation": null,
+        "street": "FUONI",
+        "ward": "FUONI",
+        "district": "KASKAZINI B",
+        "region": "NORTH UNGUJA",
+        "coordinating_branch": "ZANZIBAR",
+        "zone": "COASTAL ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "TUMAINI UNIVERSITY MAKUMIRA (TUMA)",
+        "year_established": 1999,
+        "ownership": "PRIVATE",
+        "head_office": "ARUSHA",
+        "affiliation": null,
+        "street": "USA RIVER",
+        "ward": "POLI",
+        "district": "ARUSHA RURAL",
+        "region": "ARUSHA",
+        "coordinating_branch": "USA RIVER",
+        "zone": "NORTHERN ZONE",
+        "accreditation_status": "Certificate of full registration & Chartered"
+      },
+      {
+        "name": "UNIVERSITY OF ARUSHA (UoA)",
+        "year_established": 2003,
+        "ownership": "PRIVATE",
+        "head_office": "ARUSHA",
+        "affiliation": null,
+        "street": "USA RIVER",
+        "ward": "USA RIVER",
+        "district": "ARUSHA RURAL",
+        "region": "ARUSHA",
+        "coordinating_branch": "USA RIVER",
+        "zone": "NORTHERN ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "NELSON MANDELA SCIENCE INSTITUTION OF SCIENCE & TECHNOLOGY (NMAIST)",
+        "year_established": 2005,
+        "ownership": "PUBLIC",
+        "head_office": "ARUSHA",
+        "affiliation": null,
+        "street": "TENGERU",
+        "ward": "NKOARANGA",
+        "district": "ARUSHA URBAN",
+        "region": "ARUSHA",
+        "coordinating_branch": "USA RIVER",
+        "zone": "NORTHERN ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "ST. AUGUSTINE UNIVERSITY OF TANZANIA, ARUSHA CENTRE",
+        "year_established": 2013,
+        "ownership": "PRIVATE",
+        "head_office": "ARUSHA",
+        "affiliation": "UNIVERSITY CENTRE UNDER SAUT",
+        "street": "SAKINA AREA",
+        "ward": "NGARENARO",
+        "district": "ARUSHA CITY",
+        "region": "ARUSHA",
+        "coordinating_branch": "SAKINA",
+        "zone": "NORTHERN ZONE",
+        "accreditation_status": "As per status of mother University"
+      },
+      {
+        "name": "MWENGE CATHOLIC UNIVERSITY (MWECAU)",
+        "year_established": 2005,
+        "ownership": "PRIVATE",
+        "head_office": "MOSHI",
+        "affiliation": null,
+        "street": "MOSHI",
+        "ward": "MKUU",
+        "district": "MOSHI RURAL",
+        "region": "KILIMANJARO",
+        "coordinating_branch": "MOSHI",
+        "zone": "NORTHERN ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "STEPHANO MOSHI MEMORIAL UNIVERSITY COLLEGE, MWIKA CENTRE",
+        "year_established": 2009,
+        "ownership": "PRIVATE",
+        "head_office": "MOSHI",
+        "affiliation": "UNIVERSITY CENTRE UNDER SMMUCo",
+        "street": "MWIKA",
+        "ward": "MWIKA KASKAZINI",
+        "district": "MOSHI RURAL",
+        "region": "KILIMANJARO",
+        "coordinating_branch": "MARANGU",
+        "zone": "NORTHERN ZONE",
+        "accreditation_status": "As per status of mother University"
+      },
+      {
+        "name": "MOSHI COOPERATIVE UNIVERSITY (MoCU)",
+        "year_established": 2012,
+        "ownership": "PUBLIC",
+        "head_office": "MOSHI",
+        "affiliation": null,
+        "street": "MOSHI TOWN",
+        "ward": "KIBORILONI",
+        "district": "MOSHI URBAN",
+        "region": "KILIMANJARO",
+        "coordinating_branch": "MOSHI",
+        "zone": "NORTHERN ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "STEFANO MOSHI MEMORIAL UNIVERSITY COLLEGE (SMMUCo)",
+        "year_established": 2000,
+        "ownership": "PRIVATE",
+        "head_office": "MOSHI",
+        "affiliation": "UNIVERSITY COLLEGE UNDER TUMA",
+        "street": "MOSHI TOWN",
+        "ward": "SHANTY TOWN",
+        "district": "MOSHI URBAN",
+        "region": "KILIMANJARO",
+        "coordinating_branch": "MOSHI",
+        "zone": "NORTHERN ZONE",
+        "accreditation_status": "Certificate of full registration & Chartered"
+      },
+      {
+        "name": "KILIMANJARO CHRISTIAN MEDICAL UNIVERSITY COLLEGE (KCMUCo)",
+        "year_established": 1998,
+        "ownership": "PRIVATE",
+        "head_office": "MOSHI",
+        "affiliation": "UNIVERSITY COLLEGE UNDER TUMA",
+        "street": "KCMC AREA",
+        "ward": "KIBORILONI",
+        "district": "MOSHI URBAN",
+        "region": "KILIMANJARO",
+        "coordinating_branch": "KCMC",
+        "zone": "NORTHERN ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "SOKOINE UNIVERSITY OF AGRICULTURE - MIZENGO PINDA CAMPUS COLLEGE (SUA-MPC)",
+        "year_established": 2020,
+        "ownership": "PUBLIC",
+        "head_office": "KATAVI",
+        "affiliation": "CAMPUS COLLEGE UNDER SUA",
+        "street": "MPANDA TOWN",
+        "ward": "MPANDA",
+        "district": "MPANDA",
+        "region": "KATAVI",
+        "coordinating_branch": "MPANDA",
+        "zone": "HIGHLAND ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "MBEYA UNIVERSITY OF SCIENCE & TECHNOLOGY (MUST)",
+        "year_established": 2012,
+        "ownership": "PUBLIC",
+        "head_office": "MBEYA",
+        "affiliation": null,
+        "street": "MUST CAMPUS",
+        "ward": "IYUNGA",
+        "district": "MBEYA URBAN",
+        "region": "MBEYA",
+        "coordinating_branch": "MWANJELWA",
+        "zone": "HIGHLAND ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "TEOFILO KISANJI UNIVERSITY (TEKU)",
+        "year_established": 2004,
+        "ownership": "PRIVATE",
+        "head_office": "MBEYA",
+        "affiliation": null,
+        "street": "FOREST AREA",
+        "ward": "FOREST",
+        "district": "MBEYA URBAN",
+        "region": "MBEYA",
+        "coordinating_branch": "MBEYA",
+        "zone": "HIGHLAND ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "CATHOLIC UNIVERSITY OF MBEYA (CUoM) formerly CUCoM",
+        "year_established": 2023,
+        "ownership": "PRIVATE",
+        "head_office": "MBEYA",
+        "affiliation": null,
+        "street": "MBEYA",
+        "ward": "RUANDA",
+        "district": "MBEYA URBAN",
+        "region": "MBEYA",
+        "coordinating_branch": "MBEYA",
+        "zone": "HIGHLAND ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "MBEYA COLLEGE OF HEALTH & ALLIED SCIENCES (MCHAS)",
+        "year_established": 2014,
+        "ownership": "PUBLIC",
+        "head_office": "MBEYA",
+        "affiliation": "CAMPUS COLLEGE UNDER UDSM",
+        "street": "MBEYA TOWN",
+        "ward": "IYUNGA",
+        "district": "MBEYA URBAN",
+        "region": "MBEYA",
+        "coordinating_branch": "MBEYA",
+        "zone": "HIGHLAND ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "MZUMBE UNIVERSITY – MBEYA CAMPUS COLLEGE",
+        "year_established": 2006,
+        "ownership": "PUBLIC",
+        "head_office": "MBEYA",
+        "affiliation": "CAMPUS COLLEGE UNDER MU",
+        "street": "MBEYA CAMPUS",
+        "ward": "IYUNGA",
+        "district": "MBEYA URBAN",
+        "region": "MBEYA",
+        "coordinating_branch": "MWANJELWA",
+        "zone": "HIGHLAND ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "MUST –RUKWA CAMPUS COLLEGE (MUST-RC)",
+        "year_established": 2019,
+        "ownership": "PUBLIC",
+        "head_office": "RUKWA",
+        "affiliation": "CAMPUS COLLGE UNDER MUST",
+        "street": "CRDB SUMBAWANGA",
+        "ward": "SUMBAWANGA TOWN",
+        "district": "SUMBAWANGA",
+        "region": "SUMBAWANGA",
+        "coordinating_branch": "SUMBAWANGA",
+        "zone": "HIGHLAND ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "STELLA MARIS MTWARA UNIVERSITY COLLEGE (STeMMUCo)",
+        "year_established": 2011,
+        "ownership": "PRIVATE",
+        "head_office": "MTWARA",
+        "affiliation": "UNIVERSITY COLLEGE UNDER SAUT",
+        "street": "SHANGANI AREA",
+        "ward": "SHANGANI",
+        "district": "MTWARA URBAN",
+        "region": "MTWARA",
+        "coordinating_branch": "MTWARA",
+        "zone": "SOUTHERN ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "ARCHBISHOP MIHAYO UNIVERSITY COLLEGE OF TABORA (AMUCTA)",
+        "year_established": 2010,
+        "ownership": "PRIVATE",
+        "head_office": "TABORA",
+        "affiliation": "UNIVERSITY COLLEGE UNDER SAUT",
+        "street": "TABORA TOWN",
+        "ward": "ISEVYA",
+        "district": "TABORA URBAN",
+        "region": "TABORA",
+        "coordinating_branch": "TABORA",
+        "zone": "WESTERN ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "KIZUMBI INSTITUTE OF COOPERATIVE BUSINESS EDUCATION (KICoB)",
+        "year_established": 2021,
+        "ownership": "PUBLIC",
+        "head_office": "SHINYANGA",
+        "affiliation": "UNIVERSITY INSTITUTE UNDER MoCU",
+        "street": "SHINYANGA TOWN",
+        "ward": "KIZUMBI",
+        "district": "SHINYANGA URBAN",
+        "region": "SHINYANGA",
+        "coordinating_branch": "SHINYANGA",
+        "zone": "WESTERN ZONE",
+        "accreditation_status": "As per status of mother University"
+      },
+      {
+        "name": "ST. AUGUSTINE UNIVERSITY OF TANZANIA (SAUT)",
+        "year_established": 1998,
+        "ownership": "PRIVATE",
+        "head_office": "MWANZA",
+        "affiliation": null,
+        "street": "NYEGEZI",
+        "ward": "NYEGEZI",
+        "district": "NYAMAGANA",
+        "region": "MWANZA",
+        "coordinating_branch": "MWANZA",
+        "zone": "LAKE ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "CATHOLIC UNIVERSITY OF HEALTH & ALLIED SCIENCES (CUHAS)",
+        "year_established": 2003,
+        "ownership": "PRIVATE",
+        "head_office": "MWANZA",
+        "affiliation": null,
+        "street": "BUGANDO HILL",
+        "ward": "BUGANDO",
+        "district": "NYAMAGANA",
+        "region": "MWANZA",
+        "coordinating_branch": "BUGANDO",
+        "zone": "LAKE ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "MWANZA UNIVERSITY (MzU)",
+        "year_established": 2021,
+        "ownership": "PRIVATE",
+        "head_office": "MWANZA",
+        "affiliation": null,
+        "street": "MWANZA",
+        "ward": "CAPRI POINT",
+        "district": "NYAMAGANA",
+        "region": "MWANZA",
+        "coordinating_branch": "MWANZA",
+        "zone": "LAKE ZONE",
+        "accreditation_status": "Provisional Lisence"
+      },
+      {
+        "name": "MWALIMU JULIUS K. NYERERE UNIVERSITY OF AGRICULTURE & TECHNOLOGY (MJNUAT)",
+        "year_established": 2012,
+        "ownership": "PUBLIC",
+        "head_office": "MUSOMA",
+        "affiliation": null,
+        "street": "MUSOMA",
+        "ward": "MWISENGE",
+        "district": "MUSOMA URBAN",
+        "region": "MARA",
+        "coordinating_branch": "MUSOMA",
+        "zone": "LAKE ZONE",
+        "accreditation_status": "Provisional Lisence"
+      },
+      {
+        "name": "UNIVERSITY OF DODOMA (UDOM)",
+        "year_established": 2007,
+        "ownership": "PUBLIC",
+        "head_office": "DODOMA",
+        "affiliation": null,
+        "street": "UDOM CAMPUS",
+        "ward": "CHIMWAGA",
+        "district": "DODOMA URBAN",
+        "region": "DODOMA",
+        "coordinating_branch": "UDOM",
+        "zone": "CENTRAL ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "ST. JOHN'S UNIVERSITY OF TANZANIA (SJUT)",
+        "year_established": 2007,
+        "ownership": "PRIVATE",
+        "head_office": "DODOMA",
+        "affiliation": null,
+        "street": "DODOMA",
+        "ward": "AREA C",
+        "district": "DODOMA URBAN",
+        "region": "DODOMA",
+        "coordinating_branch": "DODOMA",
+        "zone": "CENTRAL ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "SOKOINE UNIVERSITY OF AGRICULTURE (SUA)",
+        "year_established": 1984,
+        "ownership": "PUBLIC",
+        "head_office": "MOROGORO",
+        "affiliation": null,
+        "street": "SUA CAMPUS",
+        "ward": "MAZIMBU",
+        "district": "MOROGORO URBAN",
+        "region": "MOROGORO",
+        "coordinating_branch": "SUA",
+        "zone": "CENTRAL ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "MUSLIM UNIVERSITY OF MOROGORO (MUM)",
+        "year_established": 2005,
+        "ownership": "PRIVATE",
+        "head_office": "MOROGORO",
+        "affiliation": null,
+        "street": "KINGOLWIRA",
+        "ward": "KINGOLWIRA",
+        "district": "MOROGORO RURAL",
+        "region": "MOROGORO",
+        "coordinating_branch": "MZUMBE",
+        "zone": "CENTRAL ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "JORDAN UNIVERSITY COLLEGE (JUCo)",
+        "year_established": 2010,
+        "ownership": "PRIVATE",
+        "head_office": "MOROGORO",
+        "affiliation": "UNIVERSITY COLLEGE UNDER SAUT",
+        "street": "MOROGORO TOWN",
+        "ward": "KOLA",
+        "district": "MOROGORO URBAN",
+        "region": "MOROGORO",
+        "coordinating_branch": "MOROGORO",
+        "zone": "CENTRAL ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "ST. FRANCIS UNIVERSITY COLLEGE OF HEALTH AND ALLIED SCIENCES (SFUCHAS)",
+        "year_established": 2015,
+        "ownership": "PRIVATE",
+        "head_office": "MOROGORO",
+        "affiliation": "UNIVERSITY COLLEGE UNDER SAUT",
+        "street": "MOROGORO",
+        "ward": "KOLA",
+        "district": "MOROGORO URBAN",
+        "region": "MOROGORO",
+        "coordinating_branch": "MOROGORO",
+        "zone": "CENTRAL ZONE",
+        "accreditation_status": "Certificate of full registration"
+      },
+      {
+        "name": "MZUMBE UNIVERSITY (MU)",
+        "year_established": 2001,
+        "ownership": "PUBLIC",
+        "head_office": "MOROGORO",
+        "affiliation": null,
+        "street": "MZUMBE CAMPUS",
+        "ward": "MZUMBE",
+        "district": "MVOMERO",
+        "region": "MOROGORO",
+        "coordinating_branch": "MZUMBE",
+        "zone": "CENTRAL ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      },
+      {
+        "name": "UNIVERISTY OF IRINGA (UoI)",
+        "year_established": 2005,
+        "ownership": "PRIVATE",
+        "head_office": "IRINGA",
+        "affiliation": null,
+        "street": "GANGILONGA AREA",
+        "ward": "GANGILONGA",
+        "district": "IRINGA MUNICIPAL",
+        "region": "IRINGA",
+        "coordinating_branch": "IRINGA",
+        "zone": "CENTRAL ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "RUAHA CATHOLIC UNIVERSITY (RUCU)",
+        "year_established": 2014,
+        "ownership": "PRIVATE",
+        "head_office": "IRINGA",
+        "affiliation": null,
+        "street": "MLANDEGE",
+        "ward": "MLANDEGE",
+        "district": "IRINGA URBAN",
+        "region": "IRINGA",
+        "coordinating_branch": "IRINGA",
+        "zone": "CENTRAL ZONE",
+        "accreditation_status": "Accredited"
+      },
+      {
+        "name": "MKWAWA UNIVERSITY COLLEGE OF EDUCATION (MUCE)",
+        "year_established": 2005,
+        "ownership": "PUBLIC",
+        "head_office": "IRINGA",
+        "affiliation": "UNIVERSITY COLLEGE UNDER UDSM",
+        "street": "MKWAWA ROAD",
+        "ward": "GANGILONGA",
+        "district": "IRINGA URBAN",
+        "region": "IRINGA",
+        "coordinating_branch": "IRINGA",
+        "zone": "CENTRAL ZONE",
+        "accreditation_status": "Accredited & Chartered"
+      }
+    ],
+    "jkt_barracks": [
+      {
+        "name": "MUHEMBA",
+        "barrack_number": "822KJ",
+        "location": "MUSOMA",
+        "coordinating_branch": "MUSOMA",
+        "supporting_branches": [
+          "SIRARI",
+          "BUTIAMA"
+        ]
+      },
+      {
+        "name": "MSANGE JKT",
+        "barrack_number": "823KJ",
+        "location": "TABORA",
+        "coordinating_branch": "TABORA",
+        "supporting_branches": [
+          "URAMBO",
+          "NZEGA"
+        ]
+      },
+      {
+        "name": "KANEMBWA",
+        "barrack_number": "824KJ",
+        "location": "KIGOMA",
+        "coordinating_branch": "KIGOMA",
+        "supporting_branches": [
+          "KIBONDO",
+          "KAKONKO"
+        ]
+      },
+      {
+        "name": "MTABILA",
+        "barrack_number": "825KJ",
+        "location": "KIGOMA",
+        "coordinating_branch": "KIGOMA",
+        "supporting_branches": [
+          "KASULU",
+          "KIGOMA"
+        ]
+      },
+      {
+        "name": "BULOMBORA",
+        "barrack_number": "821KJ",
+        "location": "KIGOMA",
+        "coordinating_branch": "KIGOMA",
+        "supporting_branches": [
+          "KIGOMA"
+        ]
+      },
+      {
+        "name": "LUWA",
+        "barrack_number": "846KJ",
+        "location": "SUMBAWANGA",
+        "coordinating_branch": "SUMBAWANGA",
+        "supporting_branches": [
+          "SUMBAWANGA"
+        ]
+      },
+      {
+        "name": "MIRUNDIKWA",
+        "barrack_number": "847KJ",
+        "location": "SUMBAWANGA",
+        "coordinating_branch": "SUMBAWANGA",
+        "supporting_branches": [
+          "SUMBAWANGA",
+          "NKASI"
+        ]
+      },
+      {
+        "name": "ITAKA",
+        "barrack_number": "845KJ",
+        "location": "SONGWE",
+        "coordinating_branch": "MBOZI",
+        "supporting_branches": [
+          "MLOWO",
+          "MBOZI"
+        ]
+      },
+      {
+        "name": "MAFINGA",
+        "barrack_number": "841KJ",
+        "location": "IRINGA",
+        "coordinating_branch": "IRINGA",
+        "supporting_branches": [
+          "MAFINGA"
+        ]
+      },
+      {
+        "name": "CHITA",
+        "barrack_number": "837KJ",
+        "location": "MOROGORO",
+        "coordinating_branch": "MOROGORO",
+        "supporting_branches": [
+          "KILOMBERO",
+          "IFAKARA"
+        ]
+      },
+      {
+        "name": "MLALE",
+        "barrack_number": "842KJ",
+        "location": "SONGEA",
+        "coordinating_branch": "SONGEA",
+        "supporting_branches": [
+          "SONGEA"
+        ]
+      },
+      {
+        "name": "NACHINGWEA BRIGEDI",
+        "barrack_number": "843KJ",
+        "location": "NACHINGWEA",
+        "coordinating_branch": "NACHINGWEA",
+        "supporting_branches": [
+          "NACHINGWEA"
+        ]
+      },
+      {
+        "name": "KIBITI",
+        "barrack_number": "830KJ",
+        "location": "DAR ES SALAAM",
+        "coordinating_branch": "KIBITI",
+        "supporting_branches": [
+          "KIBITI"
+        ]
+      },
+      {
+        "name": "MGULANI",
+        "barrack_number": "831KJ",
+        "location": "DAR ES SALAAM",
+        "coordinating_branch": "TEMEKE",
+        "supporting_branches": [
+          "TANDIKA",
+          "CHANG'OMBE",
+          "PUGU"
+        ]
+      },
+      {
+        "name": "RUVU",
+        "barrack_number": "832KJ",
+        "location": "CHALINZE",
+        "coordinating_branch": "KIBAHA",
+        "supporting_branches": [
+          "MLANDIZI",
+          "CHALINZE"
+        ]
+      },
+      {
+        "name": "MALAMBA",
+        "barrack_number": "838KJ",
+        "location": "TANGA",
+        "coordinating_branch": "TANGA",
+        "supporting_branches": [
+          "NGAMIANI",
+          "TANGA"
+        ]
+      },
+      {
+        "name": "MGAMBO",
+        "barrack_number": "835KJ",
+        "location": "TANGA",
+        "coordinating_branch": "TANGA",
+        "supporting_branches": [
+          "HANDENI",
+          "KOROGWE"
+        ]
+      },
+      {
+        "name": "OLJORO",
+        "barrack_number": "833KJ",
+        "location": "MONDULI",
+        "coordinating_branch": "ARUSHA",
+        "supporting_branches": [
+          "MERU",
+          "MONDULI"
+        ]
+      },
+      {
+        "name": "MAKUYUNI",
+        "barrack_number": "839KJ",
+        "location": "ARUSHA",
+        "coordinating_branch": "ARUSHA",
+        "supporting_branches": [
+          "MONDULI",
+          "ARUSHA"
+        ]
+      },
+      {
+        "name": "MPWAPWA",
+        "barrack_number": "826KJ",
+        "location": "DODOMA",
+        "coordinating_branch": "DODOMA",
+        "supporting_branches": [
+          "MPWAPWA",
+          "DODOMA"
+        ]
+      },
+      {
+        "name": "MAKUTUPORA",
+        "barrack_number": "834KJ",
+        "location": "DODOMA",
+        "coordinating_branch": "DODOMA",
+        "supporting_branches": [
+          "LAPF DODOMA",
+          "BUNGE"
+        ]
+      }
+    ]
+  }
+}

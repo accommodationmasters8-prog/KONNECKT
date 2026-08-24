@@ -1,0 +1,92 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background: var(--surface-inverse);
+  color: var(--text-on-inverse);
+  border-bottom: 1px solid var(--line-on-inverse);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  min-height: 60px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  text-decoration: none;
+  color: var(--text-on-inverse);
+  margin-inline-end: auto;
+}
+
+.brandMark {
+  inline-size: 26px;
+  flex: none;
+}
+
+.brandWord {
+  font-family: var(--font-display);
+  font-weight: var(--weight-black);
+  font-size: 1.125rem;
+  letter-spacing: var(--tracking-display);
+}
+
+/* The green "E" is the wordmark's own code-switch, carried through from the
+   logo where green sets "ONE" inside KONEKT. */
+.brandWordAccent { color: var(--konekt-green); }
+
+.nav {
+  display: none;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 56rem) {
+  .nav { display: flex; }
+}
+
+.navLink {
+  color: var(--text-muted-on-inverse);
+  text-decoration: none;
+  font-size: var(--size-caption);
+  font-weight: var(--weight-medium);
+  padding-block: var(--space-xs);
+  border-bottom: 2px solid transparent;
+  transition: color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out);
+}
+
+.navLink:hover,
+.navLink:focus-visible {
+  color: var(--text-on-inverse);
+  border-bottom-color: var(--konekt-teal);
+}
+
+.lang {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 48px;
+  min-block-size: 40px;
+  padding-inline: var(--space-sm);
+  border: 1px solid var(--line-on-inverse);
+  border-radius: var(--radius-pill);
+  color: var(--text-on-inverse);
+  font-family: var(--font-display);
+  font-size: var(--size-caption);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+.lang:hover {
+  background: var(--konekt-teal);
+  border-color: var(--konekt-teal);
+  color: var(--konekt-ink);
+}

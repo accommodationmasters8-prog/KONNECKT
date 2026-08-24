@@ -1,0 +1,88 @@
+.section {
+  --reveal-cover: var(--surface-canvas);
+  background: var(--surface-canvas);
+}
+
+.lead { margin-block: var(--space-md) var(--space-lg); }
+
+.notice {
+  display: flex;
+  gap: var(--space-xs);
+  max-width: var(--measure);
+  font-size: var(--size-caption);
+  color: var(--text-body);
+  border-inline-start: 3px solid var(--konekt-yellow);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-tint);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-block-end: var(--space-xl);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-md);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 40rem) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (min-width: 62rem) {
+  .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+}
+
+.badgeSoon {
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  color: var(--text-body);
+}
+
+.sampleTag {
+  font-family: var(--font-display);
+  font-size: var(--size-micro);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-body);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-sm);
+  padding: 0.125rem 0.375rem;
+}
+
+.cardTitle { color: var(--text-strong); }
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  margin: 0;
+  margin-block-start: auto;
+  padding-block-start: var(--space-sm);
+  border-block-start: 1px solid var(--line-soft);
+}
+
+.metaValue {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-xs);
+  margin: 0;
+  font-size: var(--size-caption);
+  color: var(--text-body);
+}
+
+/* The place marker stays on the first line when the venue name wraps. */
+.metaValue .tri { margin-block-start: 0.35em; }

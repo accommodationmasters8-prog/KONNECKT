@@ -1,0 +1,125 @@
+.hero {
+  background: var(--surface-inverse);
+  color: var(--text-on-inverse);
+  padding-block-start: clamp(2.5rem, 7vw, 5rem);
+  /* The events section carries a chevron edge and overlaps this one by
+     --chev-notch-d. Without this reserve its notch covers the bottom row of
+     the stats — which it did, on Swahili, where the longer labels wrap to two
+     rows. See the clearance requirement in globals.css. */
+  padding-block-end: calc(var(--space-xl) + var(--chev-notch-d));
+  position: relative;
+  isolation: isolate;
+  /* The teal bloom below is deliberately hung off the right edge; without
+     this it widens the document and the whole page scrolls sideways. */
+  overflow: clip;
+}
+
+/* A single soft teal bloom behind the mark. One gradient, no mesh, no glass. */
+.hero::before {
+  content: '';
+  position: absolute;
+  inset-block-start: -20%;
+  inset-inline-end: -10%;
+  inline-size: min(70vw, 620px);
+  aspect-ratio: 1;
+  z-index: -1;
+  background: radial-gradient(
+    circle at center,
+    color-mix(in srgb, var(--konekt-teal) 26%, transparent),
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+.inner {
+  display: grid;
+  gap: var(--space-xl);
+  align-items: center;
+}
+
+@media (min-width: 62rem) {
+  .inner {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 0.75fr);
+    gap: var(--space-2xl);
+  }
+}
+
+.copy { min-width: 0; }
+
+.eyebrow {
+  color: var(--konekt-yellow);
+  margin-block-end: var(--space-md);
+}
+
+.headline {
+  display: flex;
+  flex-direction: column;
+  color: var(--text-on-inverse);
+  margin-block-end: var(--space-lg);
+}
+
+.headlineLead {
+  font-size: 0.34em;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+  color: var(--text-muted-on-inverse);
+  text-transform: lowercase;
+}
+
+.headlineMark { color: var(--konekt-teal); }
+
+.headlineTail {
+  font-size: 0.34em;
+  font-weight: var(--weight-bold);
+  color: var(--konekt-green);
+  letter-spacing: var(--tracking-display);
+}
+
+.subline {
+  color: var(--text-muted-on-inverse);
+  margin-block-end: var(--space-xl);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-block-end: var(--space-xl);
+}
+
+.stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-lg) var(--space-xl);
+  margin: 0;
+  padding-block-start: var(--space-lg);
+  border-block-start: 1px solid var(--line-on-inverse);
+}
+
+.stat { display: flex; flex-direction: column-reverse; gap: var(--space-2xs); }
+
+.statValue {
+  margin: 0;
+  font-size: var(--size-h2);
+  color: var(--konekt-teal);
+  line-height: 1;
+}
+
+.statLabel {
+  font-size: var(--size-caption);
+  color: var(--text-muted-on-inverse);
+}
+
+.markWrap {
+  display: flex;
+  justify-content: center;
+  order: -1;
+}
+
+@media (min-width: 62rem) {
+  .markWrap { order: 0; }
+}
+
+.mark {
+  inline-size: clamp(160px, 42vw, 340px);
+}

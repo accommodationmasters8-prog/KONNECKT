@@ -1,0 +1,8 @@
+.main {
+  min-block-size: 60dvh;
+  background: var(--surface-canvas);
+}
+
+.body {
+  margin-block: var(--space-md) var(--space-xl);
+}

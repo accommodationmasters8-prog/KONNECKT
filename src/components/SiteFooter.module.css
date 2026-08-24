@@ -1,0 +1,89 @@
+.footer {
+  background: var(--surface-inverse);
+  color: var(--text-on-inverse);
+  padding-block-end: var(--space-xl);
+}
+
+.inner {
+  display: grid;
+  gap: var(--space-xl);
+  padding-block-end: var(--space-xl);
+}
+
+@media (min-width: 52rem) {
+  .inner { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); }
+}
+
+.brandBlock { max-inline-size: 40ch; }
+
+.mark {
+  inline-size: 40px;
+  margin-block-end: var(--space-sm);
+}
+
+.tagline {
+  font-family: var(--font-display);
+  font-weight: var(--weight-black);
+  font-size: var(--size-h3);
+  letter-spacing: var(--tracking-display);
+  margin-block-end: var(--space-sm);
+}
+
+.taglineMark { color: var(--konekt-teal); }
+
+.attribution {
+  color: var(--text-muted-on-inverse);
+  margin-block-end: var(--space-xs);
+}
+
+.regulator { color: var(--text-muted-on-inverse); }
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+}
+
+@media (min-width: 30rem) {
+  .columns { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.column ul {
+  display: flex;
+  flex-direction: column;
+}
+
+.columnTitle {
+  font-family: var(--font-display);
+  font-size: var(--size-micro);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--konekt-teal);
+  margin-block-end: var(--space-sm);
+}
+
+/* Sized as a real thumb target, not a line of text. This is a product for
+   people on phones; a 14px link in a footer column is not tappable. */
+.link {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 44px;
+  color: var(--text-muted-on-inverse);
+  text-decoration: none;
+  font-size: var(--size-caption);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.link:hover { color: var(--text-on-inverse); text-decoration: underline; }
+.link[aria-current='true'] { color: var(--konekt-teal); font-weight: var(--weight-semibold); }
+
+.baseline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs) var(--space-lg);
+  justify-content: space-between;
+  padding-block-start: var(--space-lg);
+  border-block-start: 1px solid var(--line-on-inverse);
+  color: var(--text-muted-on-inverse);
+}
