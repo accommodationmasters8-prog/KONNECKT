@@ -1,0 +1,50 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-display);
+  white-space: nowrap;
+}
+
+.md { padding: 0.4rem 0.9rem; font-size: var(--size-caption); }
+.sm { padding: 0.25rem 0.65rem; font-size: var(--size-micro); }
+
+.silver   { background: var(--tier-silver); color: var(--konekt-ink); }
+.gold     { background: var(--tier-gold);   color: var(--konekt-ink); }
+.platinum { background: var(--tier-platinum); color: var(--konekt-ink); }
+
+.none {
+  background: var(--surface-sunken);
+  color: var(--text-body);
+  font-weight: var(--weight-semibold);
+}
+
+/* Three rungs, filled to match the tier — the same ladder the membership
+   section uses, so the mark means the same thing everywhere. */
+.rungs { display: inline-flex; align-items: flex-end; gap: 2px; }
+
+.rungs i {
+  display: block;
+  inline-size: 3px;
+  background: currentColor;
+  border-radius: 1px;
+  opacity: 0.3;
+}
+
+.rungs i:nth-child(1) { block-size: 6px; }
+.rungs i:nth-child(2) { block-size: 9px; }
+.rungs i:nth-child(3) { block-size: 12px; }
+
+.silver .rungs i:nth-child(1),
+.gold .rungs i:nth-child(1),
+.gold .rungs i:nth-child(2),
+.platinum .rungs i { opacity: 1; }
+
+.grace {
+  font-size: var(--size-nano);
+  font-weight: var(--weight-medium);
+  opacity: 0.75;
+}

@@ -16,11 +16,17 @@ const en: Dictionary = {
   nav: {
     skipToContent: 'Skip to content',
     brandHome: 'CRDB Konekt — home',
+    byCrdb: 'by CRDB Bank',
     events: 'Events',
     map: 'The map',
     membership: 'Membership',
     opportunities: 'Opportunities',
+    blog: 'Stories',
+    signIn: 'Sign in',
     primaryLabel: 'Main',
+    tabbarLabel: 'Sections',
+    tabHome: 'Home',
+    tabMe: 'Me',
     languageLabel: 'Language',
     switchTo: 'Soma kwa Kiswahili',
   },
@@ -159,6 +165,85 @@ const en: Dictionary = {
     body: 'Works offline. Your tickets stay with you when the network does not.',
     accept: 'Add to home screen',
     dismiss: 'Not now',
+  },
+
+  partners: {
+    title: 'The Konekt partner network',
+    pending: 'Indicative — pending Marketing and Legal sign-off',
+  },
+
+  common: {
+    seeAll: 'See all',
+    back: 'Back',
+    comingSoon: 'Opens in the next release',
+    notConnected: 'Live data is not connected yet',
+    notConnectedBody:
+      'This page is running on the committed CRDB register rather than the live database. Everything you see is real data from the register — it just is not updating yet.',
+    readMore: 'Read',
+    minuteRead: 'min read',
+    sample: 'Sample',
+    free: 'Free',
+  },
+
+  pages: {
+    events: {
+      title: 'Everything happening near you',
+      lead: 'Campus tours, money clinics, sports days and career fairs. Free to attend, minutes to register for.',
+      empty: 'The calendar is not open yet',
+      emptyBody:
+        'Events appear here the moment coordinators start publishing them. Nothing is listed before it is real and registrable.',
+    },
+    map: {
+      title: 'Eight zones. 252 branches. One network.',
+      lead: 'CRDB has been in these towns for forty years. Konekt puts every branch, campus and barracks on one map so you can find the nearest one and see what is on there.',
+      legend: 'Shading shows how many campuses the register places in each zone',
+      densityNote:
+        'Every boundary here is real: Natural Earth 1:10m administrative data, all 30 regions, grouped into CRDB’s eight zones.',
+      pinNote:
+        'There are no pins yet, and that is deliberate. Not one record in the CRDB register carries a coordinate. Geocoding runs next, and no pin reaches this map until a branch officer has confirmed it.',
+      tableCaption: 'Campuses and regions by zone, from the CRDB register',
+      colZone: 'Zone',
+      colCampuses: 'Campuses',
+      colRegions: 'Regions',
+      colRegionNames: 'Covering',
+    },
+    membership: {
+      title: 'Silver, Gold, Platinum',
+      lead: 'Membership is free and starts the moment you open a CRDB youth account. Where you sit is earned — by saving, by borrowing well, and by turning up.',
+    },
+    opportunities: {
+      title: 'Jobs, internships, scholarships, grants',
+      lead: 'One board, filtered to what you are actually eligible for — by age, by region, by what you studied.',
+    },
+    blog: {
+      title: 'Stories',
+      lead: 'Money, campus life, and what other Konekt members are building. Written by the community and by CRDB.',
+      empty: 'No stories published yet',
+      emptyBody:
+        'The first posts go up when the editorial team starts publishing. Nothing is padded out to fill the page.',
+      featured: 'Featured',
+      latest: 'Latest',
+    },
+    me: {
+      title: 'Your Konekt',
+      lead: 'Your tier, your tickets, your referrals.',
+      signedOut: 'Sign in with your phone',
+      signedOutBody:
+        'One code by SMS and you are in. No password to forget, and nothing to fill in that CRDB does not already have.',
+      signIn: 'Send me a code',
+      tier: 'Your tier',
+      noTier: 'No tier yet',
+      noTierBody:
+        'Your tier is calculated by CRDB from your account activity and appears here once your first review runs.',
+      myEvents: 'My events',
+      myTickets: 'My tickets',
+      myReferrals: 'My referrals',
+      referralCode: 'Your referral code',
+      consentCentre: 'Consent centre',
+      consentBody:
+        'Choose exactly what we may send you, on which channel. Changes take effect immediately.',
+      profile: 'Profile',
+    },
   },
 };
 

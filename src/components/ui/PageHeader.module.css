@@ -1,0 +1,15 @@
+.header {
+  /* Solid colour first, gradient over it: if the gradient does not paint
+     the text still has the ground it was contrasted against. */
+  background-color: var(--konekt-ink);
+  background-image: var(--ramp-ink);
+  color: var(--text-on-inverse);
+}
+
+.teal   { color: var(--konekt-teal); }
+.green  { color: var(--konekt-green); }
+.yellow { color: var(--konekt-yellow); }
+.pink   { color: var(--konekt-pink); }
+
+.title { color: var(--text-on-inverse); }
+.lead { color: var(--text-muted-on-inverse); }

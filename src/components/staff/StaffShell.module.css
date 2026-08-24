@@ -1,0 +1,139 @@
+.console {
+  display: grid;
+  min-block-size: 100dvh;
+  background: var(--surface-sunken);
+}
+
+@media (min-width: 60rem) {
+  .console { grid-template-columns: 15rem minmax(0, 1fr); }
+}
+
+/* --- Sidebar ------------------------------------------------------------ */
+
+.sidebar {
+  background: var(--surface-inverse);
+  color: var(--text-on-inverse);
+  padding: var(--space-md);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 60rem) {
+  .sidebar {
+    position: sticky;
+    inset-block-start: 0;
+    block-size: 100dvh;
+    padding: var(--space-lg) var(--space-md);
+  }
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  text-decoration: none;
+  color: var(--text-on-inverse);
+}
+
+.brandMark { inline-size: 22px; flex: none; }
+
+.brandWord {
+  font-family: var(--font-display);
+  font-weight: var(--weight-black);
+  font-size: 1rem;
+  letter-spacing: var(--tracking-display);
+}
+
+.scope {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-sm);
+  background: var(--surface-ink-soft);
+}
+
+.scopeRole {
+  font-family: var(--font-display);
+  font-size: var(--size-nano);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--konekt-yellow);
+}
+
+.scopeLabel { font-size: var(--size-micro); color: var(--text-muted-on-inverse); }
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* On a narrow screen the sidebar nav becomes a scrolling chip row rather than
+   a tall column that pushes every panel below the fold. */
+@media (max-width: 59.999rem) {
+  .nav {
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: var(--space-2xs);
+  }
+  .nav::-webkit-scrollbar { display: none; }
+  .navLink { white-space: nowrap; }
+}
+
+.navLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  min-block-size: 42px;
+  padding-inline: var(--space-md);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted-on-inverse);
+  text-decoration: none;
+  font-size: var(--size-caption);
+  font-weight: var(--weight-medium);
+  transition: background-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out);
+}
+
+.navLink:hover { background: var(--surface-ink-soft); color: var(--text-on-inverse); }
+
+.navLink[aria-current='page'] {
+  background: var(--surface-ink-lift);
+  color: var(--text-on-inverse);
+  font-weight: var(--weight-bold);
+}
+
+/* The chevron marks the active panel, same as it marks the active tab. */
+.navMarker {
+  inline-size: 5px;
+  block-size: 9px;
+  flex: none;
+  background: var(--konekt-teal);
+  clip-path: polygon(0 0, 100% 50%, 0 100%);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.navLink[aria-current='page'] .navMarker { opacity: 1; }
+
+/* --- Panel -------------------------------------------------------------- */
+
+.panel { display: flex; flex-direction: column; min-inline-size: 0; }
+
+.panelHead {
+  padding: var(--space-lg) var(--gutter) var(--space-md);
+  background: var(--surface-canvas);
+  box-shadow: var(--shadow-sm);
+}
+
+.panelTitle { color: var(--text-strong); }
+
+.panelBody {
+  flex: 1;
+  padding: var(--space-lg) var(--gutter) var(--space-2xl);
+}

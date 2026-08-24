@@ -139,6 +139,50 @@ a {
   position: relative;
 }
 
+/* A page's own header block: eyebrow, title, lead. Used on every route so the
+   pages read as one application rather than a set of documents. */
+.page-head {
+  padding-block: var(--space-xl) var(--space-lg);
+}
+
+.page-head .t-h1 { margin-block: var(--space-xs) var(--space-md); }
+
+/* Full-bleed on a phone, contained above it. Cards that touch both edges are
+   what separates an app from a page with margins. */
+.bleed {
+  margin-inline: calc(var(--gutter) * -1);
+  padding-inline: var(--gutter);
+}
+
+@media (min-width: 48rem) {
+  .bleed { margin-inline: 0; padding-inline: 0; }
+}
+
+/* Horizontal card rail. Scrolls with snap on a phone, wraps to a grid above. */
+.rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(15.5rem, 78%);
+  gap: var(--space-sm);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding-block-end: var(--space-xs);
+}
+
+.rail::-webkit-scrollbar { display: none; }
+.rail > * { scroll-snap-align: start; }
+
+@media (min-width: 48rem) {
+  .rail {
+    grid-auto-flow: row;
+    grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+    grid-auto-columns: auto;
+    overflow: visible;
+  }
+}
+
 .section--ink {
   background: var(--surface-inverse);
   color: var(--text-on-inverse);
@@ -318,10 +362,11 @@ a {
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-  min-height: 48px;
-  padding: var(--space-sm) var(--space-lg);
+  min-height: 50px;
+  padding: var(--space-sm) var(--space-xl);
   border: 2px solid transparent;
   border-radius: var(--radius-pill);
+  -webkit-tap-highlight-color: transparent;
   font-family: var(--font-display);
   font-size: var(--size-body);
   font-weight: var(--weight-bold);
@@ -336,7 +381,18 @@ a {
 }
 
 .btn:hover { transform: translateY(-2px); }
-.btn:active { transform: translateY(0) scale(0.98); }
+.btn:active { transform: translateY(0) scale(0.97); }
+
+/* On a phone a primary action spans the width — a pill floating in the middle
+   of a 412px screen is a website's idea of a button. */
+.btn--lg {
+  min-height: 54px;
+  font-size: var(--size-body-lg);
+}
+
+@media (max-width: 30rem) {
+  .btn--lg { inline-size: 100%; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .btn:hover, .btn:active { transform: none; }
@@ -372,17 +428,22 @@ a {
    CARDS
    ======================================================================== */
 
+/* Elevation and radius do the separating. Dropping the 1px outline from every
+   card is most of what makes the interface read as clean rather than boxed. */
 .card {
   background: var(--surface-raised);
-  border: 1px solid var(--line-soft);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
+  box-shadow: var(--shadow-sm);
 }
+
+.card--flat { box-shadow: none; background: var(--surface-sunken); }
+.card--tint { box-shadow: none; background: var(--surface-tint); }
 
 .card--ink {
   background: var(--surface-ink-soft);
-  border-color: var(--line-on-inverse);
   color: var(--text-on-inverse);
+  box-shadow: none;
 }
 
 .card-link {
@@ -396,7 +457,6 @@ a {
 }
 .card-link:hover {
   transform: translateY(-4px);
-  border-color: var(--konekt-teal);
   box-shadow: var(--shadow-lift);
 }
 .card-link:active { transform: translateY(-1px); }

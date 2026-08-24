@@ -43,12 +43,36 @@
      paper and must never carry text there.                              */
   --konekt-teal-light: #73C1B4;
 
-  /* --- Surface roles ------------------------------------------------- */
+  /* The dark end of the map's density ramp. Deep enough to read as unlit
+     land against the ink ground, light enough that the sparsest zone is still
+     visibly part of the country rather than a hole in it. */
+  --map-floor: #10403A;
+
+  /* --- Surface roles --------------------------------------------------
+     An app-shell model, not a page model. The chrome — nav bars, tab bar,
+     sheets — is always ink. Content sits on paper. That split is what makes
+     an installed PWA read as an application rather than a website in a
+     browser with the address bar hidden.                                 */
   --surface-canvas:   var(--konekt-paper);
   --surface-inverse:  var(--konekt-ink);
   --surface-tint:     var(--konekt-mist);
   --surface-raised:   #FFFFFF;
   --surface-ink-soft: #16302B; /* one step up from ink, for cards on ink   */
+  --surface-ink-lift: #1D3F38; /* two steps up, for pressed and hover      */
+  --surface-sunken:   #F1F5F3; /* below the canvas, for wells and inputs   */
+
+  /* Frosted chrome. Backdrop blur is capped: it is the single most expensive
+     effect on a mid-range Android GPU, so it appears on the two bars that
+     stay on screen and nowhere else.
+
+     92%, not 86%. A fixed bar can end up over any section, so its worst case
+     is ink over the paper canvas. Measured against that composite:
+       86%  teal 3.77:1, green 3.85:1   both fail AA
+       92%  teal 4.59:1, green 4.69:1   both pass
+     Four points of translucency is not worth a nav label that stops being
+     readable halfway down the page.                                       */
+  --surface-chrome:   color-mix(in srgb, var(--konekt-ink) 92%, transparent);
+  --chrome-blur:      blur(18px) saturate(140%);
 
   /* --- Text roles ---------------------------------------------------- */
   --text-strong:      var(--konekt-ink);
@@ -90,22 +114,26 @@
   --weight-bold:     700;
   --weight-black:    900;
 
-  --size-hero:    clamp(2.75rem, 9vw, 6.5rem);
-  --size-h1:      clamp(2rem, 5vw, 3.5rem);
-  --size-h2:      clamp(1.5rem, 3.5vw, 2.25rem);
-  --size-h3:      clamp(1.125rem, 2vw, 1.375rem);
+  /* The scale starts larger on a phone than a website's would. Headlines are
+     the interface here; body copy is support. A 2.75rem hero on a 412px screen
+     was polite — this is not a polite product.                            */
+  --size-hero:    clamp(3.25rem, 13vw, 7.5rem);
+  --size-h1:      clamp(2.25rem, 7vw, 4rem);
+  --size-h2:      clamp(1.75rem, 5.5vw, 2.75rem);
+  --size-h3:      clamp(1.1875rem, 2.4vw, 1.5rem);
   --size-body:    1.0625rem;
-  --size-body-lg: clamp(1.0625rem, 1.6vw, 1.25rem);
+  --size-body-lg: clamp(1.125rem, 1.8vw, 1.3125rem);
   --size-caption: 0.875rem;
   --size-micro:   0.75rem;
+  --size-nano:    0.6875rem;
 
-  --leading-hero:    0.94;
-  --leading-tight:   1.08;
+  --leading-hero:    0.88;
+  --leading-tight:   1.04;
   --leading-snug:    1.25;
   --leading-body:    1.6;
 
-  --tracking-hero:    -0.03em;
-  --tracking-display: -0.02em;
+  --tracking-hero:    -0.045em;
+  --tracking-display: -0.025em;
   --tracking-normal:  0;
   --tracking-wide:    0.08em;
 
@@ -127,9 +155,14 @@
   --chev-notch-d: 51px;          /* 51 / 32 = 1.594 -> 57.9deg             */
   --chev-notch-x: 14%;           /* apex position along the edge           */
 
-  --radius-sm: 6px;
-  --radius-md: 12px;
-  --radius-lg: 20px;
+  /* Rounder than a website. A 20px radius reads as a document; 28px reads as
+     a surface you can drag. Cards, sheets and tiles all sit at the top of the
+     scale so the whole interface feels like one material.                 */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 18px;
+  --radius-lg: 28px;
+  --radius-xl: 36px;
   --radius-pill: 999px;
 
   /* ---------------------------------------------------------------------
@@ -147,6 +180,21 @@
   --gutter: clamp(1.25rem, 5vw, 3rem);
   --measure: 62ch;
   --shell-max: 1240px;
+  --shell-wide: 1480px;
+
+  /* --- App chrome -----------------------------------------------------
+     Safe-area insets matter on a phone with a home indicator or a notch. In
+     a browser they resolve to 0; installed, they keep the tab bar off the
+     gesture area instead of under a user's thumb.                        */
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+
+  --topbar-h: 56px;
+  --tabbar-h: 62px;
+  /* What a fixed bottom bar costs the content above it. */
+  --tabbar-space: calc(var(--tabbar-h) + var(--safe-bottom));
 
   /* ---------------------------------------------------------------------
      6. MOTION
@@ -155,6 +203,8 @@
      ------------------------------------------------------------------ */
   --ease-konekt: cubic-bezier(0.34, 1.36, 0.64, 1); /* subtle overshoot */
   --ease-out:    cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-sheet:  cubic-bezier(0.32, 0.72, 0, 1);     /* iOS-style sheet    */
+  --dur-instant: 90ms;
   --dur-fast: 180ms;
   --dur-base: 340ms;
   --dur-slow: 480ms;
@@ -177,14 +227,51 @@
     0 0 0 5px var(--focus-core);
 
   /* ---------------------------------------------------------------------
+     7b. COLOUR ENERGY
+
+     Two gradients, both built from brand colours already in the system. The
+     brief forbids gradient meshes and a second geometric motif; a single
+     linear ramp between two of the four brand colours is neither. Used for
+     the hero ground and for tier identity, nowhere else.
+     ------------------------------------------------------------------ */
+  --ramp-brand: linear-gradient(
+    135deg,
+    var(--konekt-teal) 0%,
+    var(--konekt-green) 100%
+  );
+  --ramp-signal: linear-gradient(
+    135deg,
+    var(--konekt-yellow) 0%,
+    var(--konekt-pink) 100%
+  );
+  --ramp-ink: linear-gradient(
+    170deg,
+    var(--konekt-ink) 0%,
+    #123029 55%,
+    #0B1A17 100%
+  );
+
+  /* Tier identity. Silver is deliberately the quiet one. */
+  --tier-silver:   #A9BCB8;
+  --tier-gold:     var(--konekt-teal);
+  --tier-platinum: var(--konekt-green);
+
+  /* ---------------------------------------------------------------------
      8. ELEVATION
      ------------------------------------------------------------------ */
-  --shadow-sm: 0 1px 2px rgb(14 31 28 / 0.06), 0 2px 8px rgb(14 31 28 / 0.04);
-  --shadow-md: 0 2px 4px rgb(14 31 28 / 0.06), 0 12px 28px rgb(14 31 28 / 0.08);
-  --shadow-lift: 0 4px 8px rgb(14 31 28 / 0.08), 0 18px 40px rgb(14 31 28 / 0.12);
+  /* Elevation replaces borders. A card that is separated by a shadow and a
+     radius does not also need a 1px line around it, and dropping those lines
+     is most of what makes the interface read as clean.                    */
+  --shadow-sm:   0 1px 2px rgb(14 31 28 / 0.05), 0 2px 10px rgb(14 31 28 / 0.04);
+  --shadow-md:   0 2px 4px rgb(14 31 28 / 0.05), 0 14px 32px rgb(14 31 28 / 0.07);
+  --shadow-lift: 0 4px 10px rgb(14 31 28 / 0.07), 0 24px 56px rgb(14 31 28 / 0.11);
+  --shadow-chrome: 0 -1px 0 rgb(250 251 250 / 0.06), 0 -12px 32px rgb(0 0 0 / 0.3);
 
   --z-base: 0;
+  --z-raised: 10;
   --z-sticky: 50;
+  --z-tabbar: 60;
+  --z-sheet: 80;
   --z-overlay: 100;
 }
 

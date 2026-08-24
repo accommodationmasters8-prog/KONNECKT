@@ -3,9 +3,13 @@
 The public platform for **CRDB Konekt**, the youth banking community of CRDB
 Bank Plc, Tanzania.
 
-**This repository is at Phase 1: foundation and landing page.** Public only —
-no auth, no database, no writes. Phases 2 and 3 build the product surface and
-the back office on top of it.
+A bilingual progressive web app, a PostGIS database on Supabase, a member area
+and a staff back office.
+
+**Runs with or without a database.** Every data path checks whether Supabase is
+configured; with no project attached the app serves the committed CRDB register
+and honest empty states rather than crashing or inventing content. See
+[docs/DATABASE.md](docs/DATABASE.md) to attach one.
 
 ---
 
@@ -31,25 +35,59 @@ the sitemap fall back to an obviously-fake placeholder. See
 
 ```
 data/konekt-seed-data.json   The CRDB register, byte-identical to what was supplied
+supabase/migrations/         Seven migrations, verified against real PostGIS
+supabase/tests/              32 authorisation assertions
+scripts/db/seed.mjs          Idempotent register seed
+scripts/geo/                 Builds the Tanzania map from Natural Earth
 src/styles/tokens.css        Every colour, type size, duration and angle. One source.
 src/i18n/                    English and Kiswahili copy, written as peers
-src/lib/seed.ts              Register parsing — build time only, never shipped to the client
-src/components/              The landing page sections
+src/lib/supabase/            Browser, server and service-role clients
+src/lib/tanzania-map.ts      GENERATED — 30 real region boundaries as SVG paths
+src/components/shell/        The app shell: top bar, bottom tab bar
+src/components/staff/        The staff console frame and panels
 scripts/                     Acceptance gates (see below)
 scripts/dev/                 Measurement tools, not part of the build
-docs/                        Open items and the performance report
+docs/                        Database, open items, performance
 ```
 
 ### Routes
 
+Every page is a real full page, statically prerendered, in both languages.
+
 | Route | |
 |---|---|
 | `/` | rewrites to `/en` — no redirect hop, which costs a round trip on 3G |
-| `/en`, `/sw` | the landing page |
-| `/en/privacy`, `/terms`, `/accessibility` | and the `sw` equivalents — real routes, placeholder text pending Legal |
+| `/{locale}` | the landing page: a highlight reel that routes into the rest |
+| `/{locale}/events` | the full calendar |
+| `/{locale}/map` | the zone map, the figures, and why there are no pins yet |
+| `/{locale}/membership` | tiers and the partner network |
+| `/{locale}/opportunities` | the board, with its eligibility model |
+| `/{locale}/blog` | stories |
+| `/{locale}/me` | the member area — tier, tickets, referrals, consent |
+| `/{locale}/staff` | the back office: overview, check-in, accounts, pin verification |
+| `/{locale}/privacy`, `/terms`, `/accessibility` | real routes, placeholder text pending Legal |
 | `/sitemap.xml`, `/robots.txt` | generated, both locales cross-referenced |
 
-Every page is statically prerendered.
+The member area and staff console are `noindex`. Lighthouse marks them down for
+it; that is the correct trade.
+
+---
+
+## It is an app, not a website with a menu
+
+On a phone the chrome is real application chrome — a compact frosted top bar
+and a fixed bottom tab bar, with content scrolling between them. Above tablet
+width the tab bar gives way to a horizontal nav, because a thumb-reach tab bar
+on a laptop is a phone pattern being cargo-culted.
+
+Both navs are plain links. No client component, no hydration, no bytes, and
+they work with JavaScript disabled.
+
+The tab bar marks where you are with the brand's own triangle, at the brand's
+own angle — the third sanctioned use of the mark.
+
+Safe-area insets are honoured, so installed on a phone with a home indicator
+the tab bar sits above the gesture area rather than under a thumb.
 
 ---
 
@@ -78,12 +116,30 @@ others:
 Both the mark component and the PWA icon generator carry the same path data,
 and the generator asserts they have not drifted apart.
 
+### The map
+
+Real geography. All 30 Tanzanian regions from Natural Earth 1:10m
+administrative boundaries, grouped into CRDB's eight zones, projected and
+simplified at build time into about 8KB gzipped of SVG path data.
+
+No map library, no tile server, no network request — MapLibre alone would be
+~200KB gzipped, which does not fit the budget and does not work with the radio
+off. Regenerate with `npm run map:build`.
+
+There are no pins on it. Not one record in the CRDB register carries a
+coordinate, so there is nothing truthful to plot; the map page says so rather
+than leaving a gap.
+
 ### Colour and contrast
 
 Brand teal, green and yellow all **fail** WCAG AA as text on the paper canvas.
-Three variants exist for that, and the focus ring is two-tone so it clears
+Four variants exist for that, and the focus ring is two-tone so it clears
 non-text contrast on both canvases. The measurements are in
 [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md) §3.4.
+
+The frosted app bars sit at 92% ink rather than 86% for the same reason: a
+fixed bar can end up over any section, so its worst case is ink composited over
+the paper canvas, where 86% drops brand teal to 3.77:1.
 
 ### Type
 
@@ -142,10 +198,17 @@ institutions are campuses of another, not the nine the brief expected.
 ```bash
 npm run check:tokens      # no hex outside tokens.css; no copy needing latin-ext
 npm run check:stats       # every published figure matches the register
-npm run check:contrast    # every text run clears AA, both locales, two viewports
+npm run check:contrast    # every text run clears AA — 17 pages, two viewports
 npm run budget            # initial JS and payload against the Part 0.1 limits
 npm run verify            # all of the above + typecheck + build
+npm run db:test           # 32 authorisation assertions (needs DATABASE_URL)
 ```
+
+`check:contrast` walks every text node and computes the real ratio against its
+composited background. It has now caught four things a sampled audit missed:
+brand teal failing on the busiest zone's map tile, the frosted bar's worst-case
+composite, an 80% opacity that dropped 11px text to 3.55:1, and gradient-clipped
+text whose declared colour is `transparent`.
 
 `check:contrast` and the measurement scripts need Chromium. They read
 `CHROME_PATH`, defaulting to `/opt/pw-browsers/chromium`.
@@ -157,6 +220,20 @@ Measured results, and the one criterion that is not cleanly met, are in
 is already consumed by the framework — 172.5 KB of the 173.2 KB total is
 Next.js and React, and application code is 0.7 KB. MapLibre does not fit in
 what is left.
+
+---
+
+## Things that are deliberately missing
+
+- **CRDB's logo.** Not supplied, and not approximated — see
+  [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md) §2.2.
+- **Partner logos.** Same reason. The strip renders typographic plates and is
+  labelled indicative, pending Marketing and Legal.
+- **Pins on the map.** No record has a coordinate.
+- **A hero video.** No encode clears the §2.2 gate. §3.2b of the open items has
+  the recommendation on the map background video that was asked about.
+- **Content in the blog and opportunities board.** Nothing publishes unverified,
+  so both are empty and say so.
 
 ---
 

@@ -1,0 +1,121 @@
+.hero {
+  /* Solid colour first, gradient over it: if the gradient does not paint
+     the text still has the ground it was contrasted against. */
+  background-color: var(--konekt-ink);
+  background-image: var(--ramp-ink);
+  color: var(--text-on-inverse);
+  padding-block-end: var(--space-2xl);
+}
+
+/* Centred, and larger than the landing preview: this is the page where the
+   map is the point rather than a taste of it. */
+.map {
+  max-inline-size: min(100%, 46rem);
+  margin-inline: auto;
+  margin-block: var(--space-lg);
+}
+
+.legend {
+  text-align: center;
+  font-size: var(--size-micro);
+  color: var(--text-muted-on-inverse);
+  max-inline-size: 34ch;
+  margin-inline: auto;
+  margin-block-end: var(--space-xl);
+}
+
+.totals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-lg);
+  margin: 0;
+  padding-block-start: var(--space-lg);
+  border-block-start: 1px solid var(--line-on-inverse);
+}
+
+@media (min-width: 48rem) {
+  .totals { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+.total { display: flex; flex-direction: column; gap: 2px; }
+
+.totalValue {
+  margin: 0;
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+  line-height: 1;
+  color: var(--konekt-teal);
+}
+
+.totalLabel { font-size: var(--size-micro); color: var(--text-muted-on-inverse); }
+
+.detail { background: var(--surface-canvas); }
+
+/* Wide tables scroll inside their own container; the page body never scrolls
+   sideways. */
+.tableWrap {
+  overflow-x: auto;
+  margin-block-end: var(--space-xl);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+}
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--size-caption);
+  min-inline-size: 34rem;
+}
+
+.caption {
+  text-align: start;
+  padding: var(--space-md) var(--space-md) var(--space-xs);
+  font-size: var(--size-micro);
+  color: var(--text-body);
+}
+
+.table th,
+.table td {
+  text-align: start;
+  padding: var(--space-sm) var(--space-md);
+  border-block-start: 1px solid var(--line-soft);
+  vertical-align: top;
+}
+
+.table thead th {
+  font-family: var(--font-display);
+  font-size: var(--size-nano);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-body);
+  border-block-start: none;
+}
+
+.table tbody th { font-weight: var(--weight-semibold); color: var(--text-strong); }
+
+.num { text-align: end; font-variant-numeric: tabular-nums; }
+
+.regionList { color: var(--text-body); max-inline-size: 26rem; }
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  max-inline-size: var(--measure);
+}
+
+.note { color: var(--text-body); }
+
+.pinNote {
+  display: flex;
+  gap: var(--space-xs);
+  align-items: flex-start;
+  color: var(--text-strong);
+  background: var(--surface-tint);
+  border-inline-start: 3px solid var(--konekt-yellow);
+  padding: var(--space-md);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.pinNote .tri { margin-block-start: 0.35em; flex: none; }

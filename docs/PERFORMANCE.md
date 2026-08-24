@@ -1,4 +1,4 @@
-# Performance — CRDB Konekt, Phase 1
+# Performance — CRDB Konekt
 
 > Your user is on a mid-range Android phone on 3G in Mwanza, not a MacBook on
 > fibre. A beautiful page that takes nine seconds to paint has failed.
@@ -8,21 +8,26 @@ Every figure below is measured, not estimated. Reproduce with
 
 ---
 
-## Against the Phase 1 acceptance criteria
+## Against the acceptance criteria
+
+Measured on the full build: nine public routes, the member area and the staff
+console, in both languages.
 
 | Criterion | Target | Measured | |
 |---|---|---|---|
 | Lighthouse mobile — Performance | ≥ 90 | **96–99** | pass |
-| Lighthouse mobile — Accessibility | 100 | **100** | pass |
+| Lighthouse mobile — Accessibility | 100 | **100** on every route | pass |
 | Lighthouse mobile — Best practices | — | **100** | |
-| Lighthouse mobile — SEO | — | **100** | |
+| Lighthouse mobile — SEO | — | **100** public, 66 on `/me` and `/staff` | intentional: both are `noindex` |
 | Initial JS, gzipped | < 180 KB | **173.2 KB** | pass, no headroom — see §3 |
-| Total initial payload | < 500 KB | **235 KB** | pass |
-| Cumulative layout shift | — | **0** | |
-| LCP, simulated Slow 4G | < 2.5 s | **2.0–2.7 s** | see §2 |
+| Total initial payload | < 500 KB | **272 KB** | pass |
+| Cumulative layout shift | — | **0 – 0.019** | |
+| LCP, simulated Slow 4G | < 2.5 s | **2.0 – 2.6 s** | see §2 |
+| WCAG AA contrast | every text run | **34 page/viewport combinations pass** | pass |
+| Authorisation | proven, not asserted | **32 database assertions pass** | pass |
 
-Everything passes except LCP, which needs reading carefully rather than
-ticking.
+The map adds ~8 KB gzipped of real boundary data and no library. Everything
+below is the same page weight as the landing-only build plus that.
 
 ---
 
@@ -34,9 +39,10 @@ Measured on Lighthouse mobile (Slow 4G, 4× CPU) against this build.
 |---|---|
 | Dropped the `latin-ext` font subset | fonts 196.6 KB → 81.4 KB |
 | Stopped preloading the body face | one fewer critical download; LCP 2.6 s → 2.2 s |
-| Inlined the stylesheet | FCP 1.4 s → 1.1 s, LCP 2.6 s → 2.0 s, perf 97 → 99 |
+| Inlined the stylesheet | FCP 1.5 s → 1.2 s, LCP 2.7 s → 2.2 s, perf 95 → 99 (re-measured after the stylesheet doubled) |
+| Drew the map instead of shipping MapLibre | ~200 KB gzipped avoided; 8 KB of path data instead |
 | Turned off `next/link` prefetch | 19 requests → 13, 295 KB → 256 KB over the wire |
-| Total initial payload | 389 KB → **235 KB** |
+| Total initial payload | 389 KB → **272 KB**, with nine routes instead of one |
 
 The font subset is the one worth explaining. `latin-ext` was in the brief on the
 grounds that Swahili needs it. Standard Kiswahili orthography uses the plain
@@ -150,10 +156,28 @@ it on their behalf.
 | `npm run budget` | Initial JS and total payload against the Part 0.1 limits |
 | `npm run verify` | All of the above, plus typecheck and build |
 
-`npm run check:contrast` walks every text node and computes the real ratio
-against its composited background, rather than sampling. It is what caught brand
-teal failing on the busiest zone's map tile — the tile wash is data-driven, so
-the label got harder to read exactly where the data was most interesting.
+`npm run check:contrast` walks every text node across 34 page/viewport
+combinations and computes the real ratio against its composited background,
+rather than sampling. It has now caught four things:
+
+- **Brand teal on the busiest zone's map tile.** The wash was data-driven, so
+  the label got harder to read exactly where the data was most interesting.
+- **The frosted app bars at 86% ink.** A fixed bar can end up over any section,
+  so its worst case is ink composited over the paper canvas — where teal
+  measured 3.77:1. Raised to 92%.
+- **An 80% opacity on 11px text** in the staff console, rendering at 3.55:1
+  while the declared colour measured 5.21:1. The checker was extended to
+  account for element opacity, which it had been ignoring.
+- **Gradient-clipped text**, whose declared colour is `transparent`. The
+  checker now evaluates every stop of the gradient and takes the worst.
+
+Two of those were bugs in the checker itself, found because the tool and the
+thing it checks were built against each other.
+
+`npm run db:test` runs 32 authorisation assertions against a real PostGIS
+instance, impersonating roles the way PostgREST does. Two of those assertions
+found real problems the first time they ran — see
+[DATABASE.md](./DATABASE.md).
 
 Two developer scripts are not gates but are worth knowing about:
 `scripts/dev/measure.sh` (clean rebuild + Lighthouse, with a guard that aborts

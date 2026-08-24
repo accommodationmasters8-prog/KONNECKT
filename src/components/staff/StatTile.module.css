@@ -1,0 +1,46 @@
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+  border-block-start: 3px solid var(--tone-colour);
+}
+
+.neutral { --tone-colour: var(--konekt-teal); }
+.good    { --tone-colour: var(--konekt-green); }
+.warn    { --tone-colour: var(--konekt-yellow); }
+
+.label {
+  font-size: var(--size-micro);
+  color: var(--text-body);
+  line-height: var(--leading-snug);
+}
+
+.value {
+  font-size: var(--size-h2);
+  line-height: 1.05;
+  color: var(--text-strong);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.unit {
+  font-size: var(--size-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--text-body);
+}
+
+/* No opacity here. Fading --text-body to 80% renders it at 3.55:1 on white,
+   which fails AA for 11px text — and an opacity that quietly changes a
+   colour's contrast is exactly the kind of thing a token system is meant to
+   prevent. If this needs to recede further, that is a new token with a
+   measured ratio, not a filter over an existing one. */
+.source {
+  margin-block-start: var(--space-xs);
+  font-size: var(--size-nano);
+  color: var(--text-body);
+}

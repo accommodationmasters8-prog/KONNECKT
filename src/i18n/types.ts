@@ -26,11 +26,17 @@ export interface Dictionary {
   nav: {
     skipToContent: string;
     brandHome: string;
+    byCrdb: string;
     events: string;
     map: string;
     membership: string;
     opportunities: string;
+    blog: string;
+    signIn: string;
     primaryLabel: string;
+    tabbarLabel: string;
+    tabHome: string;
+    tabMe: string;
     languageLabel: string;
     switchTo: string;
   };
@@ -121,5 +127,62 @@ export interface Dictionary {
     body: string;
     accept: string;
     dismiss: string;
+  };
+  partners: {
+    title: string;
+    pending: string;
+  };
+  common: {
+    seeAll: string;
+    back: string;
+    comingSoon: string;
+    notConnected: string;
+    notConnectedBody: string;
+    readMore: string;
+    minuteRead: string;
+    sample: string;
+    free: string;
+  };
+  pages: {
+    events: { title: string; lead: string; empty: string; emptyBody: string };
+    map: {
+      title: string;
+      lead: string;
+      legend: string;
+      densityNote: string;
+      pinNote: string;
+      tableCaption: string;
+      colZone: string;
+      colCampuses: string;
+      colRegions: string;
+      colRegionNames: string;
+    };
+    membership: { title: string; lead: string };
+    opportunities: { title: string; lead: string };
+    blog: {
+      title: string;
+      lead: string;
+      empty: string;
+      emptyBody: string;
+      featured: string;
+      latest: string;
+    };
+    me: {
+      title: string;
+      lead: string;
+      signedOut: string;
+      signedOutBody: string;
+      signIn: string;
+      tier: string;
+      noTier: string;
+      noTierBody: string;
+      myEvents: string;
+      myTickets: string;
+      myReferrals: string;
+      referralCode: string;
+      consentCentre: string;
+      consentBody: string;
+      profile: string;
+    };
   };
 }

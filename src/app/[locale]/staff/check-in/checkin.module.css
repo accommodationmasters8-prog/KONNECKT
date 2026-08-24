@@ -1,0 +1,56 @@
+.scanner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding-block: var(--space-lg);
+}
+
+/* A viewfinder outline rather than a live camera preview, because there is no
+   event to scan for yet. It is deliberately empty, not a fake camera feed. */
+.viewfinder {
+  position: relative;
+  inline-size: min(100%, 15rem);
+  aspect-ratio: 1;
+  border-radius: var(--radius-lg);
+  background: var(--surface-inverse);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  place-items: stretch;
+  padding: var(--space-md);
+  gap: var(--space-md);
+}
+
+.corner {
+  border: 3px solid var(--konekt-teal);
+  inline-size: 28px;
+  block-size: 28px;
+}
+
+.corner:nth-child(1) {
+  border-inline-end: none; border-block-end: none;
+  border-start-start-radius: var(--radius-xs);
+  justify-self: start; align-self: start;
+}
+.corner:nth-child(2) {
+  border-inline-start: none; border-block-end: none;
+  border-start-end-radius: var(--radius-xs);
+  justify-self: end; align-self: start;
+}
+.corner:nth-child(3) {
+  border-inline-end: none; border-block-start: none;
+  border-end-start-radius: var(--radius-xs);
+  justify-self: start; align-self: end;
+}
+.corner:nth-child(4) {
+  border-inline-start: none; border-block-start: none;
+  border-end-end-radius: var(--radius-xs);
+  justify-self: end; align-self: end;
+}
+
+.scannerNote {
+  font-size: var(--size-caption);
+  color: var(--text-body);
+  text-align: center;
+  max-inline-size: 34ch;
+}

@@ -1,0 +1,90 @@
+.figure {
+  margin: 0;
+  inline-size: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.map {
+  inline-size: 100%;
+  block-size: auto;
+  overflow: visible;
+}
+
+/* One ramp, from a near-ink deep teal to the light tint, so the country reads
+   as a single material with denser and thinner parts rather than eight hues
+   competing. The endpoints are far apart on purpose: mixing a single teal
+   against ink gives a range where the difference between four campuses and
+   sixteen is invisible, which defeats the point of shading it at all. */
+.region {
+  fill: color-mix(
+    in srgb,
+    var(--konekt-teal-light) calc(var(--zone-weight) * 100%),
+    var(--map-floor)
+  );
+  stroke: var(--surface-inverse);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  transition: fill var(--dur-base) var(--ease-out),
+              opacity var(--dur-base) var(--ease-out);
+}
+
+.regionActive {
+  fill: var(--konekt-yellow);
+  stroke: var(--konekt-ink);
+}
+
+.regionDimmed { opacity: 0.42; }
+
+/* On the paper canvas the same map inverts its ground. */
+:global(.on-paper) .region {
+  stroke: var(--surface-canvas);
+}
+
+/* Hover is a desktop affordance; on a phone the list beside the map is the
+   interface. Kept cheap: fill only, no transform, no filter. */
+@media (hover: hover) {
+  .region:hover {
+    fill: var(--konekt-green);
+  }
+}
+
+/* --- Zone labels -------------------------------------------------------- */
+
+.label { pointer-events: none; }
+
+/* Joins a nudged label back to the shape it describes. */
+.leader {
+  stroke: var(--konekt-teal-light);
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+  opacity: 0.75;
+}
+
+.labelCount,
+.labelName {
+  text-anchor: middle;
+  font-family: var(--font-display);
+  /* A halo, so a label stays readable over both the lightest and the darkest
+     end of the density ramp without needing a plate behind it. */
+  paint-order: stroke fill;
+  stroke: var(--konekt-ink);
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+
+.labelCount {
+  font-size: 40px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  fill: var(--surface-canvas);
+}
+
+.labelName {
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  fill: var(--konekt-teal-light);
+}
+

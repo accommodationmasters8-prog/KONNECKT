@@ -1,4 +1,5 @@
-import type { Dictionary } from '@/i18n';
+import { SectionHead } from './SectionHead';
+import type { Dictionary, Locale } from '@/i18n';
 import styles from './OpportunitiesStrip.module.css';
 
 /**
@@ -9,7 +10,7 @@ import styles from './OpportunitiesStrip.module.css';
  * says so. Nothing publishes to this board unverified, in this phase or any
  * later one.
  */
-export function OpportunitiesStrip({ t }: { t: Dictionary }) {
+export function OpportunitiesStrip({ locale, t }: { locale: Locale; t: Dictionary }) {
   const filters = [
     t.opportunities.filterAge,
     t.opportunities.filterEducation,
@@ -24,15 +25,14 @@ export function OpportunitiesStrip({ t }: { t: Dictionary }) {
       aria-labelledby="opportunities-title"
     >
       <div className="shell">
-        <div className="reveal-head">
-          <p className="t-eyebrow" style={{ color: 'var(--konekt-green-deep)' }}>
-            {t.opportunities.eyebrow}
-          </p>
-          <h2 id="opportunities-title" className="t-h2">
-            {t.opportunities.title}
-          </h2>
-          <p className={`t-lead t-muted ${styles.lead}`}>{t.opportunities.lead}</p>
-        </div>
+        <SectionHead
+          id="opportunities-title"
+          eyebrow={t.opportunities.eyebrow}
+          accent="green"
+          title={t.opportunities.title}
+          lead={t.opportunities.lead}
+          action={{ href: `/${locale}/opportunities`, label: t.common.seeAll }}
+        />
 
         <div className={styles.board}>
           {/* These are shown so the eligibility model is legible, and they are

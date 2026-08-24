@@ -1,43 +1,43 @@
-import { getDictionary, isLocale, type Locale } from '@/i18n';
-import { notFound } from 'next/navigation';
-import { SiteHeader } from '@/components/SiteHeader';
-import { Hero } from '@/components/Hero';
-import { EventsPreview } from '@/components/EventsPreview';
-import { ZoneMapTeaser } from '@/components/ZoneMapTeaser';
-import { MembershipTiers } from '@/components/MembershipTiers';
-import { OpportunitiesStrip } from '@/components/OpportunitiesStrip';
+import { AppShell } from '@/components/shell/AppShell';
+import { Hero } from '@/components/home/Hero';
+import { PartnerStrip } from '@/components/home/PartnerStrip';
+import { EventsPreview } from '@/components/home/EventsPreview';
+import { MapPreview } from '@/components/home/MapPreview';
+import { MembershipTiers } from '@/components/home/MembershipTiers';
+import { OpportunitiesStrip } from '@/components/home/OpportunitiesStrip';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ProgressiveEnhancement } from '@/components/ProgressiveEnhancement';
+import { INDICATIVE_PARTNERS } from '@/lib/partners';
+import { localeParams, resolveLocale } from '@/lib/page';
 
+export function generateStaticParams() {
+  return localeParams();
+}
+
+/**
+ * The landing page is a highlight reel, not the product.
+ *
+ * Each block shows enough to be worth tapping and routes to a full page that
+ * does the job properly. That split is what stops the home page becoming a
+ * scroll of everything, and it is what makes the tab bar mean something.
+ */
 export default async function LandingPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
-  const { locale } = await params;
-  if (!isLocale(locale)) notFound();
-  const typed: Locale = locale;
-  const t = getDictionary(typed);
+  const { locale, t } = await resolveLocale(params);
 
   return (
-    <>
-      <a href="#main" className="skip-link">
-        {t.nav.skipToContent}
-      </a>
-
-      <SiteHeader locale={typed} t={t} />
-
-      <main id="main">
-        <Hero locale={typed} t={t} />
-        <EventsPreview locale={typed} t={t} />
-        <ZoneMapTeaser locale={typed} t={t} />
-        <MembershipTiers t={t} />
-        <OpportunitiesStrip t={t} />
-      </main>
-
-      <SiteFooter locale={typed} t={t} />
-
+    <AppShell locale={locale} t={t} active="home">
+      <Hero locale={locale} t={t} />
+      <PartnerStrip t={t} placements={INDICATIVE_PARTNERS} />
+      <EventsPreview locale={locale} t={t} />
+      <MapPreview locale={locale} t={t} />
+      <MembershipTiers locale={locale} t={t} />
+      <OpportunitiesStrip locale={locale} t={t} />
+      <SiteFooter locale={locale} t={t} />
       <ProgressiveEnhancement t={t} />
-    </>
+    </AppShell>
   );
 }

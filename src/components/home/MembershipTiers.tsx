@@ -1,4 +1,6 @@
-import type { Dictionary, TierKey } from '@/i18n';
+import Link from 'next/link';
+import { SectionHead } from './SectionHead';
+import type { Dictionary, Locale, TierKey } from '@/i18n';
 import styles from './MembershipTiers.module.css';
 
 /**
@@ -15,7 +17,7 @@ import styles from './MembershipTiers.module.css';
  */
 const TIER_ORDER: TierKey[] = ['silver', 'gold', 'platinum'];
 
-export function MembershipTiers({ t }: { t: Dictionary }) {
+export function MembershipTiers({ locale, t }: { locale: Locale; t: Dictionary }) {
   return (
     <section
       id="membership"
@@ -23,14 +25,15 @@ export function MembershipTiers({ t }: { t: Dictionary }) {
       aria-labelledby="membership-title"
     >
       <div className="shell">
-        <div className="reveal-head">
-          <p className="t-eyebrow" style={{ color: 'var(--konekt-teal-deep)' }}>
-            {t.membership.eyebrow}
-          </p>
-          <h2 id="membership-title" className="t-h2">{t.membership.title}</h2>
-          <p className={`t-lead t-muted ${styles.lead}`}>{t.membership.lead}</p>
-          <p className={`t-caption ${styles.ageNote}`}>{t.membership.ageNote}</p>
-        </div>
+        <SectionHead
+          id="membership-title"
+          eyebrow={t.membership.eyebrow}
+          accent="teal"
+          title={t.membership.title}
+          lead={t.membership.lead}
+          action={{ href: `/${locale}/membership`, label: t.common.seeAll }}
+        />
+        <p className={`t-caption ${styles.ageNote}`}>{t.membership.ageNote}</p>
 
         <ol className={styles.grid}>
           {TIER_ORDER.map((key, index) => {

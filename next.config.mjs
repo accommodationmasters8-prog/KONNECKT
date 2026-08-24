@@ -5,13 +5,14 @@ const nextConfig = {
 
   experimental: {
     /* Inline the stylesheet into the document instead of linking it.
-       Measured on Lighthouse mobile (Slow 4G, 4x CPU) against this build:
-         linked sheet   FCP 1.4s  LCP 2.6s  perf 97
-         inlined        FCP 1.1s  LCP 2.0s  perf 99
-       It costs ~16KB per navigation and gives up sheet caching. On a
-       connection where a round trip is 150ms and the whole sheet is 8.6KB
-       gzipped, removing the render-blocking request is worth more than the
-       cache hit. Re-measure this if the stylesheet grows past ~30KB. */
+       Re-measured after the stylesheet roughly doubled with the app shell,
+       the map and the staff console (Lighthouse mobile, Slow 4G, 4x CPU):
+         linked sheet   FCP 1.5s  LCP 2.7s  TBT 80ms  perf 95
+         inlined        FCP 1.2s  LCP 2.2s  TBT 40ms  perf 99
+       It costs ~22KB per navigation and gives up sheet caching, and it still
+       wins: on a connection where a round trip is 150ms, removing the
+       render-blocking request is worth more than the cache hit. Re-measure
+       again if the document goes much past ~70KB gzipped. */
     inlineCss: true,
   },
 

@@ -1,0 +1,17 @@
+.address { color: var(--text-body); max-inline-size: 22rem; }
+
+.gap {
+  color: var(--konekt-pink);
+  font-style: italic;
+}
+
+.status {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radius-pill);
+  background: var(--surface-tint);
+  color: var(--konekt-teal-deep);
+  font-size: var(--size-nano);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}

@@ -13,7 +13,15 @@ import { chromium } from 'playwright-core';
 
 const BASE = process.argv[2] || process.env.BASE_URL || 'http://localhost:3210';
 const EXECUTABLE = process.env.CHROME_PATH || '/opt/pw-browsers/chromium';
-const PAGES = ['/en', '/sw', '/en/privacy', '/sw/terms'];
+const PAGES = [
+  '/en', '/sw',
+  '/en/map', '/sw/map',
+  '/en/events', '/sw/events',
+  '/en/membership', '/sw/membership',
+  '/en/opportunities', '/en/blog', '/en/me',
+  '/en/staff', '/en/staff/verification', '/en/staff/accounts', '/en/staff/check-in',
+  '/en/privacy', '/sw/terms',
+];
 const VIEWPORTS = [
   { name: 'phone', width: 412, height: 900 },
   { name: 'desktop', width: 1440, height: 900 },
@@ -21,11 +29,36 @@ const VIEWPORTS = [
 
 const audit = () => {
   const srgb = (c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  // Chrome serialises color-mix() as `color(srgb r g b / a)` with 0..1
+  // channels, not as rgba(). Parsing only rgba() silently treated the frosted
+  // app bars as having no background at all, which made the checker walk up to
+  // the page canvas and report nonsense.
   const parse = (value) => {
-    const m = value.match(/rgba?\(([^)]+)\)/);
-    if (!m) return null;
-    const parts = m[1].split(/[,/\s]+/).filter(Boolean).map(Number);
-    return { r: parts[0], g: parts[1], b: parts[2], a: parts.length > 3 ? parts[3] : 1 };
+    if (!value || value === 'transparent') return null;
+    if (/^rgba?\(\s*0,\s*0,\s*0,\s*0\s*\)$/.test(value.replace(/\s+/g, ' '))) return null;
+
+    const srgbFn = value.match(/^color\(\s*srgb\s+([^)]+)\)/i);
+    if (srgbFn) {
+      const parts = srgbFn[1].split(/[\s/]+/).filter(Boolean).map(Number);
+      if (parts.length < 3 || parts.some(Number.isNaN)) return null;
+      return {
+        r: parts[0] * 255,
+        g: parts[1] * 255,
+        b: parts[2] * 255,
+        a: parts.length > 3 ? parts[3] : 1,
+      };
+    }
+
+    const rgbFn = value.match(/rgba?\(([^)]+)\)/);
+    if (rgbFn) {
+      const parts = rgbFn[1].split(/[,/\s]+/).filter(Boolean).map(Number);
+      if (parts.length < 3 || parts.some(Number.isNaN)) return null;
+      return { r: parts[0], g: parts[1], b: parts[2], a: parts.length > 3 ? parts[3] : 1 };
+    }
+
+    // Anything else — a colour space this parser does not know — must fail
+    // loudly rather than be treated as transparent.
+    throw new Error(`check:contrast cannot parse the colour "${value}"`);
   };
   const lum = ({ r, g, b }) =>
     0.2126 * srgb(r / 255) + 0.7152 * srgb(g / 255) + 0.0722 * srgb(b / 255);
@@ -42,6 +75,18 @@ const audit = () => {
 
   // Walk up until an opaque background is found, compositing translucent
   // layers on the way — the tile washes are opaque but cards are not always.
+  // An element's rendered colour is its own colour faded by every opacity
+  // between it and the root. Ignoring that let an 80% opacity on 11px text
+  // pass this checker at 5.21:1 while actually rendering at 3.55:1.
+  const effectiveOpacity = (el) => {
+    let value = 1;
+    for (let n = el; n && n.nodeType === 1; n = n.parentElement) {
+      const o = parseFloat(getComputedStyle(n).opacity);
+      if (!Number.isNaN(o)) value *= o;
+    }
+    return value;
+  };
+
   const backgroundOf = (el) => {
     let stack = [];
     let node = el;
@@ -82,20 +127,52 @@ const audit = () => {
 
     const cs = getComputedStyle(el);
     if (cs.visibility === 'hidden' || cs.display === 'none' || +cs.opacity === 0) continue;
+    const opacity = effectiveOpacity(el);
+    if (opacity === 0) continue;
     const rect = el.getBoundingClientRect();
     if (rect.width === 0 || rect.height === 0) continue;
     // Visually hidden helpers are not rendered text.
     if (rect.width <= 1 && rect.height <= 1) continue;
 
-    const fgRaw = parse(cs.color);
+    // Text painted through background-clip: text has `color: transparent` and
+    // takes its colour from the background image. Checking the declared colour
+    // would score it 1:1 and miss the real question, which is whether every
+    // stop of that gradient clears AA against the ground behind it.
+    const clip = cs.webkitBackgroundClip || cs.backgroundClip;
+    const isGradientText =
+      clip === 'text' && parse(cs.color) === null;
+
+    let fgRaw = parse(cs.color);
+
+    if (isGradientText) {
+      const stops = [...(cs.backgroundImage || '').matchAll(/(rgba?\([^)]+\)|color\(srgb[^)]+\))/g)]
+        .map((m) => parse(m[0]))
+        .filter(Boolean);
+      if (stops.length === 0) continue;
+      // The worst stop decides. A gradient whose light end is legible and
+      // whose dark end is not has still failed for the letters at that end.
+      const bgHere = backgroundOf(el.parentElement ?? el);
+      let worst = null;
+      let worstRatio = Infinity;
+      for (const stop of stops) {
+        const composited = stop.a < 1 ? over(stop, bgHere) : stop;
+        const r = ratio(composited, bgHere);
+        if (r < worstRatio) { worstRatio = r; worst = composited; }
+      }
+      fgRaw = worst;
+    }
+
     if (!fgRaw) continue;
 
     if (decorative(el)) {
       skipped.push({ text: text.slice(0, 32), selector: el.tagName.toLowerCase() });
       continue;
     }
-    const bg = backgroundOf(el);
-    const fg = fgRaw.a < 1 ? over(fgRaw, bg) : fgRaw;
+    // Gradient text takes the background of its parent: its own background is
+    // the gradient being clipped, which is not a ground.
+    const bg = backgroundOf(isGradientText ? (el.parentElement ?? el) : el);
+    const alpha = fgRaw.a * opacity;
+    const fg = alpha < 1 ? over({ ...fgRaw, a: alpha }, bg) : fgRaw;
 
     const px = parseFloat(cs.fontSize);
     const weight = parseInt(cs.fontWeight, 10) || 400;

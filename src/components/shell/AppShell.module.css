@@ -1,0 +1,243 @@
+/* ===========================================================================
+   APP SHELL
+
+   The frame every page sits in. On a phone it is real application chrome: a
+   compact top bar and a fixed bottom tab bar, both frosted ink, with content
+   scrolling between them. Above tablet width the tab bar gives way to a
+   horizontal nav, because a thumb-reach tab bar on a laptop is a phone
+   pattern being cargo-culted.
+   ======================================================================== */
+
+.shell {
+  min-block-size: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-canvas);
+}
+
+/* --- Top bar ------------------------------------------------------------ */
+
+.topbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+  background: var(--surface-chrome);
+  color: var(--text-on-inverse);
+  padding-block-start: var(--safe-top);
+  /* Blur is capped to the two bars that stay on screen; it is the most
+     expensive effect on a mid-range Android GPU. */
+  backdrop-filter: var(--chrome-blur);
+  -webkit-backdrop-filter: var(--chrome-blur);
+}
+
+/* Without backdrop-filter the bar is semi-transparent ink over scrolling
+   content, which is unreadable. Fall back to solid. */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .topbar { background: var(--surface-inverse); }
+}
+
+.topbarInner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  min-block-size: var(--topbar-h);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  text-decoration: none;
+  color: var(--text-on-inverse);
+  margin-inline-end: auto;
+  min-block-size: 44px;
+}
+
+.brandMark { inline-size: 24px; flex: none; }
+
+.brandWord {
+  font-family: var(--font-display);
+  font-weight: var(--weight-black);
+  font-size: 1.0625rem;
+  letter-spacing: var(--tracking-display);
+}
+
+.brandWordAccent { color: var(--konekt-green); }
+
+/* CRDB attribution sits next to the mark rather than buried in the footer.
+   Konekt is CRDB's, and the bank's name is the reason to trust it. */
+.brandDivider {
+  inline-size: 1px;
+  block-size: 18px;
+  background: var(--line-on-inverse);
+  flex: none;
+}
+
+.brandParent {
+  font-family: var(--font-display);
+  font-size: var(--size-nano);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted-on-inverse);
+  white-space: nowrap;
+}
+
+@media (max-width: 22rem) {
+  /* On a 320px phone the parent brand is the first thing to go. */
+  .brandDivider, .brandParent { display: none; }
+}
+
+.desktopNav { display: none; gap: var(--space-2xs); }
+
+@media (min-width: 54rem) {
+  .desktopNav { display: flex; }
+}
+
+.desktopLink {
+  display: inline-flex;
+  align-items: center;
+  min-block-size: 40px;
+  padding-inline: var(--space-md);
+  border-radius: var(--radius-pill);
+  color: var(--text-muted-on-inverse);
+  text-decoration: none;
+  font-size: var(--size-caption);
+  font-weight: var(--weight-medium);
+  transition: color var(--dur-fast) var(--ease-out),
+              background-color var(--dur-fast) var(--ease-out);
+}
+
+.desktopLink:hover { color: var(--text-on-inverse); background: var(--surface-ink-soft); }
+
+.desktopLink[aria-current='page'] {
+  color: var(--konekt-ink);
+  background: var(--konekt-teal);
+  font-weight: var(--weight-bold);
+}
+
+.actions { display: flex; align-items: center; gap: var(--space-xs); }
+
+.lang {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 46px;
+  min-block-size: 40px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-ink-soft);
+  color: var(--text-on-inverse);
+  font-family: var(--font-display);
+  font-size: var(--size-micro);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-decoration: none;
+  transition: background-color var(--dur-fast) var(--ease-out);
+}
+
+.lang:hover { background: var(--konekt-teal); color: var(--konekt-ink); }
+
+.signIn { display: none; }
+
+@media (min-width: 30rem) {
+  .signIn {
+    display: inline-flex;
+    align-items: center;
+    min-block-size: 40px;
+    padding-inline: var(--space-md);
+    border-radius: var(--radius-pill);
+    background: var(--konekt-teal);
+    color: var(--konekt-ink);
+    font-family: var(--font-display);
+    font-size: var(--size-caption);
+    font-weight: var(--weight-bold);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color var(--dur-fast) var(--ease-out);
+  }
+  .signIn:hover { background: var(--konekt-green); }
+}
+
+/* --- Content ------------------------------------------------------------ */
+
+.main {
+  flex: 1;
+  /* Room for the fixed tab bar, plus the phone's own gesture area. */
+  padding-block-end: var(--tabbar-space);
+}
+
+@media (min-width: 54rem) {
+  .main { padding-block-end: 0; }
+}
+
+/* --- Bottom tab bar ----------------------------------------------------- */
+
+.tabbar {
+  position: fixed;
+  inset-block-end: 0;
+  inset-inline: 0;
+  z-index: var(--z-tabbar);
+  display: flex;
+  background: var(--surface-chrome);
+  backdrop-filter: var(--chrome-blur);
+  -webkit-backdrop-filter: var(--chrome-blur);
+  box-shadow: var(--shadow-chrome);
+  padding-block-end: var(--safe-bottom);
+  padding-inline: var(--safe-left) var(--safe-right);
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .tabbar { background: var(--surface-inverse); }
+}
+
+@media (min-width: 54rem) {
+  .tabbar { display: none; }
+}
+
+.tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-block-size: var(--tabbar-h);
+  color: var(--text-muted-on-inverse);
+  text-decoration: none;
+  font-size: var(--size-nano);
+  font-weight: var(--weight-medium);
+  position: relative;
+  transition: color var(--dur-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.tab:active { transform: scale(0.94); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tab:active { transform: none; }
+}
+
+.tab[aria-current='page'] {
+  color: var(--konekt-teal);
+  font-weight: var(--weight-bold);
+}
+
+/* The active tab is marked by the brand's own triangle, at the brand's own
+   angle — the third sanctioned use of the mark: pointing at where you are. */
+.tabMarker {
+  position: absolute;
+  inset-block-start: 0;
+  inline-size: 14px;
+  block-size: 5px;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  background: var(--konekt-teal);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity var(--dur-fast) var(--ease-konekt),
+              transform var(--dur-fast) var(--ease-konekt);
+}
+
+.tab[aria-current='page'] .tabMarker { opacity: 1; transform: translateY(0); }
+
+.tabIcon { inline-size: 22px; block-size: 22px; flex: none; }
+.tabLabel { line-height: 1; letter-spacing: -0.01em; }

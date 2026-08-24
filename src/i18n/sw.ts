@@ -19,11 +19,17 @@ const sw: Dictionary = {
   nav: {
     skipToContent: 'Rukia hadi maudhui',
     brandHome: 'CRDB Konekt — mwanzo',
+    byCrdb: 'ya Benki ya CRDB',
     events: 'Matukio',
     map: 'Ramani',
     membership: 'Uanachama',
     opportunities: 'Fursa',
+    blog: 'Habari',
+    signIn: 'Ingia',
     primaryLabel: 'Kuu',
+    tabbarLabel: 'Sehemu',
+    tabHome: 'Mwanzo',
+    tabMe: 'Wangu',
     languageLabel: 'Lugha',
     switchTo: 'Read in English',
   },
@@ -163,6 +169,85 @@ const sw: Dictionary = {
     body: 'Inafanya kazi bila mtandao. Tiketi zako zinabaki nawe hata mtandao ukikatika.',
     accept: 'Weka kwenye skrini',
     dismiss: 'Si sasa',
+  },
+
+  partners: {
+    title: 'Mtandao wa washirika wa Konekt',
+    pending: 'Ya dalili — inasubiri idhini ya Masoko na Sheria',
+  },
+
+  common: {
+    seeAll: 'Ona vyote',
+    back: 'Rudi',
+    comingSoon: 'Itafunguliwa katika toleo lijalo',
+    notConnected: 'Taarifa za moja kwa moja bado hazijaunganishwa',
+    notConnectedBody:
+      'Ukurasa huu unatumia daftari la CRDB lililohifadhiwa badala ya hifadhidata hai. Kila unachoona ni taarifa halisi kutoka katika daftari — ila bado hazijasasishwa moja kwa moja.',
+    readMore: 'Soma',
+    minuteRead: 'dakika za kusoma',
+    sample: 'Mfano',
+    free: 'Bure',
+  },
+
+  pages: {
+    events: {
+      title: 'Kila kinachoendelea karibu nawe',
+      lead: 'Ziara za vyuo, kliniki za fedha, michezo na maonyesho ya ajira. Bure kuhudhuria, dakika chache kujiandikisha.',
+      empty: 'Kalenda bado haijafunguliwa',
+      emptyBody:
+        'Matukio yataonekana hapa mara waratibu watakapoanza kuyachapisha. Hakuna kinachoorodheshwa kabla hakijawa halisi na cha kujiandikisha.',
+    },
+    map: {
+      title: 'Kanda nane. Matawi 252. Mtandao mmoja.',
+      lead: 'CRDB imekuwa katika miji hii kwa miaka arobaini. Konekt inaweka kila tawi, chuo na kambi kwenye ramani moja ili upate lililo karibu nawe na uone kinachoendelea hapo.',
+      legend: 'Rangi inaonyesha idadi ya vyuo ambavyo daftari linaviweka katika kila kanda',
+      densityNote:
+        'Kila mpaka hapa ni halisi: taarifa za kiutawala za Natural Earth 1:10m, mikoa yote 30, iliyopangwa katika kanda nane za CRDB.',
+      pinNote:
+        'Bado hakuna alama za maeneo, na hilo ni la makusudi. Hakuna rekodi hata moja katika daftari la CRDB yenye viwianishi. Hatua ya kutafuta viwianishi inafuata, na hakuna alama itakayofika kwenye ramani hii kabla afisa wa tawi hajaithibitisha.',
+      tableCaption: 'Vyuo na mikoa kwa kila kanda, kutoka daftari la CRDB',
+      colZone: 'Kanda',
+      colCampuses: 'Vyuo',
+      colRegions: 'Mikoa',
+      colRegionNames: 'Inayohusisha',
+    },
+    membership: {
+      title: 'Silver, Gold, Platinum',
+      lead: 'Uanachama ni bure na unaanza mara tu unapofungua akaunti ya vijana ya CRDB. Daraja lako unalichuma — kwa kuweka akiba, kwa kukopa vizuri, na kwa kuhudhuria.',
+    },
+    opportunities: {
+      title: 'Ajira, mafunzo kwa vitendo, ufadhili wa masomo, ruzuku',
+      lead: 'Ubao mmoja, uliochujwa kulingana na unachostahili kweli — kwa umri, kwa mkoa, kwa uliyosomea.',
+    },
+    blog: {
+      title: 'Habari',
+      lead: 'Fedha, maisha ya chuoni, na wanachama wenzako wa Konekt wanachojenga. Imeandikwa na jumuiya na CRDB.',
+      empty: 'Bado hakuna habari iliyochapishwa',
+      emptyBody:
+        'Makala ya kwanza yataonekana timu ya wahariri itakapoanza kuchapisha. Hakuna kinachojazwa ili tu kujaza ukurasa.',
+      featured: 'Iliyoangaziwa',
+      latest: 'Mpya',
+    },
+    me: {
+      title: 'Konekt yako',
+      lead: 'Daraja lako, tiketi zako, uliowaleta.',
+      signedOut: 'Ingia kwa namba yako ya simu',
+      signedOutBody:
+        'Msimbo mmoja kwa SMS na umeingia. Hakuna nywila ya kusahau, wala hakuna cha kujaza ambacho CRDB haina tayari.',
+      signIn: 'Nitumie msimbo',
+      tier: 'Daraja lako',
+      noTier: 'Bado huna daraja',
+      noTierBody:
+        'Daraja lako linahesabiwa na CRDB kutokana na matumizi ya akaunti yako na litaonekana hapa baada ya tathmini yako ya kwanza.',
+      myEvents: 'Matukio yangu',
+      myTickets: 'Tiketi zangu',
+      myReferrals: 'Niliowaleta',
+      referralCode: 'Msimbo wako wa kualika',
+      consentCentre: 'Kituo cha idhini',
+      consentBody:
+        'Chagua hasa tunachoweza kukutumia, na kwa njia gani. Mabadiliko yanaanza kufanya kazi mara moja.',
+      profile: 'Wasifu',
+    },
   },
 };
 

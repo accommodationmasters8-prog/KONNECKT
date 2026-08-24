@@ -1,0 +1,17 @@
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-sm);
+  padding: var(--space-2xl) var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--surface-sunken);
+  max-inline-size: 44ch;
+  margin-inline: auto;
+}
+
+.mark { inline-size: 52px; opacity: 0.35; }
+.title { color: var(--text-strong); }
+.body { color: var(--text-body); }
+.action { margin-block-start: var(--space-sm); }
