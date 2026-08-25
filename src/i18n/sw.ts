@@ -19,7 +19,6 @@ const sw: Dictionary = {
   nav: {
     skipToContent: 'Rukia hadi maudhui',
     brandHome: 'CRDB Konekt — mwanzo',
-    byCrdb: 'ya Benki ya CRDB',
     events: 'Matukio',
     map: 'Ramani',
     membership: 'Uanachama',
@@ -43,8 +42,6 @@ const sw: Dictionary = {
       'Tafuta kinachoendelea karibu nawe, fika, na ufungue akaunti inayokua pamoja nawe. Kujiunga ni bure, kuanzia miaka 18 hadi 35.',
     ctaPrimary: 'Tafuta matukio karibu nawe',
     ctaSecondary: 'Uanachama unavyofanya kazi',
-    markAlt:
-      'Alama ya Konekt: mshale wa kijani-bahari, pembetatu ya njano juu na pembetatu ya waridi chini.',
     statZones: 'kanda',
     statBranches: 'matawi ya CRDB',
     statCampuses: 'vyuo vilivyoorodheshwa',

@@ -1,6 +1,5 @@
 import Link from 'next/link';
-import { KonektMark } from '../KonektMark';
-import { CrdbLogo } from '../CrdbLogo';
+import { KonektLogo } from '../KonektLogo';
 import { nationalStats } from '@/lib/seed';
 import type { Dictionary, Locale } from '@/i18n';
 import styles from './Hero.module.css';
@@ -29,9 +28,11 @@ export function Hero({ locale, t }: { locale: Locale; t: Dictionary }) {
   return (
     <section className={`${styles.hero} on-ink`}>
       <div className={`shell ${styles.inner}`}>
+        {/* The parent brand is stated in words, not in a drawn stand-in.
+            CRDB's mark is their registered trademark and this build has not
+            been given the artwork; the official Konekt lockup below carries
+            the attribution the bank actually approved — "Na CRDB". */}
         <div className={styles.parentBrand}>
-          <CrdbLogo label="CRDB Bank Plc" tone="onInk" />
-          <span className={styles.parentDivider} aria-hidden="true" />
           <span className={styles.parentTag}>{t.hero.eyebrow}</span>
         </div>
 
@@ -60,7 +61,10 @@ export function Hero({ locale, t }: { locale: Locale; t: Dictionary }) {
 
           <div className={styles.markWrap}>
             <span className={styles.markGlow} aria-hidden="true" />
-            <KonektMark title={t.hero.markAlt} animate className={styles.mark} />
+            {/* Decorative. The headline beside it is the logo's own tagline
+                word for word, so naming it here would read the brand out
+                twice to a screen reader. */}
+            <KonektLogo label="" animate className={styles.mark} />
           </div>
         </div>
 

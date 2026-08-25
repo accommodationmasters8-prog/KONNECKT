@@ -139,12 +139,19 @@
 
   /* ---------------------------------------------------------------------
      4. GEOMETRY — the chevron
-        The Konekt "K" is a teal arrow with a yellow triangle above and a
-        pink triangle below, built on a single angle. That angle is the
-        entire structural vocabulary. One angle, used consistently, reads
-        as identity; multiple angles read as noise.
+        The interface cuts on one angle and one only: section edges, the
+        reveal wipe and the presence triangles all run at 58deg. One angle
+        used consistently reads as identity; multiple angles read as noise.
+
+        NOTE — this is the interface's angle, not the logo's. The chevron in
+        the official artwork runs at 41deg (113 of rise for 130 of run,
+        measured off the supplied file), and `<KonektLogo>` and `<KonektMark>`
+        draw it at exactly that. The two were assumed to be the same before
+        the artwork arrived. Re-cutting the interface to 41deg is four values
+        in this block plus the breakpoint override below — the decision is
+        the brand owner's, and it is logged in docs/OPEN-ITEMS.md 2.2.
      ------------------------------------------------------------------ */
-  --chevron-angle: 58deg;        /* from horizontal — measured off the mark */
+  --chevron-angle: 58deg;        /* from horizontal — section geometry      */
   --chevron-skew: -32deg;        /* 90deg - 58deg, for skewX() wipes        */
   --chevron-ratio: 1.6;          /* tan(58deg), rise over run               */
 

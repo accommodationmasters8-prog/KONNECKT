@@ -1,18 +1,32 @@
-.mark {
+/* Wrapped in :where() so it carries no specificity: whatever a consuming
+   module sets for size wins outright, whichever order the two stylesheets
+   land in the bundle. */
+:where(.logo) {
+  display: block;
   inline-size: 100%;
   block-size: auto;
   overflow: visible;
 }
 
+/* "Na CRDB" is the only run of type in the lockup. Sized in user units so it
+   scales with the viewBox rather than with the surrounding font size. */
+.parent {
+  font-family: var(--font-display);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-display);
+}
+
 /* --- Assembly on load -------------------------------------------------
-   Yellow triangle, then pink, then the teal arrow snapping into place.
-   Transform and opacity only, so it composites on the GPU and costs a
-   mid-range Android phone nothing.
+   The mark builds itself — gold, then red, then the chevron arriving from
+   the right — and the word arrives behind it. Transform and opacity only, so
+   it composites on the GPU and costs a mid-range Android phone nothing.
    ------------------------------------------------------------------- */
 
 .animate .triUp,
 .animate .triDown,
-.animate .arrow {
+.animate .chevron,
+.animate .word,
+.animate .parent {
   opacity: 0;
   animation-duration: var(--dur-slow);
   animation-timing-function: var(--ease-konekt);
@@ -31,9 +45,19 @@
   animation-delay: 190ms;
 }
 
-.animate .arrow {
+.animate .chevron {
   animation-name: snapIn;
   animation-delay: 320ms;
+}
+
+.animate .word {
+  animation-name: settleIn;
+  animation-delay: 440ms;
+}
+
+.animate .parent {
+  animation-name: settleIn;
+  animation-delay: 560ms;
 }
 
 @keyframes dropIn {
@@ -46,17 +70,22 @@
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* The chevron points left, so it arrives from the right — the motion runs
-   with the mark rather than against it. */
 @keyframes snapIn {
   from { opacity: 0; transform: translateX(30%) scale(0.86); }
   to   { opacity: 1; transform: translateX(0) scale(1); }
 }
 
+@keyframes settleIn {
+  from { opacity: 0; transform: translateX(-6%); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate .triUp,
   .animate .triDown,
-  .animate .arrow {
+  .animate .chevron,
+  .animate .word,
+  .animate .parent {
     animation: none;
     opacity: 1;
     transform: none;

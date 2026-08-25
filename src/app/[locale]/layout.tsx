@@ -115,11 +115,24 @@ export async function generateMetadata({
       locale: localeTags[locale].replace('-', '_'),
       title: t.meta.title,
       description: t.meta.description,
+      // The share card is the official lockup on the ink ground, generated
+      // from the same geometry the site renders by `npm run icons`. A
+      // summary_large_image card with no image is a grey box with a URL in
+      // it, which is what this was before.
+      images: [
+        {
+          url: '/brand/og-card.png',
+          width: 1200,
+          height: 630,
+          alt: 'KONEKT Na CRDB',
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: t.meta.title,
       description: t.meta.description,
+      images: ['/brand/og-card.png'],
     },
   };
 }

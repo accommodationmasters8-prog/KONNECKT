@@ -36,14 +36,7 @@
   color: var(--text-on-inverse);
 }
 
-.brandMark { inline-size: 22px; flex: none; }
-
-.brandWord {
-  font-family: var(--font-display);
-  font-weight: var(--weight-black);
-  font-size: 1rem;
-  letter-spacing: var(--tracking-display);
-}
+.brandLogo { inline-size: 108px; block-size: auto; flex: none; }
 
 .scope {
   display: flex;

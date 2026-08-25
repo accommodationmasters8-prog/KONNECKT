@@ -26,7 +26,6 @@ export interface Dictionary {
   nav: {
     skipToContent: string;
     brandHome: string;
-    byCrdb: string;
     events: string;
     map: string;
     membership: string;
@@ -48,7 +47,6 @@ export interface Dictionary {
     subline: string;
     ctaPrimary: string;
     ctaSecondary: string;
-    markAlt: string;
     statZones: string;
     statBranches: string;
     statCampuses: string;

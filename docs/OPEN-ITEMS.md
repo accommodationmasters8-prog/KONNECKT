@@ -108,20 +108,45 @@ Swapping in licensed Gotham is a one-line change to `--font-display` in
 
 **Decision needed:** budget for the licence, or sign off on Archivo.
 
-### 2.2 The CRDB logo
+### 2.2 Logos — what is official, and what is still missing
 
-**The build does not have CRDB's logo artwork**, and does not draw an
+**The Konekt logo is the official artwork.** The supplied lockup — the teal
+chevron with the gold and red triangles, `ONEKT` with the bar carried across
+the word, and `Na CRDB` under the tail of it — is drawn as outlines in
+`src/components/KonektLogo.tsx` and rendered wherever the brand appears: the
+top bar, the footer, the hero, the staff console, the share card and the app
+icons. `npm run icons` emits the static files under `public/brand/` and asserts
+its geometry against the component, so a file and the site cannot drift apart.
+
+There is no placeholder standing in for it anywhere.
+
+Three notes for the brand owner:
+
+- **The logo's angle is 41 degrees; the interface cuts at 58.** The chevron
+  in the artwork rises 113 for every 130 it runs. The section edges, the
+  reveal wipe and the presence triangles were built at 58 degrees before the
+  artwork arrived, on the assumption that the mark used the same angle. The
+  logo is now drawn at its own, so the two differ. Re-cutting the interface
+  to match is four values in `src/styles/tokens.css` §4 plus one breakpoint
+  override — nothing else in the build names an angle. **Decision needed:**
+  re-cut the interface to the logo's 41 degrees, or keep 58 as a separate
+  structural angle.
+
+- The wordmark is **outlines, not type**. It does not depend on the Gotham
+  licence in 2.1 and does not change if the display face changes. Only the
+  `Na CRDB` line is set in the display face, at logo scale.
+- If CRDB holds the original vector (AI/EPS/SVG), send it. The outlines here
+  were drawn from the supplied raster at the artwork's own proportions, which
+  is exact enough for screen at every size the site uses it, but the original
+  is what should go to a printer.
+
+**CRDB's own bank mark is still missing**, and this build does not draw an
 approximation of it. A bank's mark is a registered trademark; shipping a
-lookalike is not a placeholder, it is a misuse of their identity.
-
-The hero and the top bar render a typographic wordmark labelled
-`LOGO PENDING`, deliberately visible so it cannot ship unnoticed. To swap in
-the real thing:
-
-1. drop the official SVG at `public/brand/crdb-logo.svg`
-2. set `NEXT_PUBLIC_CRDB_LOGO=1`
-
-Nothing else changes.
+lookalike is not a placeholder, it is a misuse of their identity. The parent
+brand is therefore stated in words — the hero eyebrow, the footer attribution,
+and the `Na CRDB` line the Konekt logo carries itself, which is the
+attribution CRDB approved. If the bank's own artwork is supplied it can go
+beside the eyebrow in the hero; nothing in the build depends on it.
 
 The same applies to the partner strip: Bolt, Air Tanzania and the rest render
 as typographic plates, not as their logos, and the strip is labelled indicative

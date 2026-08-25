@@ -53,39 +53,16 @@
   min-block-size: 44px;
 }
 
-.brandMark { inline-size: 24px; flex: none; }
-
-.brandWord {
-  font-family: var(--font-display);
-  font-weight: var(--weight-black);
-  font-size: 1.0625rem;
-  letter-spacing: var(--tracking-display);
-}
-
-.brandWordAccent { color: var(--konekt-green); }
-
-/* CRDB attribution sits next to the mark rather than buried in the footer.
-   Konekt is CRDB's, and the bank's name is the reason to trust it. */
-.brandDivider {
-  inline-size: 1px;
-  block-size: 18px;
-  background: var(--line-on-inverse);
+/* The logo carries its own CRDB attribution, so the top bar shows the
+   lockup whole rather than a mark with the wordmark set beside it in a
+   substitute face. 92px wide is 46px tall in a 56px bar, and the artwork's
+   own margins take it to 36px of drawn brand — the same optical weight the
+   mark and wordmark had together, and enough that the "Na CRDB" line still
+   holds its counters on a 1x screen. */
+.brandLogo {
+  inline-size: 92px;
+  block-size: auto;
   flex: none;
-}
-
-.brandParent {
-  font-family: var(--font-display);
-  font-size: var(--size-nano);
-  font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--text-muted-on-inverse);
-  white-space: nowrap;
-}
-
-@media (max-width: 22rem) {
-  /* On a 320px phone the parent brand is the first thing to go. */
-  .brandDivider, .brandParent { display: none; }
 }
 
 .desktopNav { display: none; gap: var(--space-2xs); }

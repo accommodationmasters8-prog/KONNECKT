@@ -97,10 +97,18 @@ Extracted from the official Konekt logo artwork. All of it lives in
 `src/styles/tokens.css`, and `npm run check:tokens` fails the build if a hex
 value appears anywhere else.
 
+**The logo itself is the supplied artwork**, drawn as outlines in
+`src/components/KonektLogo.tsx`: the chevron with its gold and red triangles,
+`ONEKT` under the bar carried across from the T, and `Na CRDB` beneath it. It
+renders in the top bar, the footer, the hero, the staff console, the share
+card and the app icons — there is no stand-in for it anywhere. `npm run icons`
+writes the static files under `public/brand/` and refuses to run if their
+geometry has drifted from the component.
+
 **The chevron is the entire structural vocabulary**, used three ways and no
 others:
 
-1. **Section edges.** Sections meet on the mark's own 58° angle. The notch is
+1. **Section edges.** Sections meet on a 58° angle. The notch is
    sized in pixels on both axes so `depth ÷ (width ÷ 2)` stays at `tan(58°)` at
    every viewport — one angle, everywhere. The notched section is pulled up over
    its predecessor so the cut reveals the real section above rather than the
@@ -113,8 +121,14 @@ others:
    place, an active state. They are event colours, never decoration, and never
    a generic button fill.
 
-Both the mark component and the PWA icon generator carry the same path data,
-and the generator asserts they have not drifted apart.
+Both the logo components and the icon generator carry the same path data, and
+the generator asserts they have not drifted apart.
+
+One honest caveat: the artwork's own chevron runs at **41°**, not 58°. The
+section vocabulary was cut at 58° before the artwork arrived. The logo is
+drawn at its real angle and the interface still cuts at 58°; re-cutting it is
+four token values, and the decision is logged in
+[docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md) §2.2.
 
 ### The map
 
@@ -146,6 +160,9 @@ the paper canvas, where 86% drops brand teal to 3.77:1.
 Display is **Gotham**, the logo face — which needs a paid web licence CRDB has
 not bought. **This build ships Archivo.** Swapping in licensed Gotham is one
 line: `--font-display` in `tokens.css`. Nothing else names a font.
+
+The logo does not depend on that decision: its wordmark is outlines, not type,
+so it is the artwork at every size whichever face the interface ships.
 
 ---
 
@@ -225,8 +242,10 @@ what is left.
 
 ## Things that are deliberately missing
 
-- **CRDB's logo.** Not supplied, and not approximated — see
-  [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md) §2.2.
+- **CRDB's own bank mark.** Not supplied, and not approximated — see
+  [docs/OPEN-ITEMS.md](docs/OPEN-ITEMS.md) §2.2. The parent brand is stated in
+  words, and the Konekt logo carries the `Na CRDB` attribution itself. (The
+  Konekt logo is supplied and is what the site renders.)
 - **Partner logos.** Same reason. The strip renders typographic plates and is
   labelled indicative, pending Marketing and Legal.
 - **Pins on the map.** No record has a coordinate.

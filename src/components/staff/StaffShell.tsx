@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { KonektMark } from '../KonektMark';
+import { KonektLogo } from '../KonektLogo';
 import type { Locale } from '@/i18n';
 import type { StaffRole } from '@/lib/supabase/types';
 import styles from './StaffShell.module.css';
@@ -53,8 +53,7 @@ export function StaffShell({
     <div className={styles.console}>
       <aside className={`on-ink ${styles.sidebar}`}>
         <Link href={`/${locale}`} className={styles.brand}>
-          <KonektMark className={styles.brandMark} />
-          <span className={styles.brandWord}>KONEKT</span>
+          <KonektLogo label="KONEKT Na CRDB" className={styles.brandLogo} />
         </Link>
 
         <div className={styles.scope}>

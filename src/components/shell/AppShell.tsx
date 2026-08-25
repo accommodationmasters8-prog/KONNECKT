@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
-import { KonektMark } from '../KonektMark';
-import { CrdbLogo } from '../CrdbLogo';
+import { KonektLogo } from '../KonektLogo';
 import { localeNames, localeTags, type Locale } from '@/i18n';
 import type { Dictionary } from '@/i18n';
 import {
@@ -59,18 +58,17 @@ export function AppShell({
 
       <header className={`${styles.topbar} on-ink`}>
         <div className={`shell ${styles.topbarInner}`}>
-          {/* No aria-label here. An aria-label that does not contain the
-              link's visible text breaks voice control: someone saying "click
-              KONEKT" finds nothing, because the accessible name was something
-              else entirely. The visible words name the link, and the
-              destination is added for screen readers only. */}
+          {/* The official logo is the link's visible content, so it carries
+              the accessible name — the brand exactly as the artwork writes
+              it, "KONEKT Na CRDB". An accessible name that does not contain
+              what is on screen breaks voice control: someone saying "click
+              KONEKT" has to find the thing they can see. The destination is
+              added after it, for screen readers only.
+
+              The lockup states the CRDB attribution itself, so the separate
+              "by CRDB Bank" chip that used to sit here is gone with it. */}
           <Link href={href('')} className={styles.brand}>
-            <KonektMark className={styles.brandMark} />
-            <span className={styles.brandWord}>
-              KON<span className={styles.brandWordAccent}>E</span>KT
-            </span>
-            <span className={styles.brandDivider} aria-hidden="true" />
-            <span className={styles.brandParent}>{t.nav.byCrdb}</span>
+            <KonektLogo label="KONEKT Na CRDB" className={styles.brandLogo} />
             <span className="visually-hidden">{t.nav.brandHome}</span>
           </Link>
 
@@ -133,6 +131,3 @@ export function AppShell({
     </div>
   );
 }
-
-/** Re-exported so pages can render the parent brand without importing twice. */
-export { CrdbLogo };

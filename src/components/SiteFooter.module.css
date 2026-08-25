@@ -16,8 +16,11 @@
 
 .brandBlock { max-inline-size: 40ch; }
 
-.mark {
-  inline-size: 40px;
+/* The footer is where the brand gets its full statement, so it carries the
+   whole lockup rather than the mark alone. */
+.logo {
+  inline-size: 168px;
+  max-inline-size: 100%;
   margin-block-end: var(--space-sm);
 }
 

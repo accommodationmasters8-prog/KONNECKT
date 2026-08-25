@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { KonektMark } from './KonektMark';
+import { KonektLogo } from './KonektLogo';
 import { localeNames, localeTags, locales, type Locale } from '@/i18n';
 import type { Dictionary } from '@/i18n';
 import styles from './SiteFooter.module.css';
@@ -29,7 +29,9 @@ export function SiteFooter({ locale, t }: { locale: Locale; t: Dictionary }) {
     <footer className={`on-ink ${styles.footer} chev-edge-top`}>
       <div className={`shell ${styles.inner}`}>
         <div className={styles.brandBlock}>
-          <KonektMark className={styles.mark} />
+          {/* Decorative here: the tagline underneath already says the
+              brand, and a screen reader should not hear it twice. */}
+          <KonektLogo label="" className={styles.logo} />
           <p className={styles.tagline}>
             let&rsquo;s <span className={styles.taglineMark}>KONEKT</span>
           </p>

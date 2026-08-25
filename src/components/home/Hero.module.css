@@ -21,13 +21,6 @@
   flex-wrap: wrap;
 }
 
-.parentDivider {
-  inline-size: 1px;
-  align-self: stretch;
-  min-block-size: 24px;
-  background: var(--line-on-inverse);
-}
-
 .parentTag {
   font-family: var(--font-display);
   font-size: var(--size-micro);
@@ -129,7 +122,9 @@
   pointer-events: none;
 }
 
-.mark { inline-size: clamp(170px, 44vw, 320px); }
+/* The lockup is twice as wide as it is tall, so it takes more inline size
+   than the mark alone did to hold the same optical weight. */
+.mark { inline-size: clamp(220px, 52vw, 420px); }
 
 /* --- Stats -------------------------------------------------------------- */
 

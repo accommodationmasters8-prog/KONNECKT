@@ -16,7 +16,6 @@ const en: Dictionary = {
   nav: {
     skipToContent: 'Skip to content',
     brandHome: 'CRDB Konekt — home',
-    byCrdb: 'by CRDB Bank',
     events: 'Events',
     map: 'The map',
     membership: 'Membership',
@@ -40,8 +39,6 @@ const en: Dictionary = {
       'Find what is happening near you, show up, and open the account that grows with you. Free to join, from 18 to 35.',
     ctaPrimary: 'Find events near you',
     ctaSecondary: 'How membership works',
-    markAlt:
-      'The Konekt mark: a teal chevron with a yellow triangle above and a pink triangle below.',
     statZones: 'zones',
     statBranches: 'CRDB branches',
     statCampuses: 'campuses mapped',
