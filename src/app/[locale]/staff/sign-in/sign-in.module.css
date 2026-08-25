@@ -15,7 +15,6 @@
   border-radius: var(--radius-xl);
   background: var(--surface-raised);
   border: 1px solid var(--line-app);
-  box-shadow: var(--shadow-md);
 }
 
 .brand { display: block; text-decoration: none; }

@@ -1,10 +1,8 @@
 import { AppShell } from '@/components/shell/AppShell';
 import { Hero } from '@/components/home/Hero';
-import { PartnerStrip } from '@/components/home/PartnerStrip';
 import { MapPreview } from '@/components/home/MapPreview';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ProgressiveEnhancement } from '@/components/ProgressiveEnhancement';
-import { getLandingPlacements } from '@/lib/partners';
 import { localeParams, resolveLocale } from '@/lib/page';
 
 export function generateStaticParams() {
@@ -25,15 +23,11 @@ export default async function LandingPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale, t } = await resolveLocale(params);
-  // Uploaded partners when an administrator has added any; the committed
-  // indicative list until then.
-  const placements = await getLandingPlacements();
 
   return (
     <AppShell locale={locale} t={t} active="home">
       <Hero locale={locale} t={t} />
       <MapPreview locale={locale} t={t} />
-      <PartnerStrip t={t} placements={placements} />
       <SiteFooter locale={locale} t={t} />
       <ProgressiveEnhancement t={t} />
     </AppShell>

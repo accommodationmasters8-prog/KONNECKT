@@ -31,10 +31,10 @@ const en: Dictionary = {
   },
 
   hero: {
-    eyebrow: 'Na CRDB',
-    headline: 'Konekt reaches every zone in Tanzania.',
+    eyebrow: 'Internal tracker · Na CRDB',
+    headline: 'Every station CRDB tracks, in one place.',
     subline:
-      'Campuses, workplaces and groups across the country, branch by branch. Sign in to work with your figures.',
+      'Konekt is CRDB\u2019s internal tracking and analytics tool. Portfolios, accounts, deposits and loans \u2014 recorded station by station, rolled up from branch to zone to HQ.',
     ctaPrimary: 'Sign in',
     ctaSecondary: 'See the map',
     statZones: 'zones',
@@ -59,7 +59,7 @@ const en: Dictionary = {
   map: {
     eyebrow: 'The map',
     title: 'Eight zones. One network.',
-    lead: 'CRDB has been in these towns for forty years. Konekt puts every branch, campus and barracks on one map so you can find the nearest one and see what is on there.',
+    lead: 'Where the network reaches, zone by zone. A pin marks every zone Konekt is tracking; the figures behind them are inside the tracker.',
     zoneColumn: 'Zone',
     institutionsColumn: 'Campuses',
     regionsColumn: 'Regions',
@@ -140,7 +140,7 @@ const en: Dictionary = {
   footer: {
     tagline: "let's KONEKT",
     attribution:
-      'CRDB Konekt is the youth banking community of CRDB Bank Plc, Tanzania.',
+      'Konekt is an internal tracking and analytics tool for CRDB Bank Plc, Tanzania. Access is issued by HQ.',
     regulator: 'CRDB Bank Plc is licensed and regulated by the Bank of Tanzania.',
     navLabel: 'Footer',
     columnsExplore: 'Explore',

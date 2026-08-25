@@ -88,3 +88,32 @@
   fill: var(--konekt-teal-light);
 }
 
+
+/* --- Pins ---------------------------------------------------------------
+   Pink is the place colour in this brand and appears nowhere else on the
+   map, so a pin carries its own legend. The white halo is what keeps it
+   readable over the palest zone and the darkest one alike. */
+.pin { pointer-events: none; }
+
+.pinHalo {
+  fill: var(--surface-raised);
+  opacity: 0.92;
+}
+
+.pinDot {
+  fill: var(--konekt-pink);
+  stroke: var(--surface-raised);
+  stroke-width: 2;
+}
+
+.pinCount {
+  fill: var(--text-strong);
+  font-family: var(--font-data);
+  font-size: 20px;
+  font-weight: 700;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--surface-raised);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}

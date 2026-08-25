@@ -132,11 +132,16 @@ a {
 }
 
 .section {
-  /* The lower bound is the chevron-edge clearance requirement below: a
-     notched section overlaps this one by --chev-notch-d, so that much of the
-     bottom edge has to stay empty. */
-  padding-block: max(var(--space-3xl), calc(var(--chev-notch-d) + var(--space-md)));
+  padding-block: var(--space-2xl);
   position: relative;
+}
+
+/* Only a section that is followed by a notched one needs the clearance: the
+   notch overlaps it by --chev-notch-d, so that much of the bottom edge has to
+   stay empty. Applying that to every section left a band of nothing between
+   blocks that no chevron was ever going to fill. */
+.section--notched-below {
+  padding-block-end: max(var(--space-2xl), calc(var(--chev-notch-d) + var(--space-md)));
 }
 
 /* A page's own header block: eyebrow, title, lead. Used on every route so the
@@ -362,8 +367,8 @@ a {
   align-items: center;
   justify-content: center;
   gap: var(--space-xs);
-  min-height: 50px;
-  padding: var(--space-sm) var(--space-xl);
+  min-height: 44px;
+  padding: var(--space-xs) var(--space-lg);
   border: 2px solid transparent;
   border-radius: var(--radius-pill);
   -webkit-tap-highlight-color: transparent;
@@ -386,8 +391,9 @@ a {
 /* On a phone a primary action spans the width — a pill floating in the middle
    of a 412px screen is a website's idea of a button. */
 .btn--lg {
-  min-height: 54px;
-  font-size: var(--size-body-lg);
+  min-height: 48px;
+  padding-inline: var(--space-xl);
+  font-size: var(--size-body);
 }
 
 @media (max-width: 30rem) {
@@ -404,13 +410,27 @@ a {
 }
 .btn--primary:hover { background: var(--konekt-green); }
 
+/* Ghost is light-first, because almost every surface in this build is now
+   white. It used to be defined for ink only, which left the secondary action
+   on the hero as pale text on a pale ground — technically present, and
+   invisible. On ink it flips, below. */
 .btn--ghost {
   background: transparent;
+  border-color: var(--line-strong);
+  color: var(--text-accent);
+}
+.btn--ghost:hover {
+  border-color: var(--konekt-teal-deep);
+  background: var(--surface-tint);
+}
+
+.on-ink .btn--ghost {
   border-color: var(--line-on-inverse);
   color: var(--text-on-inverse);
 }
-.btn--ghost:hover {
+.on-ink .btn--ghost:hover {
   border-color: var(--konekt-teal);
+  background: transparent;
   color: var(--konekt-teal);
 }
 
@@ -428,13 +448,13 @@ a {
    CARDS
    ======================================================================== */
 
-/* Elevation and radius do the separating. Dropping the 1px outline from every
-   card is most of what makes the interface read as clean rather than boxed. */
+/* A hairline and the radius do the separating. There are no shadows in this
+   build — see the elevation note in tokens.css. */
 .card {
   background: var(--surface-raised);
+  border: 1px solid var(--line-app);
   border-radius: var(--radius-lg);
   padding: var(--space-lg);
-  box-shadow: var(--shadow-sm);
 }
 
 .card--flat { box-shadow: none; background: var(--surface-sunken); }
@@ -452,14 +472,16 @@ a {
   display: block;
   transition:
     transform var(--dur-base) var(--ease-konekt),
-    border-color var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-base) var(--ease-out);
+    border-color var(--dur-fast) var(--ease-out);
 }
+/* Hover darkens the line rather than lifting the card off the page. Nothing
+   in this interface floats, and a hover state that contradicts that reads as
+   a different design system for a fifth of a second. */
 .card-link:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lift);
+  transform: translateY(-2px);
+  border-color: var(--konekt-teal);
 }
-.card-link:active { transform: translateY(-1px); }
+.card-link:active { transform: translateY(0); }
 
 @media (prefers-reduced-motion: reduce) {
   .card-link:hover, .card-link:active { transform: none; }

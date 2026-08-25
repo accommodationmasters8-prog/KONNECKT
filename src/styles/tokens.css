@@ -117,16 +117,24 @@
   --weight-bold:     700;
   --weight-black:    900;
 
-  /* The scale starts larger on a phone than a website's would. Headlines are
-     the interface here; body copy is support. A 2.75rem hero on a 412px screen
-     was polite — this is not a polite product.                            */
-  --size-hero:    clamp(3.25rem, 13vw, 7.5rem);
-  --size-h1:      clamp(2.25rem, 7vw, 4rem);
-  --size-h2:      clamp(1.75rem, 5.5vw, 2.75rem);
-  --size-h3:      clamp(1.1875rem, 2.4vw, 1.5rem);
-  --size-body:    1.0625rem;
-  --size-body-lg: clamp(1.125rem, 1.8vw, 1.3125rem);
-  --size-caption: 0.875rem;
+  /* A working scale, not a campaign one.
+
+     This was built when the product was a youth membership and the headlines
+     were the interface — a 7.5rem hero, a 4rem h1. It is an internal tracker
+     now, read at a desk by people who came to look at figures, and at that job
+     type that size is not confident, it is in the way: it pushes the content
+     below the fold and makes every screen feel like a poster about data
+     rather than the data.
+
+     Nothing here is above 3.25rem, and body sits at 15px. Space does the
+     separating instead — see section 7. */
+  --size-hero:    clamp(2rem, 6vw, 3.25rem);
+  --size-h1:      clamp(1.625rem, 4vw, 2.25rem);
+  --size-h2:      clamp(1.375rem, 3vw, 1.75rem);
+  --size-h3:      clamp(1.0625rem, 1.8vw, 1.25rem);
+  --size-body:    0.9375rem;
+  --size-body-lg: clamp(1rem, 1.4vw, 1.125rem);
+  --size-caption: 0.8125rem;
   --size-micro:   0.75rem;
   --size-nano:    0.6875rem;
 
@@ -269,13 +277,21 @@
   /* ---------------------------------------------------------------------
      8. ELEVATION
      ------------------------------------------------------------------ */
-  /* Elevation replaces borders. A card that is separated by a shadow and a
-     radius does not also need a 1px line around it, and dropping those lines
-     is most of what makes the interface read as clean.                    */
-  --shadow-sm:   0 1px 2px rgb(14 31 28 / 0.05), 0 2px 10px rgb(14 31 28 / 0.04);
-  --shadow-md:   0 2px 4px rgb(14 31 28 / 0.05), 0 14px 32px rgb(14 31 28 / 0.07);
-  --shadow-lift: 0 4px 10px rgb(14 31 28 / 0.07), 0 24px 56px rgb(14 31 28 / 0.11);
-  --shadow-chrome: 0 -1px 0 rgb(250 251 250 / 0.06), 0 -12px 32px rgb(0 0 0 / 0.3);
+  /* There is no elevation. Nothing in this interface floats.
+
+     The earlier build separated cards with shadows and dropped their borders.
+     Shadows imply a stack — this thing is above that thing — and a tracker has
+     no stack: every card on a screen is the same kind of object at the same
+     level. A hairline says "this ends here" without claiming anything else,
+     and it stays crisp on the cheap projector this gets presented on, which a
+     4% shadow does not.
+
+     Kept as tokens rather than deleted so a rule that asks for one gets
+     nothing instead of an undefined variable. --line-app is the separator. */
+  --shadow-sm:     none;
+  --shadow-md:     none;
+  --shadow-lift:   none;
+  --shadow-chrome: none;
 
   /* ---------------------------------------------------------------------
      9. THE CONSOLE — the staff and admin dashboard

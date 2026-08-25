@@ -216,13 +216,16 @@
   background: var(--surface-raised);
   border: 1px solid var(--line-app);
   border-inline-start: 4px solid var(--card-accent);
-  box-shadow: var(--shadow-sm);
   text-decoration: none;
-  transition: box-shadow var(--dur-fast) var(--ease-out),
+  transition: border-color var(--dur-fast) var(--ease-out),
               transform var(--dur-fast) var(--ease-out);
 }
 
-.categoryCard:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+/* The accent edge deepens; the card does not lift. Nothing here floats. */
+.categoryCard:hover {
+  border-color: var(--konekt-teal);
+  transform: translateY(-2px);
+}
 
 .categoryCard.teal  { --card-accent: var(--metric-teal-to); }
 .categoryCard.green { --card-accent: var(--metric-green-to); }

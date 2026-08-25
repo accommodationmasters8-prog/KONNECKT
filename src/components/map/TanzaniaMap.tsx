@@ -22,12 +22,31 @@ export interface ZoneDatum {
   regions: number;
 }
 
+/**
+ * A pin on the map.
+ *
+ * Coordinates are in the map's own viewBox space, not degrees — callers with
+ * real lon/lat run them through `projectToMap` first. That keeps this
+ * component ignorant of projection, which matters because the pins come from
+ * two places: zone anchors today, and station points once branches have
+ * dropped them.
+ */
+export interface MapPin {
+  id: string;
+  x: number;
+  y: number;
+  label: string;
+  /** How many things are at this pin. Drawn on the pin when above one. */
+  count?: number;
+}
+
 export function TanzaniaMap({
   data,
   title,
   activeZone,
   variant = 'display',
   labels = false,
+  pins,
   className,
 }: {
   data: ZoneDatum[];
@@ -38,6 +57,8 @@ export function TanzaniaMap({
   variant?: 'display' | 'flat';
   /** Draw the zone name and campus count on the map itself. */
   labels?: boolean;
+  /** Places to mark. Drawn above every region, in the brand's place colour. */
+  pins?: MapPin[];
   className?: string;
 }) {
   const byZone = new Map(data.map((d) => [d.zone, d]));
@@ -121,6 +142,26 @@ export function TanzaniaMap({
                 </g>
               );
             })
+          : null}
+
+        {/* Pins, last so they sit above every region.
+
+            Pink is the brand's place colour and is used for nothing else, so a
+            pin needs no legend — it is the only pink on the map. Each is a
+            filled dot with a white ring, which is what keeps it visible over
+            both the palest zone and the darkest one. */}
+        {pins?.length
+          ? pins.map((pin) => (
+              <g key={pin.id} className={styles.pin}>
+                <circle cx={pin.x} cy={pin.y} r="13" className={styles.pinHalo} />
+                <circle cx={pin.x} cy={pin.y} r="7" className={styles.pinDot} />
+                {pin.count && pin.count > 1 ? (
+                  <text x={pin.x} y={pin.y + 28} className={styles.pinCount}>
+                    {pin.count}
+                  </text>
+                ) : null}
+              </g>
+            ))
           : null}
       </svg>
     </figure>

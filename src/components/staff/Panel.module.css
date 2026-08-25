@@ -1,10 +1,9 @@
-/* A card, not a section with a rule above it. Radius, one shadow, a hairline
-   only where the shadow is too soft to hold an edge against the canvas. */
+/* A card, not a section with a rule above it. A hairline and a radius; no
+   shadow, because nothing in this interface floats. */
 .panel {
   background: var(--surface-raised);
   border: 1px solid var(--line-app);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
   padding: var(--space-lg);
 }
 

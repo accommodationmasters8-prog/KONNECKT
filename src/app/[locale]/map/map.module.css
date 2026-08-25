@@ -57,7 +57,7 @@
   margin-block-end: var(--space-xl);
   border-radius: var(--radius-md);
   background: var(--surface-raised);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--line-app);
 }
 
 .table {

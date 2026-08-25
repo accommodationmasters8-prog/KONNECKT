@@ -14,7 +14,6 @@
   background: var(--surface-inverse);
   color: var(--text-on-inverse);
   border: 1px solid var(--line-on-inverse);
-  box-shadow: var(--shadow-lift);
   animation: rise var(--dur-base) var(--ease-konekt) both;
 }
 

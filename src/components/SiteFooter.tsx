@@ -23,15 +23,12 @@ export function SiteFooter({ locale, t }: { locale: Locale; t: Dictionary }) {
   ];
 
   return (
-    <footer className={`on-ink ${styles.footer} chev-edge-top`}>
+    <footer className={`on-ink ${styles.footer}`}>
       <div className={`shell ${styles.inner}`}>
         <div className={styles.brandBlock}>
           {/* Decorative here: the tagline underneath already says the
               brand, and a screen reader should not hear it twice. */}
           <KonektLogo label="" className={styles.logo} />
-          <p className={styles.tagline}>
-            let&rsquo;s <span className={styles.taglineMark}>KONEKT</span>
-          </p>
           <p className={`t-caption ${styles.attribution}`}>
             {t.footer.attribution}
           </p>

@@ -158,7 +158,6 @@
   background: var(--surface-chrome);
   backdrop-filter: var(--chrome-blur);
   -webkit-backdrop-filter: var(--chrome-blur);
-  box-shadow: var(--shadow-chrome);
   padding-block-end: var(--safe-bottom);
   padding-inline: var(--safe-left) var(--safe-right);
 }

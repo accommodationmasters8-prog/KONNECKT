@@ -34,10 +34,10 @@ const sw: Dictionary = {
   },
 
   hero: {
-    eyebrow: 'Na CRDB',
-    headline: 'Konekt inafika kila kanda nchini Tanzania.',
+    eyebrow: 'Kifuatiliaji cha ndani · Na CRDB',
+    headline: 'Kila kituo CRDB inachofuatilia, mahali pamoja.',
     subline:
-      'Vyuo, sehemu za kazi na vikundi kote nchini, tawi kwa tawi. Ingia ili kufanya kazi na takwimu zako.',
+      'Konekt ni kifaa cha ndani cha CRDB cha kufuatilia na kuchambua takwimu. Idadi ya watu, akaunti, amana na mikopo \u2014 kwa kila kituo, kutoka tawi hadi kanda hadi makao makuu.',
     ctaPrimary: 'Ingia',
     ctaSecondary: 'Ona ramani',
     statZones: 'kanda',
@@ -62,7 +62,7 @@ const sw: Dictionary = {
   map: {
     eyebrow: 'Ramani',
     title: 'Kanda nane. Mtandao mmoja.',
-    lead: 'CRDB imekuwa katika miji hii kwa miaka arobaini. Konekt inaweka kila tawi, chuo na kambi kwenye ramani moja ili upate lililo karibu nawe na uone kinachoendelea hapo.',
+    lead: 'Mtandao unavyofika, kanda kwa kanda. Kila alama inaonyesha kanda ambayo Konekt inafuatilia; takwimu zake zipo ndani ya mfumo.',
     zoneColumn: 'Kanda',
     institutionsColumn: 'Vyuo',
     regionsColumn: 'Mikoa',
@@ -143,7 +143,7 @@ const sw: Dictionary = {
   footer: {
     tagline: "let's KONEKT",
     attribution:
-      'CRDB Konekt ni jumuiya ya vijana ya kibenki ya CRDB Bank Plc, Tanzania.',
+      'Konekt ni mfumo wa ndani wa kufuatilia na kuchambua takwimu wa CRDB Bank Plc, Tanzania. Ruhusa ya kuingia hutolewa na makao makuu.',
     regulator:
       'CRDB Bank Plc imepewa leseni na inasimamiwa na Benki Kuu ya Tanzania.',
     navLabel: 'Chini ya ukurasa',

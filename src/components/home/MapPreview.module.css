@@ -1,6 +1,9 @@
+/* White, like the rest of the front door. This block was on ink, which made
+   the landing page two designs stapled together. */
 .section {
-  background: var(--surface-inverse);
-  color: var(--text-on-inverse);
+  background: var(--surface-raised);
+  color: var(--text-strong);
+  border-block-end: 1px solid var(--line-soft);
 }
 
 .split {
@@ -14,7 +17,13 @@
   .split { grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr); }
 }
 
-.map { max-inline-size: 30rem; }
+/* Room around it. A map crammed to its container reads as a diagram; given
+   air it reads as a place. */
+.map {
+  max-inline-size: 32rem;
+  margin-inline: auto;
+  padding-block: var(--space-md);
+}
 
 .side { display: flex; flex-direction: column; gap: var(--space-lg); }
 
@@ -30,7 +39,7 @@
   gap: 2px;
   padding: var(--space-md);
   border-radius: var(--radius-md);
-  background: var(--surface-ink-soft);
+  background: var(--surface-sunken);
 }
 
 .zoneName {
@@ -39,16 +48,17 @@
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  color: var(--konekt-teal-light);
+  color: var(--text-accent);
 }
 
 .zoneValue {
   font-size: var(--size-h3);
   line-height: 1;
-  color: var(--text-on-inverse);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-strong);
 }
 
-.zoneUnit { font-size: var(--size-nano); color: var(--text-muted-on-inverse); }
+.zoneUnit { font-size: var(--size-nano); color: var(--text-body); }
 
 .totals {
   display: grid;
@@ -56,7 +66,7 @@
   gap: var(--space-lg);
   margin: 0;
   padding-block-start: var(--space-lg);
-  border-block-start: 1px solid var(--line-on-inverse);
+  border-block-start: 1px solid var(--line-soft);
 }
 
 @media (min-width: 48rem) {
@@ -67,9 +77,13 @@
 
 .totalValue {
   margin: 0;
-  font-size: clamp(1.75rem, 6vw, 2.5rem);
+  font-family: var(--font-data);
+  font-size: clamp(1.375rem, 4vw, 1.875rem);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
   line-height: 1;
-  color: var(--konekt-teal);
+  color: var(--text-accent);
 }
 
-.totalLabel { font-size: var(--size-micro); color: var(--text-muted-on-inverse); }
+.totalLabel { font-size: var(--size-micro); color: var(--text-body); }

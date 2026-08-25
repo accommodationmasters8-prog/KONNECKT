@@ -29,7 +29,11 @@
   background: var(--surface-raised);
 }
 
-.status { min-block-size: 1.25rem; font-size: var(--size-caption); }
+/* Reserves its line only when it has something to say. Holding the space
+   open unconditionally left a gap under the password field that read as a
+   missing field rather than as breathing room. */
+.status { font-size: var(--size-caption); }
+.status:empty { display: none; }
 
 .error { color: var(--metric-pink-from); }
 .sent { color: var(--konekt-green-deep); }
