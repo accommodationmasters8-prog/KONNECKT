@@ -48,3 +48,38 @@
   color: var(--text-body);
   line-height: var(--leading-body);
 }
+
+/* --- Sign-up form additions --------------------------------------------
+   Shared with MemberSignIn so the two screens are one control set: someone
+   who has just registered recognises the sign-in page.
+   --------------------------------------------------------------------- */
+
+.hint {
+  font-size: var(--size-micro);
+  color: var(--text-body);
+  line-height: var(--leading-snug);
+}
+
+.optional { font-weight: var(--weight-regular); color: var(--text-body); }
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  font-size: var(--size-caption);
+  line-height: var(--leading-body);
+  cursor: pointer;
+}
+
+.check input {
+  inline-size: 22px;
+  block-size: 22px;
+  margin-block-start: 1px;
+  flex: none;
+  accent-color: var(--konekt-teal-deep);
+}
+
+.check a { color: var(--konekt-teal-deep); }
+
+.alt { font-size: var(--size-caption); color: var(--text-body); }
+.alt a { color: var(--konekt-teal-deep); }
