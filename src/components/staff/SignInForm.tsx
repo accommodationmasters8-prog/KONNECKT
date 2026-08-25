@@ -27,7 +27,17 @@ type Status =
  * tired person reads as "the system is broken" rather than "check the
  * password".
  */
-export function SignInForm({ locale }: { locale: string }) {
+export function SignInForm({
+  locale,
+  redirectTo = 'staff',
+  audience = 'staff account',
+}: {
+  locale: string;
+  /** Path under the locale to land on once signed in. */
+  redirectTo?: string;
+  /** What kind of account this form is for, used in the failure message. */
+  audience?: string;
+}) {
   const router = useRouter();
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
   const [email, setEmail] = useState('');
@@ -57,7 +67,7 @@ export function SignInForm({ locale }: { locale: string }) {
         kind: 'error',
         message:
           error.message === 'Invalid login credentials'
-            ? 'That email and password do not match a staff account.'
+            ? `That email and password do not match a ${audience}.`
             : error.message,
       });
       return;
@@ -65,7 +75,7 @@ export function SignInForm({ locale }: { locale: string }) {
 
     // refresh() rather than push(): the console is a server component, and it
     // has to be re-rendered with the new cookies before it knows who this is.
-    router.replace(`/${locale}/staff`);
+    router.replace(`/${locale}/${redirectTo}`);
     router.refresh();
   }
 
@@ -76,7 +86,7 @@ export function SignInForm({ locale }: { locale: string }) {
     }
     setStatus({ kind: 'working' });
     const { error } = await client!.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/${locale}/staff`,
+      redirectTo: `${window.location.origin}/${locale}/${redirectTo}`,
     });
     setStatus(
       error

@@ -4,16 +4,16 @@ import { KonektLogo } from '../KonektLogo';
 import type { Locale } from '@/i18n';
 import type { StaffRole } from '@/lib/supabase/types';
 import {
-  AccountsIcon, AuditIcon, CheckinIcon, EventsIcon, MembersIcon,
-  OverviewIcon, PartnersIcon, SettingsIcon, SignOutIcon, SponsorshipIcon,
-  VerificationIcon,
+  AccountsIcon, AuditIcon, CheckinIcon, CommunicationIcon, EventsIcon,
+  FreelancersIcon, MembersIcon, OverviewIcon, PartnersIcon, ProductsIcon,
+  SettingsIcon, SignOutIcon, SponsorshipIcon, VerificationIcon,
 } from './StaffIcons';
 import styles from './StaffShell.module.css';
 
 export type StaffSection =
   | 'overview' | 'events' | 'checkin' | 'accounts'
   | 'verification' | 'sponsorship' | 'members' | 'audit'
-  | 'partners' | 'settings';
+  | 'partners' | 'settings' | 'communication' | 'products' | 'freelancers';
 
 export interface StaffNavItem {
   key: StaffSection;
@@ -40,6 +40,9 @@ const ICONS: Record<StaffSection, (p: { className?: string }) => ReactNode> = {
   audit: AuditIcon,
   partners: PartnersIcon,
   settings: SettingsIcon,
+  communication: CommunicationIcon,
+  products: ProductsIcon,
+  freelancers: FreelancersIcon,
 };
 
 const ROLE_LABELS: Record<StaffRole, string> = {

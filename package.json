@@ -2,7 +2,7 @@
   "name": "crdb-konekt",
   "version": "0.1.0",
   "private": true,
-  "description": "CRDB Konekt — youth banking community platform, CRDB Bank Plc Tanzania.",
+  "description": "CRDB Konekt \u2014 youth banking community platform, CRDB Bank Plc Tanzania.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -17,7 +17,8 @@
     "map:build": "node scripts/geo/build-tanzania-map.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "budget": "node scripts/check-budget.mjs",
-    "verify": "npm run check:tokens && npm run check:stats && npm run typecheck && npm run build && npm run budget"
+    "verify": "npm run check:tokens && npm run check:stats && npm run typecheck && npm run build && npm run budget",
+    "db:bootstrap": "node scripts/db/bootstrap.mjs"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.5",

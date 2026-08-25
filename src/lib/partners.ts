@@ -1,5 +1,5 @@
 import type { Placement } from '@/components/home/PartnerStrip';
-import { getServerClient } from '@/lib/supabase/server';
+import { getPublicClient } from '@/lib/supabase/server';
 import { supabaseUrl } from '@/lib/supabase/config';
 
 /**
@@ -35,7 +35,7 @@ export const INDICATIVE_PARTNERS: Placement[] = [
  * labelled indicative either way, so the honest state is preserved.
  */
 export async function getLandingPlacements(): Promise<Placement[]> {
-  const supabase = await getServerClient();
+  const supabase = getPublicClient();
   if (!supabase) return INDICATIVE_PARTNERS;
 
   const { data } = await supabase

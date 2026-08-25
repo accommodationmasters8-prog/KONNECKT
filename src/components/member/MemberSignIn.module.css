@@ -1,0 +1,50 @@
+.form { display: flex; flex-direction: column; gap: var(--space-md); }
+
+.field { display: flex; flex-direction: column; gap: var(--space-2xs); }
+
+.label {
+  font-size: var(--size-micro);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+
+/* 52px, not 44. This is the one input on the whole site that someone fills in
+   standing in a queue at a campus activation. */
+.input {
+  min-block-size: 52px;
+  padding-inline: var(--space-md);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  font: inherit;
+  font-size: var(--size-body-lg);
+  letter-spacing: 0.02em;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--konekt-teal-deep);
+  outline-offset: 2px;
+  background: var(--surface-raised);
+}
+
+.error { min-block-size: 1.2rem; font-size: var(--size-caption); color: var(--metric-pink-from); }
+
+.actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-md); }
+
+.linkButton {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: var(--size-caption);
+  color: var(--konekt-teal-deep);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.unconfigured {
+  font-size: var(--size-caption);
+  color: var(--text-body);
+  line-height: var(--leading-body);
+}

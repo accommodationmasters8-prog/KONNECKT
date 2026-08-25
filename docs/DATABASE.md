@@ -12,6 +12,20 @@ Everything lives in the `konekt` schema. Nothing lives in `public`.
 
 ### Against Supabase
 
+The fastest path is one file:
+
+```bash
+npm run db:bootstrap        # regenerates supabase/bootstrap.sql from the migrations
+psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f supabase/bootstrap.sql
+```
+
+`supabase/bootstrap.sql` is generated, never edited: it enables `postgis` and
+concatenates every migration in filename order. Paste it into the Supabase SQL
+editor if `psql` cannot reach the project — direct database hosts are IPv6-only
+on Supabase now, and a network without IPv6 has to use the pooler or the editor.
+
+Or, step by step:
+
 1. Create a project. In **Database → Extensions**, enable `postgis`.
 2. Run the migrations in filename order (`supabase db push`, or paste them into
    the SQL editor one at a time).
@@ -26,9 +40,25 @@ DATABASE_URL="postgres://postgres:...@db.<ref>.supabase.co:5432/postgres" \
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=https://<ref>.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>
-SUPABASE_SERVICE_ROLE_KEY=<service role key>   # server only, never a bundle
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...   # or the legacy
+                                                          # NEXT_PUBLIC_SUPABASE_ANON_KEY
+SUPABASE_SECRET_KEY=sb_secret_...   # server only, never a bundle; or the
+                                    # legacy SUPABASE_SERVICE_ROLE_KEY
 ```
+
+Both key generations are read — a project created this year has no anon key,
+and one created before the change has no publishable key. The publishable key
+wins if both are set, because it can be rotated on its own.
+
+5. Auth, for the two sign-ins:
+   - **Staff and freelancers** sign in with email and password. Create the
+     auth user in **Authentication → Users**, then insert the matching row in
+     `konekt.staff_users` (or `konekt.freelancers`) with its `auth_user_id`.
+     The row is what grants the role; the auth user alone grants nothing.
+   - **Members** sign in with a phone OTP, which needs an SMS provider
+     configured under **Authentication → Providers → Phone**. Without one the
+     form reports the provider's own failure rather than pretending a code
+     was sent.
 
 Without those three the app still runs. Every data path checks
 `isConfigured` and falls back to the committed register with honest empty

@@ -132,3 +132,32 @@ export function SearchIcon({ className }: P) {
     </svg>
   );
 }
+
+export function CommunicationIcon({ className }: P) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M4 5.6h16v10.2H9.6L5.4 19.4v-3.6H4z" />
+      <path d="M8 9.4h8M8 12.4h5" />
+    </svg>
+  );
+}
+
+export function ProductsIcon({ className }: P) {
+  return (
+    <svg {...base} className={className}>
+      <rect x="3.2" y="6.4" width="17.6" height="12.4" rx="3" />
+      <path d="M8.2 6.4V5a2 2 0 0 1 2-2h3.6a2 2 0 0 1 2 2v1.4" />
+      <path d="M3.2 11.4h17.6M11 13.6h2" />
+    </svg>
+  );
+}
+
+export function FreelancersIcon({ className }: P) {
+  return (
+    <svg {...base} className={className}>
+      <circle cx="12" cy="7.6" r="3.4" />
+      <path d="M5.6 20.4c0-3.5 2.9-6.2 6.4-6.2s6.4 2.7 6.4 6.2" />
+      <path d="M16.8 3.6l1.4 2.2 2.4.4-1.8 1.7.5 2.5-2.1-1.2" fill="none" />
+    </svg>
+  );
+}

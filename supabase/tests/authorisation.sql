@@ -84,6 +84,14 @@ insert into konekt.zones (code, name_en, name_sw, display_order) values
   ('NORTHERN',      'Northern',      'Kaskazini', 2),
   ('DAR_ES_SALAAM', 'Dar es Salaam', 'Dar es Salaam', 3);
 
+-- Account products. The truncate above cascades into this table through
+-- account_products.created_by -> staff_users, so the fixture re-states the
+-- one product these assertions use rather than assuming the migration's seed
+-- survived.
+insert into konekt.account_products (code, label_en, label_sw, display_order)
+values ('teen_account', 'Teen Account', 'Akaunti ya Vijana', 20)
+on conflict (code) do nothing;
+
 insert into konekt.branches (id, register_sn, name, slug, zone_code) values
   ('11111111-1111-1111-1111-111111111111', 9001, 'Mwanza',  'mwanza',  'LAKE'),
   ('22222222-2222-2222-2222-222222222222', 9002, 'Arusha',  'arusha',  'NORTHERN');
@@ -359,26 +367,26 @@ rollback;
 begin;
 select pg_temp.raises(
   $$insert into konekt.accounts_opened
-      (account_number, product, branch_id, opened_on, source_reference, source)
+      (account_number, product_code, branch_id, opened_on, source_reference, source)
     values ('ACC-0001', 'teen_account', '11111111-1111-1111-1111-111111111111',
             current_date, 'ref', null)$$,
   'an account cannot be opened without a source');
 
 select pg_temp.raises(
   $$insert into konekt.accounts_opened
-      (account_number, product, branch_id, opened_on, source, source_reference)
+      (account_number, product_code, branch_id, opened_on, source, source_reference)
     values ('ACC-0002', 'teen_account', '11111111-1111-1111-1111-111111111111',
             current_date, 'event', 'ref')$$,
   'an event-sourced account must name the event');
 
 insert into konekt.accounts_opened
-  (account_number, product, branch_id, opened_on, source, source_reference, event_id)
+  (account_number, product_code, branch_id, opened_on, source, source_reference, event_id)
 values ('ACC-0003', 'teen_account', '11111111-1111-1111-1111-111111111111',
         current_date, 'event', 'REG-0003', 'e0000000-0000-0000-0000-000000000001');
 
 select pg_temp.raises(
   $$insert into konekt.accounts_opened
-      (account_number, product, branch_id, opened_on, source, source_reference, event_id)
+      (account_number, product_code, branch_id, opened_on, source, source_reference, event_id)
     values ('ACC-0003', 'teen_account', '11111111-1111-1111-1111-111111111111',
             current_date, 'event', 'REG-0004', 'e0000000-0000-0000-0000-000000000001')$$,
   'an account number cannot be recorded twice');

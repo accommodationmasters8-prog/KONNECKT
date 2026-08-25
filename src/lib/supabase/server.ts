@@ -49,7 +49,9 @@ export async function getServerClient() {
  * needs elevated access, the answer is a policy, not this client.
  */
 export function getServiceClient() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Same story as the browser key: `sb_secret_...` on a new project, a
+  // service-role JWT on an older one.
+  const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!isConfigured || !key) return null;
 
   // Imported lazily so the service key never ends up in a bundle that also
@@ -57,6 +59,29 @@ export function getServiceClient() {
   const { createClient } = require('@supabase/supabase-js') as typeof import('@supabase/supabase-js');
 
   return createClient<Database, typeof SCHEMA>(supabaseUrl, key, {
+    db: { schema: SCHEMA },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+}
+
+/**
+ * A client with no session attached, for public content.
+ *
+ * Reading the partner strip does not need to know who is asking — it is the
+ * same for every visitor — and asking for cookies to fetch it would opt the
+ * landing page out of static rendering entirely. That costs a server render on
+ * every visit, on the one page that has to be fast on a 3G connection.
+ *
+ * So: anonymous key, no cookies, RLS still applies (the anon policies are what
+ * decide what comes back), and the page stays prerendered. Admin writes call
+ * `revalidatePath`, which is what refreshes it.
+ */
+export function getPublicClient() {
+  if (!isConfigured) return null;
+
+  const { createClient } = require('@supabase/supabase-js') as typeof import('@supabase/supabase-js');
+
+  return createClient<Database, typeof SCHEMA>(supabaseUrl, supabaseAnonKey, {
     db: { schema: SCHEMA },
     auth: { persistSession: false, autoRefreshToken: false },
   });

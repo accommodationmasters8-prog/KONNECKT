@@ -16,6 +16,9 @@ export const STAFF_LABELS = {
   sponsorship: 'Sponsorship',
   members: 'Members',
   audit: 'Audit log',
+  communication: 'Communication',
+  products: 'Account types',
+  freelancers: 'Freelancers',
   partners: 'Partners',
   settings: 'Settings',
 };
@@ -38,6 +41,13 @@ export function staffNav(locale: Locale, labels: Record<string, string>): StaffN
     { key: 'verification', href: to('/verification'), label: labels.verification, roles: ['hq', 'zone', 'branch'] },
     { key: 'sponsorship', href: to('/sponsorship'), label: labels.sponsorship, roles: ['hq', 'zone'] },
     { key: 'members', href: to('/members'), label: labels.members, roles: ['hq'] },
+    // Bulk messaging. Any staff user may draft one inside their own scope;
+    // approving it is somebody else's job, and the database enforces that.
+    { key: 'communication', href: to('/communication'), label: labels.communication, roles: ['hq', 'zone', 'branch'] },
+    // A branch registers and answers for its own freelancers.
+    { key: 'freelancers', href: to('/freelancers'), label: labels.freelancers, roles: ['hq', 'zone', 'branch'] },
+    // The products a branch can record an account against. National.
+    { key: 'products', href: to('/products'), label: labels.products, roles: ['hq'] },
     // Administration. HQ only — a zone manager changing the partner strip or
     // the site's own copy is a national decision made in one zone's name.
     { key: 'partners', href: to('/partners'), label: labels.partners, roles: ['hq'] },

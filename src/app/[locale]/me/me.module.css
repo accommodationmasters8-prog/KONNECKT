@@ -49,3 +49,78 @@
   gap: var(--space-sm);
   margin-block-end: var(--space-md);
 }
+
+/* --- App-screen blocks --------------------------------------------------
+   The member area reads as an app rather than a profile page: what is
+   happening next, then the handful of things people come here to do, then
+   the record itself.
+   --------------------------------------------------------------------- */
+
+.block { margin-block-end: var(--space-xl); }
+
+.blockTitle { margin-block-end: var(--space-md); }
+
+.upcoming {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.ticket {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md);
+}
+
+.ticketMain { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+
+.ticketWhen {
+  font-size: var(--size-nano);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--konekt-teal-deep);
+}
+
+.ticketTitle { font-weight: var(--weight-semibold); color: var(--text-strong); }
+.ticketVenue { font-size: var(--size-micro); color: var(--text-body); }
+
+.registered,
+.waitlisted {
+  flex: none;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--size-nano);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+}
+
+.registered { background: var(--surface-tint); color: var(--konekt-teal-deep); }
+.waitlisted { background: var(--surface-sunken); color: var(--text-body); }
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-sm);
+}
+
+@media (min-width: 48rem) {
+  .actions { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+/* 88px so the whole tile is a comfortable target on a phone, not just the
+   words in it. */
+.action {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-block-size: 88px;
+  padding: var(--space-md);
+  text-decoration: none;
+}
+
+.actionLabel { font-weight: var(--weight-semibold); color: var(--text-strong); }
+.actionHint { font-size: var(--size-micro); color: var(--text-body); }
