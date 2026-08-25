@@ -1,0 +1,61 @@
+.wrap { overflow-x: auto; }
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--size-caption);
+}
+
+.table th,
+.table td {
+  padding: 6px 8px;
+  text-align: start;
+  border-block-end: 1px solid var(--line-soft);
+}
+
+.table thead th {
+  font-size: var(--size-nano);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-body);
+  white-space: nowrap;
+}
+
+.num { text-align: end; }
+
+.rowLabel {
+  font-weight: var(--weight-medium);
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+/* Narrower than a normal input: these sit in a grid of them, and a full-width
+   field per cell would push the table off any laptop screen. */
+.cell {
+  inline-size: 100%;
+  min-inline-size: 6rem;
+  padding: 6px 8px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-sm);
+  background: var(--surface-raised);
+  color: var(--text-strong);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+}
+
+.cell:focus-visible {
+  outline: 2px solid var(--konekt-teal);
+  outline-offset: 1px;
+  border-color: var(--konekt-teal);
+}
+
+.reconcile {
+  margin-block-start: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--chip-warn-bg);
+  color: var(--chip-warn-ink);
+  font-size: var(--size-caption);
+}

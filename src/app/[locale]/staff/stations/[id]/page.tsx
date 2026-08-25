@@ -6,6 +6,10 @@ import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
 import { Donut, TrendChart } from '@/components/staff/Charts';
 import { DeleteReport, ReportForm, StationForm } from '@/components/staff/StationForms';
+import {
+  AccountBreakdownForm, LoanBreakdownForm,
+  type AccountRow, type LoanRow, type ProductOption,
+} from '@/components/staff/BreakdownForms';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
@@ -52,7 +56,7 @@ export default async function StationPage({
     );
   }
 
-  const [stationRes, reportsRes, categories] = await Promise.all([
+  const [stationRes, reportsRes, categories, accountTypes, loanTypes] = await Promise.all([
     supabase.from('stations' as never)
       .select('id, name, short_name, category_id, branch_id, zone_code, address, district_name, status, portfolio, last_report_month, contact_name, contact_phone, contact_email, contact_role, notes, created_at')
       .eq('id', id)
@@ -63,6 +67,14 @@ export default async function StationPage({
       .order('period_month', { ascending: false })
       .limit(60),
     getCategories(),
+    supabase.from('account_products' as never)
+      .select('code, label_en, label_sw')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true }),
+    supabase.from('loan_products' as never)
+      .select('code, label_en, label_sw')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true }),
   ]);
 
   const station = stationRes.data as unknown as StationRow | null;
@@ -80,6 +92,35 @@ export default async function StationPage({
 
   const newest = reports[0];
   const previous = reports[1];
+
+  // The split for the newest month only. Older months keep theirs, and it
+  // shows in the history table; editing one is a matter of correcting that
+  // month, which is what the form above already does.
+  const [accountSplitRes, loanSplitRes] = newest
+    ? await Promise.all([
+        supabase.from('station_report_accounts' as never)
+          .select('product_code, opened, active, dormant, deposits_tzs')
+          .eq('report_id', newest.id),
+        supabase.from('station_report_loans' as never)
+          .select('loan_code, count, value_tzs')
+          .eq('report_id', newest.id),
+      ])
+    : [{ data: [] }, { data: [] }];
+
+  const productOption = (
+    row: { code: string; label_en: string; label_sw: string },
+  ): ProductOption => ({
+    code: row.code,
+    label: locale === 'sw' ? row.label_sw : row.label_en,
+  });
+
+  const accountOptions = ((accountTypes.data as unknown as
+    { code: string; label_en: string; label_sw: string }[]) ?? []).map(productOption);
+  const loanOptions = ((loanTypes.data as unknown as
+    { code: string; label_en: string; label_sw: string }[]) ?? []).map(productOption);
+
+  const accountSplit = (accountSplitRes.data as unknown as AccountRow[]) ?? [];
+  const loanSplit = (loanSplitRes.data as unknown as LoanRow[]) ?? [];
   const category = categories.find((c) => c.id === station.category_id);
   const noun = locale === 'sw' ? category?.member_noun_sw : category?.member_noun_en;
 
@@ -206,6 +247,52 @@ export default async function StationPage({
           }
         />
       </Panel>
+
+      {newest ? (
+        <>
+          <Panel
+            title={`Accounts by type — ${formatPeriod(newest.period_month, locale)}`}
+            description="Which products the accounts at this station actually are. Optional: the month's totals above stand on their own, and this says how they divide."
+          >
+            {accountOptions.length === 0 ? (
+              <PanelEmpty>No account types are set up yet.</PanelEmpty>
+            ) : (
+              <AccountBreakdownForm
+                reportId={newest.id}
+                stationId={station.id}
+                products={accountOptions}
+                rows={accountSplit}
+                totals={{
+                  opened: newest.accounts_opened,
+                  active: newest.active_accounts,
+                  dormant: newest.dormant_accounts,
+                  deposits: Number(newest.deposits_tzs),
+                }}
+              />
+            )}
+          </Panel>
+
+          <Panel
+            title={`Loans by type — ${formatPeriod(newest.period_month, locale)}`}
+            description="Which kinds of loan the month's figure is made of."
+          >
+            {loanOptions.length === 0 ? (
+              <PanelEmpty>No loan types are set up yet.</PanelEmpty>
+            ) : (
+              <LoanBreakdownForm
+                reportId={newest.id}
+                stationId={station.id}
+                products={loanOptions}
+                rows={loanSplit}
+                totals={{
+                  count: newest.loans_count,
+                  value: Number(newest.loans_value_tzs),
+                }}
+              />
+            )}
+          </Panel>
+        </>
+      ) : null}
 
       <Panel
         title="Every month on record"

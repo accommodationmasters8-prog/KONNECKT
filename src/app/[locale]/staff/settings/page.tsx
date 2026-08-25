@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
-import { SettingsForm } from '@/components/staff/SettingsForm';
+import {
+  AddProduct, ProductTable, type ProductItem,
+} from '@/components/staff/ProductLists';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
-import { getSettingCatalogue, getSettings } from '@/lib/admin/settings';
+import { getServerClient } from '@/lib/supabase/server';
 import { localeParams, resolveLocale } from '@/lib/page';
 
 export function generateStaticParams() {
@@ -12,17 +14,21 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  title: 'Settings — CRDB Konekt',
+  title: 'Settings — Konekt tracker',
   robots: { index: false, follow: false },
 };
 
 /**
- * What an administrator can change without a deploy.
+ * The two lists everything else is recorded against.
  *
- * The form is built from `konekt.site_setting_keys` rather than hardcoded, so
- * adding an editable field is a row in that table and not a release. Nothing
- * on this page is a switch that only pretends to do something: every key here
- * is read by the page it names.
+ * Account types and loan types are not settings in the sense of preferences —
+ * they are the vocabulary every branch files against, and every month already
+ * filed is keyed on their codes. That is why nothing here deletes: a type is
+ * retired, which takes it off the entry forms and leaves five years of history
+ * still readable.
+ *
+ * HQ only, because a zone adding an account type would be inventing a word the
+ * rest of the country then has to file against.
  */
 export default async function StaffSettings({
   params,
@@ -31,63 +37,83 @@ export default async function StaffSettings({
 }) {
   const { locale } = await resolveLocale(params);
   const session = await getStaffSession();
-  const [catalogue, snapshot] = await Promise.all([getSettingCatalogue(), getSettings()]);
+  const supabase = await getServerClient();
+  const nav = staffNav(locale, STAFF_LABELS);
 
-  const groups = catalogue.reduce<Record<string, typeof catalogue>>((acc, field) => {
-    (acc[field.group_name] ??= []).push(field);
-    return acc;
-  }, {});
+  const isHq = session.signedIn && session.role === 'hq';
 
-  const canEdit = session.signedIn && session.role === 'hq';
+  if (!isHq || !supabase) {
+    return (
+      <StaffShell
+        locale={locale} role={session.role} active="settings" nav={nav}
+        title="Settings" scopeLabel={session.scopeLabel} user={session.user}
+      >
+        <Panel title="Account and loan types">
+          <PanelEmpty>
+            {session.signedIn
+              ? 'These lists are maintained by HQ, because every branch files against them.'
+              : 'Sign in as HQ to maintain these lists.'}
+          </PanelEmpty>
+        </Panel>
+      </StaffShell>
+    );
+  }
+
+  const [accountsRes, loansRes] = await Promise.all([
+    supabase.from('account_products' as never)
+      .select('code, label_en, label_sw, is_active')
+      .order('is_active', { ascending: false })
+      .order('display_order', { ascending: true }),
+    supabase.from('loan_products' as never)
+      .select('code, label_en, label_sw, is_active')
+      .order('is_active', { ascending: false })
+      .order('display_order', { ascending: true }),
+  ]);
+
+  const accounts = (accountsRes.data as unknown as ProductItem[]) ?? [];
+  const loans = (loansRes.data as unknown as ProductItem[]) ?? [];
+
+  const live = (rows: ProductItem[]) => rows.filter((r) => r.is_active).length;
 
   return (
     <StaffShell
       locale={locale}
       role={session.role}
       active="settings"
-      nav={staffNav(locale, STAFF_LABELS)}
-      title={STAFF_LABELS.settings}
-      scopeLabel={
-        canEdit
-          ? 'Changes here go live for every visitor, in both languages'
-          : session.scopeLabel
-      }
+      nav={nav}
+      title="Settings"
+      scopeLabel={`${live(accounts)} account types · ${live(loans)} loan types in use`}
       user={session.user}
     >
-      {!snapshot.configured ? (
-        <Panel
-          title="Site settings"
-          description="Copy, contact details and switches an HQ administrator can change from here, without a deploy."
-        >
-          <PanelEmpty>
-            No database is attached to this deployment, so there is nothing to
-            edit yet — the site is running on its committed copy. Once Supabase
-            is configured and migration 0008 has run, every field in
-            konekt.site_setting_keys appears here as a form.
-          </PanelEmpty>
-        </Panel>
-      ) : !canEdit ? (
-        <Panel title="Site settings">
-          <PanelEmpty>
-            Site settings are national, so only an HQ administrator can change
-            them. Sign in with an HQ account to edit.
-          </PanelEmpty>
-        </Panel>
-      ) : (
-        Object.entries(groups).map(([group, fields]) => (
-          <Panel
-            key={group}
-            title={group}
-            description={
-              group === 'Switches'
-                ? 'Each of these hides or reveals something on the public site the moment it is saved.'
-                : undefined
-            }
-          >
-            <SettingsForm group={group} fields={fields} values={snapshot.values} />
-          </Panel>
-        ))
-      )}
+      <Panel
+        title="Account types"
+        description="What a station's accounts can be broken down into when a month is filed. Retiring one takes it off the entry form; the months already filed against it keep their figures."
+      >
+        {accounts.length === 0 ? (
+          <PanelEmpty>No account types yet.</PanelEmpty>
+        ) : (
+          <ProductTable kind="account" items={accounts} locale={locale} />
+        )}
+      </Panel>
+
+      <Panel title="Add an account type">
+        <AddProduct kind="account" noun="account type" />
+      </Panel>
+
+      <Panel
+        title="Loan types"
+        description="The categories a station's loans are split into."
+      >
+        {loans.length === 0 ? (
+          <PanelEmpty>No loan types yet.</PanelEmpty>
+        ) : (
+          <ProductTable kind="loan" items={loans} locale={locale} />
+        )}
+      </Panel>
+
+      <Panel title="Add a loan type">
+        <AddProduct kind="loan" noun="loan type" />
+      </Panel>
     </StaffShell>
   );
 }

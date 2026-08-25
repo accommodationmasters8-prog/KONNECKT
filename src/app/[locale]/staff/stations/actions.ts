@@ -23,6 +23,12 @@ async function requireStaff(): Promise<Gate> {
   return { ok: true, supabase, session };
 }
 
+/** A non-negative whole number from a form field; anything else is zero. */
+function num(value: FormDataEntryValue | null): number {
+  const n = Number(String(value ?? '').trim());
+  return Number.isFinite(n) && n > 0 ? Math.round(n) : 0;
+}
+
 /**
  * Which branch a new record belongs to.
  *
@@ -225,4 +231,130 @@ export async function deleteReport(_prev: ActionResult, form: FormData): Promise
 
   revalidatePath('/', 'layout');
   return { ok: true, message: 'Removed. The audit log keeps what it said.' };
+}
+
+/**
+ * The account-type breakdown for a month.
+ *
+ * Written as one form rather than a row at a time, because a breakdown is a
+ * single statement about a month — filing "Scholar Account: 420" and then
+ * discovering there is no way to say the other six is worse than not offering
+ * the breakdown at all.
+ *
+ * Rows that are entirely zero are deleted rather than stored. A stored zero
+ * says "we opened none of these"; a missing row says "we did not break this
+ * down". Those are different claims, and the analytics read them differently.
+ */
+export async function saveAccountBreakdown(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  const gate = await requireStaff();
+  if (!gate.ok) return gate;
+
+  const reportId = String(form.get('report_id') ?? '').trim();
+  const stationId = String(form.get('station_id') ?? '').trim();
+  if (!reportId) return { ok: false, message: 'Which month?' };
+
+  const codes = form.getAll('product_code').map(String);
+  const rows: {
+    report_id: string; product_code: string;
+    opened: number; active: number; dormant: number; deposits_tzs: number;
+  }[] = [];
+  const empty: string[] = [];
+
+  for (const code of codes) {
+    const opened = num(form.get(`opened__${code}`));
+    const active = num(form.get(`active__${code}`));
+    const dormant = num(form.get(`dormant__${code}`));
+    const deposits = num(form.get(`deposits__${code}`));
+
+    if (active + dormant > opened) {
+      return {
+        ok: false,
+        message: `${code}: active plus dormant cannot be more than opened.`,
+      };
+    }
+
+    if (opened || active || dormant || deposits) {
+      rows.push({
+        report_id: reportId, product_code: code,
+        opened, active, dormant, deposits_tzs: deposits,
+      });
+    } else {
+      empty.push(code);
+    }
+  }
+
+  if (rows.length) {
+    const { error } = await gate.supabase
+      .from('station_report_accounts' as never)
+      .upsert(rows as never, { onConflict: 'report_id,product_code' });
+    if (error) return { ok: false, message: error.message };
+  }
+
+  if (empty.length) {
+    const { error } = await gate.supabase
+      .from('station_report_accounts' as never)
+      .delete()
+      .eq('report_id', reportId)
+      .in('product_code', empty);
+    if (error) return { ok: false, message: error.message };
+  }
+
+  revalidatePath(`/[locale]/staff/stations/${stationId}`, 'page');
+  return {
+    ok: true,
+    message: rows.length
+      ? `Saved the split across ${rows.length} account ${rows.length === 1 ? 'type' : 'types'}.`
+      : 'Cleared the account breakdown for this month.',
+  };
+}
+
+/** The same, for loans. One row per loan type: how many, and how much. */
+export async function saveLoanBreakdown(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  const gate = await requireStaff();
+  if (!gate.ok) return gate;
+
+  const reportId = String(form.get('report_id') ?? '').trim();
+  const stationId = String(form.get('station_id') ?? '').trim();
+  if (!reportId) return { ok: false, message: 'Which month?' };
+
+  const codes = form.getAll('loan_code').map(String);
+  const rows: { report_id: string; loan_code: string; count: number; value_tzs: number }[] = [];
+  const empty: string[] = [];
+
+  for (const code of codes) {
+    const count = num(form.get(`count__${code}`));
+    const value = num(form.get(`value__${code}`));
+    if (count || value) rows.push({ report_id: reportId, loan_code: code, count, value_tzs: value });
+    else empty.push(code);
+  }
+
+  if (rows.length) {
+    const { error } = await gate.supabase
+      .from('station_report_loans' as never)
+      .upsert(rows as never, { onConflict: 'report_id,loan_code' });
+    if (error) return { ok: false, message: error.message };
+  }
+
+  if (empty.length) {
+    const { error } = await gate.supabase
+      .from('station_report_loans' as never)
+      .delete()
+      .eq('report_id', reportId)
+      .in('loan_code', empty);
+    if (error) return { ok: false, message: error.message };
+  }
+
+  revalidatePath(`/[locale]/staff/stations/${stationId}`, 'page');
+  return {
+    ok: true,
+    message: rows.length
+      ? `Saved the split across ${rows.length} loan ${rows.length === 1 ? 'type' : 'types'}.`
+      : 'Cleared the loan breakdown for this month.',
+  };
 }

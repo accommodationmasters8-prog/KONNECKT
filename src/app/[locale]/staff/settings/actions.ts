@@ -3,118 +3,108 @@
 import { revalidatePath } from 'next/cache';
 import { getServerClient } from '@/lib/supabase/server';
 import { getStaffSession } from '@/lib/staff-session';
-import { locales } from '@/i18n';
-import type { SettingKind } from '@/lib/admin/settings';
 
 export interface ActionResult {
   ok: boolean;
   message: string;
 }
 
-/**
- * Parse one submitted field into the jsonb the column holds.
- *
- * Booleans come back from a checkbox as present-or-absent, numbers as strings,
- * and a localised value as one field per locale. Anything that does not parse
- * is rejected rather than coerced — a number field that silently stores NaN is
- * a figure on the live site that nobody can explain later.
- */
-function parseValue(
-  form: FormData,
-  key: string,
-  kind: SettingKind,
-  localised: boolean,
-): { value: unknown } | { error: string } {
-  if (kind === 'boolean') return { value: form.get(key) === 'on' };
+/** A code somebody can type: lowercase, underscores, nothing exotic. */
+function slug(input: string): string {
+  return input.toLowerCase().trim().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 40);
+}
 
-  if (localised) {
-    const value: Record<string, string> = {};
-    for (const locale of locales) {
-      const raw = form.get(`${key}:${locale}`);
-      value[locale] = typeof raw === 'string' ? raw.trim() : '';
-    }
-    return { value };
+type Kind = 'account' | 'loan';
+
+const TABLE: Record<Kind, string> = {
+  account: 'account_products',
+  loan: 'loan_products',
+};
+
+async function hqOnly() {
+  const supabase = await getServerClient();
+  if (!supabase) return { ok: false as const, message: 'No database is attached.' };
+  const session = await getStaffSession();
+  if (!session.signedIn) return { ok: false as const, message: 'Sign in first.' };
+  if (session.role !== 'hq') {
+    return { ok: false as const, message: 'Only HQ maintains these lists.' };
   }
-
-  const raw = form.get(key);
-  const text = typeof raw === 'string' ? raw.trim() : '';
-
-  if (kind === 'number') {
-    if (text === '') return { value: null };
-    const n = Number(text);
-    if (!Number.isFinite(n)) return { error: `${key} is not a number.` };
-    return { value: n };
-  }
-
-  if (kind === 'url' && text !== '' && !/^https?:\/\//i.test(text)) {
-    return { error: `${key} must start with http:// or https://` };
-  }
-
-  if (kind === 'email' && text !== '' && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(text)) {
-    return { error: `${key} is not an email address.` };
-  }
-
-  return { value: text };
+  return { ok: true as const, supabase, session };
 }
 
 /**
- * Save the settings screen.
+ * Add an account type or a loan type.
  *
- * Authorisation is the database's: the upsert runs under the signed-in user's
- * session and `settings_hq_write` rejects anyone who is not HQ. The check here
- * is so a zone manager gets a sentence instead of a Postgres error, not so
- * that the write is safe — it would be safe without it.
+ * The code is derived from the name rather than asked for. It is what every
+ * historic row is keyed on, so it must never change once anything references
+ * it — and a field somebody can edit is a field somebody edits.
  */
-export async function saveSettings(_prev: ActionResult, form: FormData): Promise<ActionResult> {
-  const supabase = await getServerClient();
-  if (!supabase) {
-    return { ok: false, message: 'No database is attached to this deployment.' };
+export async function addProduct(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  const gate = await hqOnly();
+  if (!gate.ok) return gate;
+
+  const kind = String(form.get('kind') ?? '') as Kind;
+  if (kind !== 'account' && kind !== 'loan') return { ok: false, message: 'Which list?' };
+
+  const labelEn = String(form.get('label_en') ?? '').trim();
+  const labelSw = String(form.get('label_sw') ?? '').trim() || labelEn;
+  if (labelEn.length < 2) return { ok: false, message: 'Give it a name.' };
+
+  const code = slug(labelEn);
+  if (!code) return { ok: false, message: 'That name has no letters or digits in it.' };
+
+  const { error } = await gate.supabase
+    .from(TABLE[kind] as never)
+    .insert({
+      code,
+      label_en: labelEn,
+      label_sw: labelSw,
+      is_active: true,
+      display_order: 99,
+      created_by: gate.session.staffId,
+    } as never);
+
+  if (error) {
+    return {
+      ok: false,
+      message: error.message.includes('duplicate key')
+        ? `There is already a type coded "${code}".`
+        : error.message,
+    };
   }
 
-  const session = await getStaffSession();
-  if (!session.signedIn) return { ok: false, message: 'Sign in first.' };
-  if (session.role !== 'hq') {
-    return { ok: false, message: 'Only an HQ administrator can change site settings.' };
-  }
+  revalidatePath('/[locale]/staff/settings', 'page');
+  return { ok: true, message: `Added ${labelEn}.` };
+}
 
-  // The catalogue decides what may be written. A field posted that is not in
-  // it is ignored, so an extra input in the page's HTML cannot create a row.
-  const { data: catalogue } = await supabase
-    .from('site_setting_keys' as never)
-    .select('key, kind, is_localised');
+/**
+ * Retire a type, or bring it back.
+ *
+ * Never a delete. Months already filed reference the code, and removing the
+ * row would leave those figures labelled with a code and nothing else.
+ * Retiring takes it off the entry form and leaves the history readable.
+ */
+export async function setProductActive(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  const gate = await hqOnly();
+  if (!gate.ok) return gate;
 
-  const keys = (catalogue as unknown as
-    { key: string; kind: SettingKind; is_localised: boolean }[]) ?? [];
+  const kind = String(form.get('kind') ?? '') as Kind;
+  if (kind !== 'account' && kind !== 'loan') return { ok: false, message: 'Which list?' };
 
-  const rows: { key: string; value: unknown; updated_by: string | null }[] = [];
+  const code = String(form.get('code') ?? '').trim();
+  const active = String(form.get('active') ?? '') === 'true';
+  if (!code) return { ok: false, message: 'Which type?' };
 
-  for (const entry of keys) {
-    // Only the fields that were actually submitted. The screen posts one group
-    // at a time, and a missing field must not blank a value in another group.
-    const present = entry.kind === 'boolean'
-      ? form.has(`${entry.key}:submitted`)
-      : entry.is_localised
-        ? locales.some((l) => form.has(`${entry.key}:${l}`))
-        : form.has(entry.key);
-
-    if (!present) continue;
-
-    const parsed = parseValue(form, entry.key, entry.kind, entry.is_localised);
-    if ('error' in parsed) return { ok: false, message: parsed.error };
-
-    rows.push({ key: entry.key, value: parsed.value, updated_by: session.staffId });
-  }
-
-  if (rows.length === 0) return { ok: false, message: 'Nothing to save.' };
-
-  const { error } = await supabase
-    .from('site_settings' as never)
-    .upsert(rows as never, { onConflict: 'key' });
+  const { error } = await gate.supabase
+    .from(TABLE[kind] as never)
+    .update({ is_active: active } as never)
+    .eq('code', code);
 
   if (error) return { ok: false, message: error.message };
 
-  // The public pages read these, so their cached renders are now stale.
-  revalidatePath('/', 'layout');
-
-  return { ok: true, message: `Saved ${rows.length} setting${rows.length === 1 ? '' : 's'}.` };
+  revalidatePath('/[locale]/staff/settings', 'page');
+  return { ok: true, message: active ? 'Back in use.' : 'Retired.' };
 }

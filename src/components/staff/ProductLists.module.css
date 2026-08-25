@@ -1,0 +1,35 @@
+.wrap { overflow-x: auto; }
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--size-caption);
+}
+
+.table th,
+.table td {
+  padding: 8px;
+  text-align: start;
+  border-block-end: 1px solid var(--line-soft);
+}
+
+.table thead th {
+  font-size: var(--size-nano);
+  font-weight: var(--weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-body);
+}
+
+.table tbody th { font-weight: var(--weight-medium); color: var(--text-strong); }
+
+/* Retired types stay listed. Every month already filed against one is still
+   labelled by it, and a list that hides them makes those figures unreadable. */
+.retired { color: var(--text-body); }
+.retired th { font-weight: var(--weight-regular); }
+
+.code {
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  color: var(--text-body);
+}
