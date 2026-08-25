@@ -4,6 +4,7 @@ import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import {
   AddProduct, ProductTable, type ProductItem,
 } from '@/components/staff/ProductLists';
+import { BranchZones, type BranchRow } from '@/components/staff/BranchZones';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
@@ -59,7 +60,7 @@ export default async function StaffSettings({
     );
   }
 
-  const [accountsRes, loansRes] = await Promise.all([
+  const [accountsRes, loansRes, branchesRes] = await Promise.all([
     supabase.from('account_products' as never)
       .select('code, label_en, label_sw, is_active')
       .order('is_active', { ascending: false })
@@ -68,10 +69,21 @@ export default async function StaffSettings({
       .select('code, label_en, label_sw, is_active')
       .order('is_active', { ascending: false })
       .order('display_order', { ascending: true }),
+    supabase.from('branches' as never)
+      .select('id, name, zone_code')
+      .eq('is_active', true)
+      .order('name', { ascending: true })
+      .limit(1000),
   ]);
 
   const accounts = (accountsRes.data as unknown as ProductItem[]) ?? [];
   const loans = (loansRes.data as unknown as ProductItem[]) ?? [];
+
+  // Unzoned first: those are the ones nobody above the branch can see.
+  const branches = ((branchesRes.data as unknown as BranchRow[]) ?? [])
+    .slice()
+    .sort((a, b) => Number(Boolean(a.zone_code)) - Number(Boolean(b.zone_code)));
+  const unzoned = branches.filter((b) => !b.zone_code).length;
 
   const live = (rows: ProductItem[]) => rows.filter((r) => r.is_active).length;
 
@@ -85,6 +97,22 @@ export default async function StaffSettings({
       scopeLabel={`${live(accounts)} account types · ${live(loans)} loan types in use`}
       user={session.user}
     >
+      {/* First, because it is the one list that decides who can see what. */}
+      <Panel
+        title="Branches and their zones"
+        description={
+          unzoned > 0
+            ? `${unzoned} of ${branches.length} branches have no zone yet. A branch with no zone is invisible to its zone manager, and so is every station reporting through it — the CRDB register carries no zone for any branch, so this is the only place the fact gets recorded.`
+            : `All ${branches.length} branches are assigned to a zone.`
+        }
+      >
+        {branches.length === 0 ? (
+          <PanelEmpty>No branches loaded.</PanelEmpty>
+        ) : (
+          <BranchZones branches={branches} />
+        )}
+      </Panel>
+
       <Panel
         title="Account types"
         description="What a station's accounts can be broken down into when a month is filed. Retiring one takes it off the entry form; the months already filed against it keep their figures."

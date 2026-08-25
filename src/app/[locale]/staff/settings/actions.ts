@@ -108,3 +108,40 @@ export async function setProductActive(
   revalidatePath('/[locale]/staff/settings', 'page');
   return { ok: true, message: active ? 'Back in use.' : 'Retired.' };
 }
+
+/**
+ * Put a branch in a zone.
+ *
+ * The CRDB register carries no zone for any branch — §3.2.6 — so this is not a
+ * correction to imported data, it is the only place the fact is ever recorded.
+ * Until a branch has one, a zone manager cannot reach it and neither can any
+ * station reporting through it: `stations.zone_code` is copied from the branch
+ * by trigger, and `staff_can_reach` compares against exactly that.
+ *
+ * Which makes this screen load-bearing rather than administrative. A branch
+ * left unzoned is invisible to everyone except HQ and the branch itself.
+ */
+export async function setBranchZone(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  const gate = await hqOnly();
+  if (!gate.ok) return gate;
+
+  const id = String(form.get('branch_id') ?? '').trim();
+  const raw = String(form.get('zone_code') ?? '').trim();
+  if (!id) return { ok: false, message: 'Which branch?' };
+
+  const { error } = await gate.supabase
+    .from('branches' as never)
+    .update({ zone_code: raw === '' ? null : raw } as never)
+    .eq('id', id);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath('/[locale]/staff/settings', 'page');
+  return {
+    ok: true,
+    message: raw === '' ? 'Zone cleared.' : 'Saved.',
+  };
+}
