@@ -1,0 +1,114 @@
+/* Shared by every admin form in the console: settings, partners, and whatever
+   comes next. One set of controls means an admin learns the console once. */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.field { display: flex; flex-direction: column; gap: var(--space-2xs); }
+
+.fieldset { border: 0; display: flex; flex-direction: column; gap: var(--space-2xs); }
+
+.label {
+  font-size: var(--size-micro);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+
+.sublabel {
+  font-size: var(--size-nano);
+  color: var(--text-body);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.help {
+  font-size: var(--size-nano);
+  color: var(--text-body);
+  line-height: var(--leading-snug);
+}
+
+.input,
+.textarea,
+.select {
+  min-block-size: 44px;
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  font: inherit;
+  font-size: var(--size-caption);
+  inline-size: 100%;
+}
+
+.textarea { min-block-size: 5rem; line-height: var(--leading-body); resize: vertical; }
+
+.input:focus-visible,
+.textarea:focus-visible,
+.select:focus-visible {
+  outline: 2px solid var(--konekt-teal-deep);
+  outline-offset: 2px;
+  background: var(--surface-raised);
+}
+
+.localeGrid {
+  display: grid;
+  gap: var(--space-sm);
+}
+
+@media (min-width: 48rem) {
+  .localeGrid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.switchRow { padding-block: var(--space-2xs); }
+
+.switch {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  cursor: pointer;
+}
+
+.switch input {
+  inline-size: 20px;
+  block-size: 20px;
+  margin-block-start: 2px;
+  accent-color: var(--konekt-teal-deep);
+  flex: none;
+}
+
+.switch span { display: flex; flex-direction: column; gap: 2px; }
+
+.formFoot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  padding-block-start: var(--space-sm);
+  border-block-start: 1px solid var(--line-app);
+}
+
+.ok { font-size: var(--size-caption); color: var(--konekt-green-deep); }
+.error { font-size: var(--size-caption); color: var(--metric-pink-from); }
+
+/* --- Row layout, for the partner editor -------------------------------- */
+
+.grid {
+  display: grid;
+  gap: var(--space-md);
+}
+
+@media (min-width: 52rem) {
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gridWide { grid-column: 1 / -1; }
+}
+
+/* One-button forms inside a table row. */
+.inlineForm {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}

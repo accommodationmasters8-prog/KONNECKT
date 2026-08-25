@@ -1,0 +1,109 @@
+.card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2xs);
+  padding: var(--space-md);
+  border-radius: var(--radius-lg);
+  min-block-size: 8.5rem;
+  color: var(--card-ink);
+  /* Flat colour first — the lighter, harder end of the ramp — then the ramp
+     over it. See MetricCard.tsx on why the flat value is the light stop. */
+  background-color: var(--card-to);
+  background-image: linear-gradient(135deg, var(--card-from), var(--card-to));
+  box-shadow: var(--shadow-sm);
+}
+
+/* One soft disc of light, clipped by the card. It is the only decoration in
+   the console and it costs nothing: a radial gradient on a pseudo-element,
+   no image and no blur filter. */
+.card::after {
+  content: '';
+  position: absolute;
+  inset-block-start: -45%;
+  inset-inline-end: -18%;
+  inline-size: 62%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--card-sheen);
+  pointer-events: none;
+}
+
+.teal {
+  --card-from: var(--metric-teal-from);
+  --card-to: var(--metric-teal-to);
+  --card-ink: var(--text-on-inverse);
+  --card-sheen: rgb(255 255 255 / 0.09);
+}
+
+.green {
+  --card-from: var(--metric-green-from);
+  --card-to: var(--metric-green-to);
+  --card-ink: var(--text-on-inverse);
+  --card-sheen: rgb(255 255 255 / 0.09);
+}
+
+.pink {
+  --card-from: var(--metric-pink-from);
+  --card-to: var(--metric-pink-to);
+  --card-ink: var(--text-on-inverse);
+  --card-sheen: rgb(255 255 255 / 0.1);
+}
+
+.ink {
+  --card-from: var(--metric-ink-from);
+  --card-to: var(--metric-ink-to);
+  --card-ink: var(--text-on-inverse);
+  --card-sheen: rgb(255 255 255 / 0.07);
+}
+
+/* Brand yellow is 1.85:1 against white and can never carry it, so the gold
+   card is the one that runs ink text — 7.8:1 at the darker stop. */
+.gold {
+  --card-from: var(--metric-gold-from);
+  --card-to: var(--metric-gold-to);
+  --card-ink: var(--konekt-ink);
+  --card-sheen: rgb(255 255 255 / 0.22);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.label {
+  font-size: var(--size-micro);
+  font-weight: var(--weight-semibold);
+  line-height: var(--leading-snug);
+  /* No opacity: fading white text is exactly how a measured ratio stops being
+     true. The label runs at full strength and is separated by size. */
+}
+
+.icon {
+  inline-size: 22px;
+  block-size: 22px;
+  flex: none;
+}
+
+.icon svg { inline-size: 100%; block-size: 100%; }
+
+.value {
+  font-size: var(--size-h2);
+  line-height: 1;
+  margin-block-start: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.unit { font-size: var(--size-caption); font-weight: var(--weight-semibold); }
+
+.note { font-size: var(--size-nano); line-height: var(--leading-snug); }
+
+.source {
+  font-size: var(--size-nano);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}

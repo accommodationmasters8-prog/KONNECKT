@@ -1,4 +1,5 @@
 import type { Dictionary } from '@/i18n';
+import { partnerLogoUrl } from '@/lib/partners';
 import styles from './PartnerStrip.module.css';
 
 /**
@@ -20,6 +21,9 @@ export interface Placement {
   name: string;
   category: string;
   logoSvg?: string | null;
+  /** Path inside the public partner-logos bucket, for an uploaded file. */
+  logoPath?: string | null;
+  websiteUrl?: string | null;
 }
 
 export function PartnerStrip({
@@ -47,8 +51,26 @@ export function PartnerStrip({
         <ul className={styles.row}>
           {placements.map((p) => (
             <li key={p.name} className={styles.plate}>
-              <span className={styles.plateName}>{p.name}</span>
-              <span className={styles.plateCategory}>{p.category}</span>
+              {p.logoPath ? (
+                /* An uploaded file: the partner's own artwork, cleared by a
+                   named person before it could be published. Plain <img> at a
+                   fixed height — next/image would add a wrapper and an
+                   optimiser round trip for a 20KB logo that is already the
+                   right size.
+                   eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={partnerLogoUrl(p.logoPath)}
+                  alt={p.name}
+                  className={styles.plateLogo}
+                  loading="lazy"
+                  decoding="async"
+                />
+              ) : (
+                <>
+                  <span className={styles.plateName}>{p.name}</span>
+                  <span className={styles.plateCategory}>{p.category}</span>
+                </>
+              )}
             </li>
           ))}
         </ul>

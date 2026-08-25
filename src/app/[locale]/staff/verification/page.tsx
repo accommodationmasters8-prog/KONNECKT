@@ -2,8 +2,9 @@ import type { Metadata } from 'next';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { StatTile } from '@/components/staff/StatTile';
-import { staffNav } from '@/lib/staff-nav';
+import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getServerClient } from '@/lib/supabase/server';
+import { getStaffSession } from '@/lib/staff-session';
 import { institutions, branches, nationalStats } from '@/lib/seed';
 import { localeParams, resolveLocale } from '@/lib/page';
 import styles from '../staff.module.css';
@@ -16,12 +17,6 @@ export function generateStaticParams() {
 export const metadata: Metadata = {
   title: 'Pin verification — CRDB Konekt',
   robots: { index: false, follow: false },
-};
-
-const LABELS = {
-  overview: 'Overview', events: 'Events', checkin: 'Check-in',
-  accounts: 'Accounts opened', verification: 'Pin verification',
-  sponsorship: 'Sponsorship', members: 'Members', audit: 'Audit log',
 };
 
 /**
@@ -44,6 +39,7 @@ export default async function VerificationQueue({
 }) {
   const { locale } = await resolveLocale(params);
   const supabase = await getServerClient();
+  const session = await getStaffSession();
 
   const queue = institutions.slice(0, 25).map((i) => ({
     name: i.name,
@@ -55,11 +51,12 @@ export default async function VerificationQueue({
   return (
     <StaffShell
       locale={locale}
-      role="branch"
+      role={session.role}
       active="verification"
-      nav={staffNav(locale, LABELS)}
-      title={LABELS.verification}
+      nav={staffNav(locale, STAFF_LABELS)}
+      title={STAFF_LABELS.verification}
       scopeLabel={supabase ? 'Your branch' : 'Register figures only'}
+      user={session.user}
     >
       <div className={styles.notice}>
         <span className="tri tri--live" aria-hidden="true" />

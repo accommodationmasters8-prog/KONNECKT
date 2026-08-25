@@ -1,26 +1,35 @@
+/* ===========================================================================
+   THE CONSOLE
+
+   A light application surface. Flat canvas, white rail, white top bar, one
+   shadow level, and no blur anywhere — a tool someone reads for two hours is
+   the opposite case to chrome floating over a scrolling page.
+   ======================================================================== */
+
 .console {
   display: grid;
   min-block-size: 100dvh;
-  background: var(--surface-sunken);
+  background: var(--surface-app);
+  color: var(--text-strong);
 }
 
 @media (min-width: 60rem) {
-  .console { grid-template-columns: 15rem minmax(0, 1fr); }
+  .console { grid-template-columns: 16.5rem minmax(0, 1fr); }
 }
 
-/* --- Sidebar ------------------------------------------------------------ */
+/* --- The rail ----------------------------------------------------------- */
 
-.sidebar {
-  background: var(--surface-inverse);
-  color: var(--text-on-inverse);
+.rail {
+  background: var(--surface-app-rail);
+  border-inline-end: 1px solid var(--line-app);
   padding: var(--space-md);
   display: flex;
   flex-direction: column;
-  gap: var(--space-lg);
+  gap: var(--space-md);
 }
 
 @media (min-width: 60rem) {
-  .sidebar {
+  .rail {
     position: sticky;
     inset-block-start: 0;
     block-size: 100dvh;
@@ -29,34 +38,67 @@
 }
 
 .brand {
+  display: block;
+  padding-inline: var(--space-2xs);
+  text-decoration: none;
+}
+
+.brandLogo { inline-size: 132px; block-size: auto; }
+
+/* --- Who is signed in --------------------------------------------------- */
+
+.who {
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  text-decoration: none;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+}
+
+.avatar {
+  inline-size: 38px;
+  block-size: 38px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: var(--konekt-teal-deep);
   color: var(--text-on-inverse);
-}
-
-.brandLogo { inline-size: 108px; block-size: auto; flex: none; }
-
-.scope {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-sm);
-  background: var(--surface-ink-soft);
-}
-
-.scopeRole {
   font-family: var(--font-display);
-  font-size: var(--size-nano);
-  font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
-  color: var(--konekt-yellow);
+  font-size: var(--size-micro);
+  font-weight: var(--weight-black);
+  letter-spacing: 0.02em;
 }
 
-.scopeLabel { font-size: var(--size-micro); color: var(--text-muted-on-inverse); }
+.whoText { display: flex; flex-direction: column; min-inline-size: 0; }
+
+.whoName {
+  font-weight: var(--weight-semibold);
+  font-size: var(--size-caption);
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.whoRole { font-size: var(--size-nano); color: var(--text-body); }
+
+.signIn {
+  display: block;
+  text-align: center;
+  padding-block: var(--space-sm);
+  border-radius: var(--radius-md);
+  background: var(--konekt-teal-deep);
+  color: var(--text-on-inverse);
+  font-weight: var(--weight-semibold);
+  font-size: var(--size-caption);
+  text-decoration: none;
+}
+
+.signIn:hover { background: var(--konekt-ink); }
+
+/* --- Navigation --------------------------------------------------------- */
 
 .nav {
   display: flex;
@@ -64,8 +106,8 @@
   gap: 2px;
 }
 
-/* On a narrow screen the sidebar nav becomes a scrolling chip row rather than
-   a tall column that pushes every panel below the fold. */
+/* On a narrow screen the rail nav becomes a scrolling chip row rather than a
+   tall column that pushes every panel below the fold. */
 @media (max-width: 59.999rem) {
   .nav {
     flex-direction: row;
@@ -78,14 +120,13 @@
 }
 
 .navLink {
-  position: relative;
   display: flex;
   align-items: center;
-  gap: var(--space-xs);
-  min-block-size: 42px;
-  padding-inline: var(--space-md);
-  border-radius: var(--radius-sm);
-  color: var(--text-muted-on-inverse);
+  gap: var(--space-sm);
+  min-block-size: 44px;
+  padding-inline: var(--space-sm);
+  border-radius: var(--radius-md);
+  color: var(--text-body);
   text-decoration: none;
   font-size: var(--size-caption);
   font-weight: var(--weight-medium);
@@ -93,40 +134,94 @@
               color var(--dur-fast) var(--ease-out);
 }
 
-.navLink:hover { background: var(--surface-ink-soft); color: var(--text-on-inverse); }
+.navIcon { inline-size: 20px; block-size: 20px; flex: none; }
 
+.navLabel { min-inline-size: 0; }
+
+.navLink:hover { background: var(--surface-sunken); color: var(--text-strong); }
+
+/* The active section is a filled pill rather than a marker in the margin:
+   at a glance, from across a desk, fill reads and a 5px triangle does not. */
 .navLink[aria-current='page'] {
-  background: var(--surface-ink-lift);
+  background: var(--konekt-teal-deep);
   color: var(--text-on-inverse);
-  font-weight: var(--weight-bold);
+  font-weight: var(--weight-semibold);
 }
 
-/* The chevron marks the active panel, same as it marks the active tab. */
-.navMarker {
-  inline-size: 5px;
-  block-size: 9px;
-  flex: none;
-  background: var(--konekt-teal);
-  clip-path: polygon(0 0, 100% 50%, 0 100%);
-  opacity: 0;
-  transition: opacity var(--dur-fast) var(--ease-out);
+.railFoot { margin-block-start: auto; padding-block-start: var(--space-md); }
+
+@media (max-width: 59.999rem) {
+  .railFoot { margin-block-start: 0; padding-block-start: 0; }
 }
 
-.navLink[aria-current='page'] .navMarker { opacity: 1; }
+.signOut {
+  inline-size: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-block-size: 44px;
+  padding-inline: var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-body);
+  font: inherit;
+  font-size: var(--size-caption);
+  cursor: pointer;
+  text-align: start;
+}
+
+.signOut:hover { background: var(--surface-sunken); color: var(--text-strong); }
 
 /* --- Panel -------------------------------------------------------------- */
 
 .panel { display: flex; flex-direction: column; min-inline-size: 0; }
 
-.panelHead {
-  padding: var(--space-lg) var(--gutter) var(--space-md);
-  background: var(--surface-canvas);
-  box-shadow: var(--shadow-sm);
+.topbar {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  padding: var(--space-md) var(--gutter);
+  /* Solid, not frosted. The console never blurs. */
+  background: var(--surface-app-rail);
+  border-block-end: 1px solid var(--line-app);
 }
 
-.panelTitle { color: var(--text-strong); }
+.topbarLead { min-inline-size: 0; }
+
+.panelTitle {
+  font-family: var(--font-display);
+  font-size: var(--size-h3);
+  font-weight: var(--weight-black);
+  letter-spacing: var(--tracking-display);
+  color: var(--text-strong);
+  line-height: var(--leading-snug);
+}
+
+.scope { font-size: var(--size-micro); color: var(--text-body); }
+
+.topbarTail {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+}
+
+.today {
+  font-size: var(--size-micro);
+  color: var(--text-body);
+  white-space: nowrap;
+}
 
 .panelBody {
   flex: 1;
   padding: var(--space-lg) var(--gutter) var(--space-2xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
 }

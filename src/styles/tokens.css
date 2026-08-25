@@ -274,6 +274,39 @@
   --shadow-lift: 0 4px 10px rgb(14 31 28 / 0.07), 0 24px 56px rgb(14 31 28 / 0.11);
   --shadow-chrome: 0 -1px 0 rgb(250 251 250 / 0.06), 0 -12px 32px rgb(0 0 0 / 0.3);
 
+  /* ---------------------------------------------------------------------
+     9. THE CONSOLE — the staff and admin dashboard
+        A light application surface, not the marketing site's ink chrome.
+        Someone reconciling accounts for two hours needs a calm, flat canvas
+        with cards that read as objects: no frosted glass, no blur, no
+        gradient behind the content. The only gradients in the build are the
+        six metric cards, and each one is a two-stop ramp inside a single
+        hue so it still reads as one colour rather than a rainbow.
+
+        Every ramp below is measured against the text that sits on it, at
+        BOTH stops. The lighter stop is the worst case and is also set as the
+        card's flat background-color, so the contrast audit measures the
+        worst case rather than the average, and a browser that cannot paint
+        the gradient still renders a card that passes.
+     ------------------------------------------------------------------ */
+  --surface-app:      #F2F6F8;  /* console canvas — one step cooler than paper */
+  --surface-app-rail: #FFFFFF;  /* sidebar and top bar                         */
+  --line-app:         #E6EDF1;  /* hairline where a shadow would be too heavy  */
+
+  /* White text. from -> to, ratios on white: */
+  --metric-teal-from:  #14564C;  /* 8.52 */
+  --metric-teal-to:    #237063;  /* 5.88 */
+  --metric-green-from: #1C5714;  /* 8.67 */
+  --metric-green-to:   #2A6F1E;  /* 6.19 */
+  --metric-pink-from:  #8E2039;  /* 8.69 */
+  --metric-pink-to:    #BD2F4E;  /* 5.71 */
+  --metric-ink-from:   #0E1F1C;  /* 17.05 */
+  --metric-ink-to:     #1D3F38;  /* 11.54 */
+
+  /* Ink text. Brand yellow is 1.85:1 against white and can never carry it. */
+  --metric-gold-from:  #E8A200;  /* 7.80 on ink */
+  --metric-gold-to:    #FFC93C;  /* 11.10 on ink */
+
   --z-base: 0;
   --z-raised: 10;
   --z-sticky: 50;

@@ -7,7 +7,7 @@ import { MembershipTiers } from '@/components/home/MembershipTiers';
 import { OpportunitiesStrip } from '@/components/home/OpportunitiesStrip';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ProgressiveEnhancement } from '@/components/ProgressiveEnhancement';
-import { INDICATIVE_PARTNERS } from '@/lib/partners';
+import { getLandingPlacements } from '@/lib/partners';
 import { localeParams, resolveLocale } from '@/lib/page';
 
 export function generateStaticParams() {
@@ -27,11 +27,14 @@ export default async function LandingPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale, t } = await resolveLocale(params);
+  // Uploaded partners when an administrator has added any; the committed
+  // indicative list until then.
+  const placements = await getLandingPlacements();
 
   return (
     <AppShell locale={locale} t={t} active="home">
       <Hero locale={locale} t={t} />
-      <PartnerStrip t={t} placements={INDICATIVE_PARTNERS} />
+      <PartnerStrip t={t} placements={placements} />
       <EventsPreview locale={locale} t={t} />
       <MapPreview locale={locale} t={t} />
       <MembershipTiers locale={locale} t={t} />

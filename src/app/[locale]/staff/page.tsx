@@ -1,12 +1,15 @@
 import type { Metadata } from 'next';
 import { StaffShell } from '@/components/staff/StaffShell';
-import { StatTile } from '@/components/staff/StatTile';
+import { MetricCard } from '@/components/staff/MetricCard';
+import { BarTable, Donut } from '@/components/staff/Charts';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
-import { staffNav } from '@/lib/staff-nav';
-import { getServerClient } from '@/lib/supabase/server';
+import {
+  AccountsIcon, EventsIcon, MembersIcon, VerificationIcon,
+} from '@/components/staff/StaffIcons';
+import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
+import { getStaffSession } from '@/lib/staff-session';
 import { nationalStats, zoneStats } from '@/lib/seed';
 import { localeParams, resolveLocale } from '@/lib/page';
-import type { StaffRole } from '@/lib/supabase/types';
 import styles from './staff.module.css';
 
 export function generateStaticParams() {
@@ -14,29 +17,19 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  title: 'Staff console — CRDB Konekt',
+  title: 'Dashboard — CRDB Konekt',
   // A staff console has no business in a search index.
   robots: { index: false, follow: false },
 };
 
-const LABELS = {
-  overview: 'Overview',
-  events: 'Events',
-  checkin: 'Check-in',
-  accounts: 'Accounts opened',
-  verification: 'Pin verification',
-  sponsorship: 'Sponsorship',
-  members: 'Members',
-  audit: 'Audit log',
-};
-
 /**
- * Staff overview.
+ * The dashboard.
  *
- * With no Supabase project attached this shows the register figures that are
- * genuinely known — 252 branches, 54 institutions, 21 barracks, and the
- * geocoding backlog — and says plainly that the operational counts need the
- * live database. It does not invent a cost-per-account.
+ * With no signed-in session this shows the register figures that are genuinely
+ * known — 252 branches, 54 institutions, 21 barracks, and the geocoding
+ * backlog — and says plainly that the operational counts need a live database
+ * and a session. It does not invent a cost-per-account, and no card here shows
+ * a zero dressed up as a measurement.
  */
 export default async function StaffOverview({
   params,
@@ -44,28 +37,8 @@ export default async function StaffOverview({
   params: Promise<{ locale: string }>;
 }) {
   const { locale, t } = await resolveLocale(params);
-  const supabase = await getServerClient();
-
-  let role: StaffRole = 'hq';
-  let scopeLabel = 'Not signed in — showing register figures only';
-  let signedIn = false;
-
-  if (supabase) {
-    const { data: auth } = await supabase.auth.getUser();
-    if (auth?.user) {
-      const { data } = await supabase
-        .from('staff_users' as never)
-        .select('role, zone_code, branch_id')
-        .limit(1)
-        .maybeSingle();
-      const staff = data as { role: StaffRole; zone_code: string | null } | null;
-      if (staff) {
-        role = staff.role;
-        scopeLabel = staff.zone_code ?? 'National';
-        signedIn = true;
-      }
-    }
-  }
+  const session = await getStaffSession();
+  const { role, user, scopeLabel, signedIn } = session;
 
   const pendingPins = nationalStats.institutions + nationalStats.barracks;
 
@@ -74,9 +47,10 @@ export default async function StaffOverview({
       locale={locale}
       role={role}
       active="overview"
-      nav={staffNav(locale, LABELS)}
-      title={LABELS.overview}
+      nav={staffNav(locale, STAFF_LABELS)}
+      title="Dashboard"
       scopeLabel={scopeLabel}
+      user={user}
     >
       {!signedIn ? (
         <div className={styles.notice}>
@@ -93,69 +67,73 @@ export default async function StaffOverview({
         </div>
       ) : null}
 
-      <div className={styles.tiles}>
-        <StatTile
+      <div className={styles.metrics}>
+        <MetricCard
+          tone="teal"
           label="CRDB branches"
           value={String(nationalStats.branches)}
           source="konekt.branches"
+          icon={<AccountsIcon />}
         />
-        <StatTile
+        <MetricCard
+          tone="green"
           label="Universities and colleges"
           value={String(nationalStats.institutions)}
+          note={`${nationalStats.childInstitutions} are campuses of another`}
           source="konekt.institutions"
+          icon={<MembersIcon />}
         />
-        <StatTile
-          label="Of which campuses of another"
-          value={String(nationalStats.childInstitutions)}
-          source="institution_rollup"
-          tone="warn"
+        <MetricCard
+          tone="gold"
+          label="Locations awaiting a verified pin"
+          value={String(pendingPins)}
+          note="No pin goes on the map unverified"
+          source="konekt.locations"
+          icon={<VerificationIcon />}
         />
-        <StatTile
+        <MetricCard
+          tone="ink"
           label="JKT barracks"
           value={String(nationalStats.barracks)}
           source="konekt.institutions"
-        />
-        <StatTile
-          label="Locations awaiting a verified pin"
-          value={String(pendingPins)}
-          source="konekt.locations"
-          tone="warn"
-        />
-        <StatTile
-          label="Locations with a coordinate"
-          value="0"
-          source="konekt.locations"
-          tone="warn"
+          icon={<EventsIcon />}
         />
       </div>
 
-      <Panel
-        title="Coverage by zone"
-        description="Campuses the register places in each zone, and how many are mothers rather than campuses of another institution. Count mothers to avoid double-counting."
-      >
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th scope="col">Zone</th>
-                <th scope="col" className={styles.num}>Campuses</th>
-                <th scope="col" className={styles.num}>Mothers</th>
-                <th scope="col" className={styles.num}>Regions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {zoneStats.map((z) => (
-                <tr key={z.zone}>
-                  <th scope="row">{z.zone}</th>
-                  <td className={styles.num}>{z.institutions}</td>
-                  <td className={styles.num}>{z.motherInstitutions}</td>
-                  <td className={styles.num}>{z.regions}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </Panel>
+      <div className={styles.split}>
+        <Panel
+          title="Coverage by zone"
+          description="Campuses the register places in each zone. Mothers are counted separately so a campus of another institution is not counted twice."
+        >
+          <BarTable
+            caption="Campuses per CRDB zone"
+            unitLabel="Campuses"
+            rows={zoneStats.map((z) => ({
+              label: z.zone,
+              value: z.institutions,
+              secondary: `${z.motherInstitutions} mothers · ${z.regions} regions`,
+            }))}
+          />
+        </Panel>
+
+        <Panel
+          title="What the register holds"
+          description="Every row seeded from the CRDB register, by kind."
+        >
+          <Donut
+            title="Register composition: branches, campuses and barracks"
+            total={
+              nationalStats.branches + nationalStats.institutions + nationalStats.barracks
+            }
+            totalLabel="records"
+            slices={[
+              { label: 'Branches', value: nationalStats.branches, tone: 'teal' },
+              { label: 'Campuses', value: nationalStats.institutions, tone: 'green' },
+              { label: 'JKT barracks', value: nationalStats.barracks, tone: 'gold' },
+            ]}
+          />
+        </Panel>
+      </div>
 
       <Panel
         title="Cost per account"

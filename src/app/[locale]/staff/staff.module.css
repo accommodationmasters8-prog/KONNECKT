@@ -6,7 +6,6 @@
   border-radius: var(--radius-md);
   background: var(--surface-tint);
   border-inline-start: 3px solid var(--konekt-yellow);
-  margin-block-end: var(--space-lg);
   font-size: var(--size-caption);
   color: var(--text-body);
   max-inline-size: 62rem;
@@ -15,11 +14,22 @@
 .notice .tri { margin-block-start: 0.35em; flex: none; }
 .notice strong { color: var(--text-strong); display: block; margin-block-end: 2px; }
 
-.tiles {
+/* The headline row. auto-fit rather than auto-fill so four cards stretch to
+   fill a wide desk screen instead of leaving a ghost column at the end. */
+.metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
-  gap: var(--space-sm);
-  margin-block-end: var(--space-lg);
+  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
+  gap: var(--space-md);
+}
+
+/* Chart pair. The zone bars need the width; the donut is happy in a third. */
+.split {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 68rem) {
+  .split { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
 }
 
 .tableWrap { overflow-x: auto; }
@@ -51,3 +61,10 @@
 .table tbody th { font-weight: var(--weight-semibold); color: var(--text-strong); }
 
 .num { text-align: end; font-variant-numeric: tabular-nums; }
+
+/* A pointer to another screen, inside a panel. */
+.hint {
+  font-size: var(--size-caption);
+  color: var(--text-body);
+  line-height: var(--leading-body);
+}

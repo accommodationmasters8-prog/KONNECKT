@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
-import { staffNav } from '@/lib/staff-nav';
+import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getServerClient } from '@/lib/supabase/server';
+import { getStaffSession } from '@/lib/staff-session';
 import { localeParams, resolveLocale } from '@/lib/page';
 import styles from '../staff.module.css';
 import local from './accounts.module.css';
@@ -14,12 +15,6 @@ export function generateStaticParams() {
 export const metadata: Metadata = {
   title: 'Accounts opened — CRDB Konekt',
   robots: { index: false, follow: false },
-};
-
-const LABELS = {
-  overview: 'Overview', events: 'Events', checkin: 'Check-in',
-  accounts: 'Accounts opened', verification: 'Pin verification',
-  sponsorship: 'Sponsorship', members: 'Members', audit: 'Audit log',
 };
 
 const SOURCES = [
@@ -51,15 +46,17 @@ export default async function AccountsPanel({
 }) {
   const { locale } = await resolveLocale(params);
   const supabase = await getServerClient();
+  const session = await getStaffSession();
 
   return (
     <StaffShell
       locale={locale}
-      role="branch"
+      role={session.role}
       active="accounts"
-      nav={staffNav(locale, LABELS)}
-      title={LABELS.accounts}
+      nav={staffNav(locale, STAFF_LABELS)}
+      title={STAFF_LABELS.accounts}
       scopeLabel={supabase ? 'Your branch' : 'Not connected'}
+      user={session.user}
     >
       <Panel
         title="Record an account"

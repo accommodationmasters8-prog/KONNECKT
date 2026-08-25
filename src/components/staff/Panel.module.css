@@ -1,9 +1,11 @@
+/* A card, not a section with a rule above it. Radius, one shadow, a hairline
+   only where the shadow is too soft to hold an edge against the canvas. */
 .panel {
   background: var(--surface-raised);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   padding: var(--space-lg);
-  margin-block-end: var(--space-lg);
 }
 
 .head {
@@ -30,5 +32,5 @@
   font-size: var(--size-caption);
   color: var(--text-body);
   background: var(--surface-sunken);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
 }

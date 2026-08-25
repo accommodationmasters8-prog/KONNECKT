@@ -60,6 +60,13 @@
   color: var(--text-on-inverse);
 }
 
+.plateLogo {
+  block-size: 34px;
+  inline-size: auto;
+  max-inline-size: 9rem;
+  object-fit: contain;
+}
+
 .plateCategory {
   font-size: var(--size-nano);
   color: var(--text-muted-on-inverse);

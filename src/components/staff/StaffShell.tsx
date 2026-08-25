@@ -3,11 +3,17 @@ import type { ReactNode } from 'react';
 import { KonektLogo } from '../KonektLogo';
 import type { Locale } from '@/i18n';
 import type { StaffRole } from '@/lib/supabase/types';
+import {
+  AccountsIcon, AuditIcon, CheckinIcon, EventsIcon, MembersIcon,
+  OverviewIcon, PartnersIcon, SettingsIcon, SignOutIcon, SponsorshipIcon,
+  VerificationIcon,
+} from './StaffIcons';
 import styles from './StaffShell.module.css';
 
 export type StaffSection =
   | 'overview' | 'events' | 'checkin' | 'accounts'
-  | 'verification' | 'sponsorship' | 'members' | 'audit';
+  | 'verification' | 'sponsorship' | 'members' | 'audit'
+  | 'partners' | 'settings';
 
 export interface StaffNavItem {
   key: StaffSection;
@@ -17,8 +23,48 @@ export interface StaffNavItem {
   roles: StaffRole[];
 }
 
+export interface StaffUser {
+  /** What to show. An email is fine; a name is better. */
+  name: string;
+  email?: string;
+}
+
+const ICONS: Record<StaffSection, (p: { className?: string }) => ReactNode> = {
+  overview: OverviewIcon,
+  events: EventsIcon,
+  checkin: CheckinIcon,
+  accounts: AccountsIcon,
+  verification: VerificationIcon,
+  sponsorship: SponsorshipIcon,
+  members: MembersIcon,
+  audit: AuditIcon,
+  partners: PartnersIcon,
+  settings: SettingsIcon,
+};
+
+const ROLE_LABELS: Record<StaffRole, string> = {
+  hq: 'HQ administrator',
+  zone: 'Zone manager',
+  branch: 'Branch officer',
+  field_agent: 'Field agent',
+};
+
+/** Initials for the avatar. Two letters, from whatever the name gives us. */
+function initials(name: string) {
+  const parts = name.replace(/@.*$/, '').split(/[\s._-]+/).filter(Boolean);
+  const letters = parts.slice(0, 2).map((p) => p[0]).join('');
+  return (letters || name.slice(0, 2)).toUpperCase();
+}
+
 /**
- * The staff console frame.
+ * The console frame.
+ *
+ * A light application surface: a white rail on the left, a white bar across
+ * the top, and content on a flat, slightly cool canvas. No frosted glass and
+ * no blur anywhere in here — the marketing site's chrome is deliberately
+ * translucent because it floats over scrolling content, and a desk tool that
+ * someone reads for two hours is the opposite case. Flat surfaces, one
+ * shadow level, and the only gradients are on the metric cards.
  *
  * Desktop-first, unlike everything else here — a zone manager reconciling
  * accounts is at a desk. The one exception is check-in, which is built for a
@@ -37,6 +83,8 @@ export function StaffShell({
   nav,
   title,
   scopeLabel,
+  user = null,
+  actions,
   children,
 }: {
   locale: Locale;
@@ -45,41 +93,82 @@ export function StaffShell({
   nav: StaffNavItem[];
   title: string;
   scopeLabel: string;
+  /** null when nobody is signed in — the rail then offers sign-in instead. */
+  user?: StaffUser | null;
+  /** Page-level controls for the top bar: a search field, a primary button. */
+  actions?: ReactNode;
   children: ReactNode;
 }) {
   const visible = nav.filter((item) => item.roles.includes(role));
+  const today = new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date());
 
   return (
     <div className={styles.console}>
-      <aside className={`on-ink ${styles.sidebar}`}>
+      <aside className={styles.rail}>
+        {/* The logo sits on white, with the artwork's own margins as its
+            breathing room. It is the one place in the console that is pure
+            brand, so nothing else competes with it in this block. */}
         <Link href={`/${locale}`} className={styles.brand}>
           <KonektLogo label="KONEKT Na CRDB" className={styles.brandLogo} />
+          <span className="visually-hidden">Back to the public site</span>
         </Link>
 
-        <div className={styles.scope}>
-          <span className={styles.scopeRole}>{role}</span>
-          <span className={styles.scopeLabel}>{scopeLabel}</span>
-        </div>
+        {user ? (
+          <div className={styles.who}>
+            <span className={styles.avatar} aria-hidden="true">{initials(user.name)}</span>
+            <span className={styles.whoText}>
+              <span className={styles.whoName}>{user.name}</span>
+              <span className={styles.whoRole}>{ROLE_LABELS[role]}</span>
+            </span>
+          </div>
+        ) : (
+          <Link href={`/${locale}/staff/sign-in`} className={styles.signIn}>
+            Sign in
+          </Link>
+        )}
 
-        <nav className={styles.nav} aria-label={title}>
-          {visible.map((item) => (
-            <Link
-              key={item.key}
-              href={item.href}
-              prefetch={false}
-              className={styles.navLink}
-              aria-current={active === item.key ? 'page' : undefined}
-            >
-              <span className={styles.navMarker} aria-hidden="true" />
-              {item.label}
-            </Link>
-          ))}
+        <nav className={styles.nav} aria-label="Console sections">
+          {visible.map((item) => {
+            const Icon = ICONS[item.key];
+            return (
+              <Link
+                key={item.key}
+                href={item.href}
+                prefetch={false}
+                className={styles.navLink}
+                aria-current={active === item.key ? 'page' : undefined}
+              >
+                <Icon className={styles.navIcon} />
+                <span className={styles.navLabel}>{item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
+
+        {user ? (
+          <form method="post" action={`/${locale}/staff/sign-out`} className={styles.railFoot}>
+            <button type="submit" className={styles.signOut}>
+              <SignOutIcon className={styles.navIcon} />
+              Sign out
+            </button>
+          </form>
+        ) : null}
       </aside>
 
       <div className={styles.panel}>
-        <header className={styles.panelHead}>
-          <h1 className={`t-h3 ${styles.panelTitle}`}>{title}</h1>
+        <header className={styles.topbar}>
+          <div className={styles.topbarLead}>
+            <h1 className={styles.panelTitle}>{title}</h1>
+            <p className={styles.scope}>{scopeLabel}</p>
+          </div>
+          <div className={styles.topbarTail}>
+            {actions}
+            <span className={styles.today}>{today}</span>
+          </div>
         </header>
         <main className={styles.panelBody}>{children}</main>
       </div>
