@@ -185,8 +185,17 @@
   text-transform: capitalize;
 }
 
-.chipActive { background: var(--surface-tint); color: var(--konekt-teal-deep); }
-.chipWarn { background: var(--surface-sunken); color: var(--metric-gold-from); }
+.chipActive {
+  composes: chip;
+  background: var(--surface-tint);
+  color: var(--konekt-teal-deep);
+}
+
+.chipWarn {
+  composes: chip;
+  background: var(--chip-warn-bg);
+  color: var(--chip-warn-ink);
+}
 
 /* --- Category cards ------------------------------------------------------ */
 

@@ -101,12 +101,15 @@
         Display face is Gotham (the logo face). Gotham requires a paid web
         licence — see docs/OPEN-ITEMS.md. Shipping on Archivo until that is
         resolved; swapping in licensed Gotham is a one-line change to
-        --font-display. Both Archivo and Inter cover Latin Extended, which
-        Swahili needs.
+        --font-display.
+
+        Body and data are Plus Jakarta Sans: it holds its shape at the 13-14px
+        the console lives at, and its tabular figures keep a column of money
+        aligned without setting it in a monospace that looks like a receipt.
      ------------------------------------------------------------------ */
   --font-display: var(--font-archivo), 'Archivo', 'Montserrat', system-ui, sans-serif;
-  --font-body:    var(--font-inter), 'Inter', system-ui, sans-serif;
-  --font-data:    var(--font-inter), 'Inter', system-ui, sans-serif;
+  --font-body:    var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-data:    var(--font-jakarta), 'Plus Jakarta Sans', system-ui, sans-serif;
 
   --weight-regular:  400;
   --weight-medium:   500;
@@ -306,6 +309,12 @@
   /* Ink text. Brand yellow is 1.85:1 against white and can never carry it. */
   --metric-gold-from:  #E8A200;  /* 7.80 on ink */
   --metric-gold-to:    #FFC93C;  /* 11.10 on ink */
+
+  /* Status chips. A chip is small and often the only thing distinguishing two
+     otherwise identical table rows, so its text carries real contrast rather
+     than the tint the fill would suggest. */
+  --chip-warn-bg:   #FDF2D9;
+  --chip-warn-ink:  #6E4E00;  /* 6.93 on the fill above */
 
   --z-base: 0;
   --z-raised: 10;

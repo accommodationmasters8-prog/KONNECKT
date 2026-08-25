@@ -11,6 +11,29 @@
   min-block-size: 100dvh;
   background: var(--surface-app);
   color: var(--text-strong);
+  font-family: var(--font-body);
+
+  /* The console runs on its own type scale, tighter than the site's.
+
+     The marketing pages are read once, standing up, and their headlines are
+     the interface. This is read for two hours at a desk by somebody comparing
+     one column of figures to another, and at that job a 4rem heading is not
+     confident, it is in the way — it pushes the third metric card below the
+     fold and makes every screen feel like a poster about data rather than the
+     data. Nothing here goes above 1.5rem.
+
+     Scoped to this class rather than changed in tokens.css, because the site's
+     scale is right for the site. */
+  --size-h1:      1.5rem;
+  --size-h2:      1.25rem;
+  --size-h3:      1rem;
+  --size-body-lg: 1rem;
+  --size-body:    0.9375rem;
+  --size-caption: 0.8125rem;
+
+  /* Figures line up in a column without being set in a monospace. */
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
 }
 
 @media (min-width: 60rem) {

@@ -90,8 +90,16 @@
 
 .icon svg { inline-size: 100%; block-size: 100%; }
 
+/* The one figure on the card, and the only thing on this screen allowed to be
+   big. It is set here rather than from the heading scale because it is not a
+   heading — shrinking it with the headings would leave the card's label and
+   its number the same weight, and then the card stops being readable across
+   a room. */
 .value {
-  font-size: var(--size-h2);
+  font-size: 1.75rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
   line-height: 1;
   margin-block-start: auto;
   display: flex;

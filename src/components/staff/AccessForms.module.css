@@ -1,0 +1,70 @@
+/* The issued code, shown once, large enough to read down a phone line. */
+.issued {
+  margin-block-start: var(--space-lg);
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  border: 1px dashed var(--line-strong);
+}
+
+.issuedLabel {
+  font-size: var(--size-nano);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-body);
+}
+
+.issuedCode {
+  font-family: var(--font-data);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: var(--text-accent);
+  margin-block: 4px 6px;
+}
+
+.issuedHelp {
+  font-size: var(--size-caption);
+  color: var(--text-body);
+  max-inline-size: var(--measure);
+}
+
+.scopeNote {
+  font-size: var(--size-caption);
+  color: var(--text-body);
+  padding-block-start: 6px;
+}
+
+/* The code in the register table: monospaced enough to compare by eye. */
+.code {
+  font-family: var(--font-data);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--text-strong);
+}
+
+.codeSpent {
+  font-family: var(--font-data);
+  letter-spacing: 0.06em;
+  color: var(--text-body);
+  text-decoration: line-through;
+}
+
+.done {
+  padding: var(--space-lg);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  text-align: center;
+}
+
+.doneTitle {
+  font-family: var(--font-display);
+  font-size: var(--size-h3);
+  color: var(--text-strong);
+}
+
+.doneBody {
+  font-size: var(--size-caption);
+  color: var(--text-body);
+  margin-block: 6px var(--space-md);
+}

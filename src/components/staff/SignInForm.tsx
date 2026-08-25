@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { accessCodeEmail, isAccessCode, normaliseCode } from '@/lib/access-code';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import styles from './SignInForm.module.css';
 
@@ -14,9 +15,19 @@ type Status =
 /**
  * Staff sign-in.
  *
+ * One field for both kinds of identity. HQ signs in with a work email; a
+ * branch or a zone signs in with the access code HQ issued them, because a
+ * branch does not have a mailbox of its own and the six people sharing one
+ * would otherwise share a login too.
+ *
+ * The code maps to an address on a reserved domain that can never receive
+ * mail, so the auth server still gets the email it insists on and no reset
+ * link can ever escape to a real inbox. That mapping is not a secret — the
+ * passphrase is — which is why it can happen here in the browser.
+ *
  * Password first, because staff accounts are provisioned by HQ rather than
  * self-registered, and a reset link second for the case that actually happens
- * — someone at a branch who has forgotten it.
+ * — someone at HQ who has forgotten it.
  *
  * The client library writes the session cookies, and the middleware refreshes
  * them from then on. Nothing here decides what the user may see: the role is
@@ -40,7 +51,7 @@ export function SignInForm({
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
-  const [email, setEmail] = useState('');
+  const [identity, setIdentity] = useState('');
   const [password, setPassword] = useState('');
 
   const client = getBrowserClient();
@@ -60,6 +71,9 @@ export function SignInForm({
     event.preventDefault();
     setStatus({ kind: 'working' });
 
+    const usingCode = isAccessCode(identity);
+    const email = usingCode ? accessCodeEmail(identity) : identity.trim();
+
     const { error } = await client!.auth.signInWithPassword({ email, password });
 
     if (error) {
@@ -67,7 +81,9 @@ export function SignInForm({
         kind: 'error',
         message:
           error.message === 'Invalid login credentials'
-            ? `That email and password do not match a ${audience}.`
+            ? usingCode
+              ? `${normaliseCode(identity)} and that passphrase do not match a ${audience}. If you have not set it up yet, redeem the code first.`
+              : `That email and password do not match a ${audience}.`
             : error.message,
       });
       return;
@@ -80,12 +96,22 @@ export function SignInForm({
   }
 
   async function sendReset() {
-    if (!email) {
+    // A code account has no inbox by construction, so there is nowhere to send
+    // a link. Saying so beats a "check your email" that never arrives.
+    if (isAccessCode(identity)) {
+      setStatus({
+        kind: 'error',
+        message:
+          'A code account has no inbox, so there is no reset link. Ask HQ to revoke the code and issue a new one.',
+      });
+      return;
+    }
+    if (!identity) {
       setStatus({ kind: 'error', message: 'Enter your work email first.' });
       return;
     }
     setStatus({ kind: 'working' });
-    const { error } = await client!.auth.resetPasswordForEmail(email, {
+    const { error } = await client!.auth.resetPasswordForEmail(identity.trim(), {
       redirectTo: `${window.location.origin}/${locale}/${redirectTo}`,
     });
     setStatus(
@@ -93,7 +119,7 @@ export function SignInForm({
         ? { kind: 'error', message: error.message }
         : {
             kind: 'sent',
-            message: `If ${email} is a staff account, a reset link is on its way.`,
+            message: `If ${identity.trim()} is a staff account, a reset link is on its way.`,
           },
     );
   }
@@ -103,20 +129,27 @@ export function SignInForm({
   return (
     <form className={styles.form} onSubmit={signIn} noValidate>
       <label className={styles.field}>
-        <span className={styles.label}>Work email</span>
+        <span className={styles.label}>Access code or work email</span>
         <input
           className={styles.input}
-          type="email"
-          name="email"
+          type="text"
+          name="identity"
+          inputMode="email"
+          autoCapitalize="off"
+          autoCorrect="off"
+          spellCheck={false}
           autoComplete="username"
+          placeholder="KNK-XXXX-XXXX"
           required
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          value={identity}
+          onChange={(e) => setIdentity(e.target.value)}
         />
       </label>
 
       <label className={styles.field}>
-        <span className={styles.label}>Password</span>
+        <span className={styles.label}>
+          {isAccessCode(identity) ? 'Passphrase' : 'Password'}
+        </span>
         <input
           className={styles.input}
           type="password"

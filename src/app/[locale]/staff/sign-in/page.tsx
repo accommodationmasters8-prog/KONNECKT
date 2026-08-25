@@ -43,15 +43,18 @@ export default async function StaffSignIn({
 
         <h1 className={styles.title}>Staff console</h1>
         <p className={styles.lead}>
-          For CRDB staff and field agents. What you can see after signing in is
+          For CRDB staff. Sign in with the access code HQ gave you, or with
+          your work email if you have one. What you can see afterwards is
           decided by your role in the database, not by this page.
         </p>
 
         <SignInForm locale={locale} />
 
         <p className={styles.foot}>
-          No account? Staff access is provisioned by HQ — ask your zone manager
-          to raise it. <Link href={`/${locale}`}>Back to the site</Link>
+          Been given a code but not set it up yet?{' '}
+          <Link href={`/${locale}/staff/join`}>Redeem it here</Link>. No code at
+          all? Access is issued by HQ — ask your zone manager to raise it.{' '}
+          <Link href={`/${locale}`}>Back to the site</Link>
         </p>
       </div>
     </main>

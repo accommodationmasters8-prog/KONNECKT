@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import type { Metadata, Viewport } from 'next';
 import { notFound } from 'next/navigation';
-import { Archivo, Inter } from 'next/font/google';
+import { Archivo, Plus_Jakarta_Sans } from 'next/font/google';
 import {
   defaultLocale,
   getDictionary,
@@ -45,14 +45,21 @@ const archivo = Archivo({
   adjustFontFallback: true,
 });
 
+// Plus Jakarta Sans, not Inter. Both are clean at 14px, which is where the
+// console spends most of its life; Jakarta has the slightly humanist
+// character — the single-storey `a` at low weights, the open apertures — that
+// keeps a screen of tables and figures from reading like a spreadsheet
+// export. Its tabular figures are what the metric cards and every money
+// column are set in.
+//
 // Not preloaded. The display face carries the hero and gets the preload slot;
 // the body face is discovered from the stylesheet a beat later and swaps in.
 // `adjustFontFallback` generates a metric-matched local fallback, so the swap
 // costs no layout shift — measured CLS is 0.
-const inter = Inter({
+const jakarta = Plus_Jakarta_Sans({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter',
+  variable: '--font-jakarta',
   adjustFontFallback: true,
   preload: false,
 });
@@ -151,7 +158,7 @@ export default async function LocaleLayout({
   return (
     <html
       lang={localeTags[typed]}
-      className={`${archivo.variable} ${inter.variable}`}
+      className={`${archivo.variable} ${jakarta.variable}`}
     >
       <body>{children}</body>
     </html>
