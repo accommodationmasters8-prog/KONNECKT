@@ -34,14 +34,12 @@ const sw: Dictionary = {
   },
 
   hero: {
-    eyebrow: 'Jumuiya ya vijana ya Benki ya CRDB',
-    headlineLead: "let's",
-    headlineMark: 'KONEKT',
-    headlineTail: 'Na CRDB',
+    eyebrow: 'Na CRDB',
+    headline: 'Konekt inafika kila kanda nchini Tanzania.',
     subline:
-      'Tafuta kinachoendelea karibu nawe, fika, na ufungue akaunti inayokua pamoja nawe. Kujiunga ni bure, kuanzia miaka 18 hadi 35.',
-    ctaPrimary: 'Tafuta matukio karibu nawe',
-    ctaSecondary: 'Uanachama unavyofanya kazi',
+      'Vyuo, sehemu za kazi na vikundi kote nchini, tawi kwa tawi. Ingia ili kufanya kazi na takwimu zako.',
+    ctaPrimary: 'Ingia',
+    ctaSecondary: 'Ona ramani',
     statZones: 'kanda',
     statBranches: 'matawi ya CRDB',
     statCampuses: 'vyuo vilivyoorodheshwa',

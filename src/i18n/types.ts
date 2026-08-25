@@ -41,9 +41,7 @@ export interface Dictionary {
   };
   hero: {
     eyebrow: string;
-    headlineLead: string;
-    headlineMark: string;
-    headlineTail: string;
+    headline: string;
     subline: string;
     ctaPrimary: string;
     ctaSecondary: string;

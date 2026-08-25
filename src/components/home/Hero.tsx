@@ -7,14 +7,13 @@ import styles from './Hero.module.css';
 /**
  * Hero.
  *
- * Ink ground with one soft brand ramp behind the mark — no mesh, no glass, no
- * second motif. The CRDB parent brand sits at the top of the block rather than
- * in the footer: this is a bank's product and the bank's name is the reason a
- * 19-year-old trusts it with an account.
+ * White, and almost empty. What sits on this page is the mark, one line about
+ * what Konekt is, a way in, and the three figures that say how wide the
+ * network runs — nothing else, because everything else lives behind the sign
+ * in and the people who need it already know where they are going.
  *
- * No video ships. There is no encode that clears the §2.2 gate, and a hero
- * that only looks finished once a 1.2MB file lands is a hero that fails on 3G
- * in Mwanza. The mark assembly is the motion, at about 1KB of inline SVG.
+ * It was an ink block with a glow behind it. That reads as a campaign; this
+ * reads as a place of work, which is what it is.
  */
 export function Hero({ locale, t }: { locale: Locale; t: Dictionary }) {
   const nf = new Intl.NumberFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ');
@@ -26,52 +25,30 @@ export function Hero({ locale, t }: { locale: Locale; t: Dictionary }) {
   ];
 
   return (
-    <section className={`${styles.hero} on-ink`}>
+    <section className={styles.hero}>
       <div className={`shell ${styles.inner}`}>
-        {/* The parent brand is stated in words, not in a drawn stand-in.
-            CRDB's mark is their registered trademark and this build has not
-            been given the artwork; the official Konekt lockup below carries
-            the attribution the bank actually approved — "Na CRDB". */}
-        <div className={styles.parentBrand}>
-          <span className={styles.parentTag}>{t.hero.eyebrow}</span>
-        </div>
+        <span className={styles.eyebrow}>{t.hero.eyebrow}</span>
 
-        <div className={styles.body}>
-          <div className={styles.copy}>
-            {/* The logo's own bilingual tagline is the brand voice, so the
-                headline is the tagline — identical in both locales, because
-                the code-switch is the point of it. */}
-            <h1 className={`t-hero ${styles.headline}`}>
-              <span className={styles.headlineLead}>{t.hero.headlineLead}</span>{' '}
-              <span className={styles.headlineMark}>{t.hero.headlineMark}</span>{' '}
-              <span className={styles.headlineTail}>{t.hero.headlineTail}</span>
-            </h1>
+        {/* The lockup, at size, once. Decorative here: the wordmark is read
+            out by the headline underneath it. */}
+        <KonektLogo label="" className={styles.mark} />
 
-            <p className={`t-lead ${styles.subline}`}>{t.hero.subline}</p>
+        <h1 className={styles.headline}>{t.hero.headline}</h1>
+        <p className={styles.subline}>{t.hero.subline}</p>
 
-            <div className={styles.actions}>
-              <Link href={`/${locale}/events`} prefetch={false} className="btn btn--primary btn--lg">
-                {t.hero.ctaPrimary}
-              </Link>
-              <Link href={`/${locale}/membership`} prefetch={false} className="btn btn--ghost btn--lg">
-                {t.hero.ctaSecondary}
-              </Link>
-            </div>
-          </div>
-
-          <div className={styles.markWrap}>
-            <span className={styles.markGlow} aria-hidden="true" />
-            {/* Decorative. The headline beside it is the logo's own tagline
-                word for word, so naming it here would read the brand out
-                twice to a screen reader. */}
-            <KonektLogo label="" animate className={styles.mark} />
-          </div>
+        <div className={styles.actions}>
+          <Link href={`/${locale}/staff/sign-in`} prefetch={false} className="btn btn--primary btn--lg">
+            {t.hero.ctaPrimary}
+          </Link>
+          <Link href={`/${locale}/map`} prefetch={false} className="btn btn--ghost btn--lg">
+            {t.hero.ctaSecondary}
+          </Link>
         </div>
 
         <dl className={styles.stats}>
           {stats.map((s) => (
             <div key={s.label} className={styles.stat}>
-              <dd className={`t-data ${styles.statValue}`}>{nf.format(s.value)}</dd>
+              <dd className={styles.statValue}>{nf.format(s.value)}</dd>
               <dt className={styles.statLabel}>{s.label}</dt>
             </div>
           ))}

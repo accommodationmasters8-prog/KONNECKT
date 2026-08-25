@@ -1,10 +1,7 @@
 import { AppShell } from '@/components/shell/AppShell';
 import { Hero } from '@/components/home/Hero';
 import { PartnerStrip } from '@/components/home/PartnerStrip';
-import { EventsPreview } from '@/components/home/EventsPreview';
 import { MapPreview } from '@/components/home/MapPreview';
-import { MembershipTiers } from '@/components/home/MembershipTiers';
-import { OpportunitiesStrip } from '@/components/home/OpportunitiesStrip';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ProgressiveEnhancement } from '@/components/ProgressiveEnhancement';
 import { getLandingPlacements } from '@/lib/partners';
@@ -15,11 +12,12 @@ export function generateStaticParams() {
 }
 
 /**
- * The landing page is a highlight reel, not the product.
+ * The front door, and nothing more.
  *
- * Each block shows enough to be worth tapping and routes to a full page that
- * does the job properly. That split is what stops the home page becoming a
- * scroll of everything, and it is what makes the tab bar mean something.
+ * The mark, where the network reaches, who is behind it, and a way in. It was
+ * a scroll of six sections selling a membership; the product turned out to be
+ * something else, and a landing page that keeps advertising the old one is a
+ * landing page that lies.
  */
 export default async function LandingPage({
   params,
@@ -34,11 +32,8 @@ export default async function LandingPage({
   return (
     <AppShell locale={locale} t={t} active="home">
       <Hero locale={locale} t={t} />
-      <PartnerStrip t={t} placements={placements} />
-      <EventsPreview locale={locale} t={t} />
       <MapPreview locale={locale} t={t} />
-      <MembershipTiers locale={locale} t={t} />
-      <OpportunitiesStrip locale={locale} t={t} />
+      <PartnerStrip t={t} placements={placements} />
       <SiteFooter locale={locale} t={t} />
       <ProgressiveEnhancement t={t} />
     </AppShell>

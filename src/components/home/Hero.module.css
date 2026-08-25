@@ -1,153 +1,95 @@
+/* White ground, one column, centred. The whole design decision here is the
+   space around things — nothing is competing for the eye, so nothing needs a
+   gradient or a glow to win. */
 .hero {
-  /* Solid colour first, gradient over it: if the gradient does not paint
-     the text still has the ground it was contrasted against. */
-  background-color: var(--konekt-ink);
-  background-image: var(--ramp-ink);
-  color: var(--text-on-inverse);
-  padding-block: var(--space-xl) var(--space-2xl);
-  position: relative;
-  isolation: isolate;
-  overflow: clip;
+  background: var(--surface-raised);
+  color: var(--text-strong);
+  padding-block: var(--space-2xl);
+  border-block-end: 1px solid var(--line-soft);
 }
 
-.inner { display: flex; flex-direction: column; gap: var(--space-xl); }
-
-/* --- Parent brand ------------------------------------------------------- */
-
-.parentBrand {
+.inner {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
+  text-align: center;
+  gap: var(--space-md);
 }
 
-.parentTag {
+.eyebrow {
   font-family: var(--font-display);
   font-size: var(--size-micro);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  color: var(--konekt-yellow);
-  max-inline-size: 22ch;
-  line-height: var(--leading-snug);
+  color: var(--text-accent);
 }
 
-/* --- Body --------------------------------------------------------------- */
-
-.body {
-  display: grid;
-  gap: var(--space-xl);
-  align-items: center;
+.mark {
+  inline-size: clamp(200px, 44vw, 340px);
+  block-size: auto;
+  margin-block: var(--space-sm) var(--space-xs);
 }
-
-@media (min-width: 62rem) {
-  .body {
-    grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
-    gap: var(--space-2xl);
-  }
-}
-
-.copy { min-inline-size: 0; }
 
 .headline {
-  display: flex;
-  flex-direction: column;
-  color: var(--text-on-inverse);
-  margin-block-end: var(--space-lg);
-}
-
-.headlineLead {
-  font-size: 0.3em;
+  font-family: var(--font-display);
+  /* Deliberately below the site's --size-h1. A headline that fills the
+     viewport is a poster; this page is a front door. */
+  font-size: clamp(1.5rem, 3.6vw, 2.25rem);
   font-weight: var(--weight-bold);
-  letter-spacing: var(--tracking-display);
-  color: var(--text-muted-on-inverse);
-  text-transform: lowercase;
-}
-
-/* The wordmark is the one place the brand ramp carries type. Everywhere else
-   the colours sit flat, so this reads as the mark rather than as a style. */
-.headlineMark {
-  background: var(--ramp-brand);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-/* If background-clip: text is unsupported the text would vanish. Paint it
-   teal first and let the clip override only where it works. */
-@supports not ((-webkit-background-clip: text) or (background-clip: text)) {
-  .headlineMark { color: var(--konekt-teal); background: none; }
-}
-
-.headlineTail {
-  font-size: 0.3em;
-  font-weight: var(--weight-bold);
-  color: var(--konekt-green);
-  letter-spacing: var(--tracking-display);
+  line-height: var(--leading-snug);
+  letter-spacing: -0.015em;
+  max-inline-size: 22ch;
 }
 
 .subline {
-  color: var(--text-muted-on-inverse);
-  margin-block-end: var(--space-xl);
-  max-inline-size: 38ch;
+  font-size: var(--size-body);
+  color: var(--text-body);
+  max-inline-size: 46ch;
+  line-height: var(--leading-body);
 }
 
-.actions { display: flex; flex-wrap: wrap; gap: var(--space-sm); }
-
-/* --- Mark --------------------------------------------------------------- */
-
-.markWrap {
-  position: relative;
+.actions {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  order: -1;
+  gap: var(--space-sm);
+  margin-block-start: var(--space-sm);
 }
 
-@media (min-width: 62rem) { .markWrap { order: 0; } }
-
-/* One radial bloom. A single gradient, not a mesh. */
-.markGlow {
-  position: absolute;
-  inset-block-start: 50%;
-  inset-inline-start: 50%;
-  translate: -50% -50%;
-  inline-size: min(120%, 26rem);
-  aspect-ratio: 1;
-  z-index: -1;
-  background: radial-gradient(
-    circle at center,
-    color-mix(in srgb, var(--konekt-teal) 32%, transparent),
-    transparent 66%
-  );
-  pointer-events: none;
-}
-
-/* The lockup is twice as wide as it is tall, so it takes more inline size
-   than the mark alone did to hold the same optical weight. */
-.mark { inline-size: clamp(220px, 52vw, 420px); }
-
-/* --- Stats -------------------------------------------------------------- */
+/* --- The three figures -------------------------------------------------- */
 
 .stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--space-md);
+  gap: var(--space-lg);
   margin: 0;
+  margin-block-start: var(--space-xl);
   padding-block-start: var(--space-lg);
-  border-block-start: 1px solid var(--line-on-inverse);
+  border-block-start: 1px solid var(--line-soft);
+  inline-size: min(100%, 40rem);
 }
 
-.stat { display: flex; flex-direction: column; gap: 2px; min-inline-size: 0; }
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-inline-size: 0;
+}
 
 .statValue {
   margin: 0;
-  font-size: clamp(1.75rem, 7vw, 2.75rem);
+  font-family: var(--font-data);
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
   line-height: 1;
-  color: var(--konekt-teal);
+  letter-spacing: -0.02em;
+  color: var(--text-accent);
 }
 
 .statLabel {
   font-size: var(--size-micro);
-  color: var(--text-muted-on-inverse);
+  color: var(--text-body);
   line-height: var(--leading-snug);
 }

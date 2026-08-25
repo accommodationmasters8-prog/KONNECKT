@@ -36,20 +36,17 @@ export function AppShell({
   const other: Locale = locale === 'en' ? 'sw' : 'en';
   const href = (path: string) => `/${locale}${path}`;
 
+  // Two links and a way in. Everything this product actually does happens
+  // behind the sign in, so a public nav listing five sections was five
+  // promises the public site does not keep.
   const primary = [
-    { key: 'events', href: href('/events'), label: t.nav.events },
     { key: 'map', href: href('/map'), label: t.nav.map },
-    { key: 'membership', href: href('/membership'), label: t.nav.membership },
-    { key: 'opportunities', href: href('/opportunities'), label: t.nav.opportunities },
-    { key: 'blog', href: href('/blog'), label: t.nav.blog },
   ] as const;
 
   const tabs = [
     { key: 'home', href: href(''), label: t.nav.tabHome, Icon: HomeIcon },
-    { key: 'events', href: href('/events'), label: t.nav.events, Icon: EventsIcon },
     { key: 'map', href: href('/map'), label: t.nav.map, Icon: MapIcon },
-    { key: 'membership', href: href('/membership'), label: t.nav.membership, Icon: MembershipIcon },
-    { key: 'me', href: href('/me'), label: t.nav.tabMe, Icon: MeIcon },
+    { key: 'signin', href: href('/staff/sign-in'), label: t.nav.signIn, Icon: MeIcon },
   ] as const;
 
   return (
@@ -102,7 +99,7 @@ export function AppShell({
                 {' '}— {localeNames[other]}. {t.nav.switchTo}
               </span>
             </Link>
-            <Link href={href('/me')} prefetch={false} className={styles.signIn}>
+            <Link href={href('/staff/sign-in')} prefetch={false} className={styles.signIn}>
               {t.nav.signIn}
             </Link>
           </div>

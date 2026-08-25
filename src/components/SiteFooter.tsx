@@ -12,11 +12,8 @@ export function SiteFooter({ locale, t }: { locale: Locale; t: Dictionary }) {
   const year = new Date().getFullYear();
 
   const explore = [
-    { href: `/${locale}/events`, label: t.nav.events },
     { href: `/${locale}/map`, label: t.nav.map },
-    { href: `/${locale}/membership`, label: t.nav.membership },
-    { href: `/${locale}/opportunities`, label: t.nav.opportunities },
-    { href: `/${locale}/blog`, label: t.nav.blog },
+    { href: `/${locale}/staff/sign-in`, label: t.nav.signIn },
   ];
 
   const legal = [

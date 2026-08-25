@@ -31,14 +31,12 @@ const en: Dictionary = {
   },
 
   hero: {
-    eyebrow: 'The youth community of CRDB Bank',
-    headlineLead: "let's",
-    headlineMark: 'KONEKT',
-    headlineTail: 'Na CRDB',
+    eyebrow: 'Na CRDB',
+    headline: 'Konekt reaches every zone in Tanzania.',
     subline:
-      'Find what is happening near you, show up, and open the account that grows with you. Free to join, from 18 to 35.',
-    ctaPrimary: 'Find events near you',
-    ctaSecondary: 'How membership works',
+      'Campuses, workplaces and groups across the country, branch by branch. Sign in to work with your figures.',
+    ctaPrimary: 'Sign in',
+    ctaSecondary: 'See the map',
     statZones: 'zones',
     statBranches: 'CRDB branches',
     statCampuses: 'campuses mapped',
