@@ -43,10 +43,14 @@ export async function getStaffSession(): Promise<StaffSession> {
   const { data: auth } = await supabase.auth.getUser();
   if (!auth?.user) return NOT_SIGNED_IN;
 
+  // Filtered on the auth id, not just limited to one row. `staff_self_read`
+  // lets an HQ user see every staff row, so an unfiltered `limit(1)` would
+  // hand them whichever row the planner returned first — someone else's role,
+  // someone else's scope. The policy is not the filter here; this is.
   const { data } = await supabase
     .from('staff_users' as never)
     .select('id, role, full_name, email, zone_code, branch_id')
-    .limit(1)
+    .eq('auth_user_id', auth.user.id)
     .maybeSingle();
 
   const staff = data as {

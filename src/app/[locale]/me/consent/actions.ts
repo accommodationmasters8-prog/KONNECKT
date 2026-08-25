@@ -41,7 +41,7 @@ export async function setConsent(_prev: ActionResult, form: FormData): Promise<A
   const { data: member } = await supabase
     .from('members' as never)
     .select('id')
-    .limit(1)
+    .eq('auth_user_id', auth.user.id)
     .maybeSingle();
 
   const memberId = (member as unknown as { id: string } | null)?.id;

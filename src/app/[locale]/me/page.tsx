@@ -69,7 +69,14 @@ export default async function MePage({
   if (supabase) {
     const { data: auth } = await supabase.auth.getUser();
     if (auth?.user) {
-      const { data } = await supabase.from('members').select('*').limit(1).maybeSingle();
+      // Filtered on the auth id: staff policies let some accounts read more
+      // than one member row, and "my profile" must never be whichever row
+      // came back first.
+      const { data } = await supabase
+        .from('members')
+        .select('*')
+        .eq('auth_user_id', auth.user.id)
+        .maybeSingle();
       member = (data as MemberRow | null) ?? null;
 
       if (member) {
