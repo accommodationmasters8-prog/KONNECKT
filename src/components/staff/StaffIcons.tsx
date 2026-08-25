@@ -161,3 +161,32 @@ export function FreelancersIcon({ className }: P) {
     </svg>
   );
 }
+
+export function CategoriesIcon({ className }: P) {
+  return (
+    <svg {...base} className={className}>
+      <rect x="3.4" y="3.4" width="7" height="7" rx="2.2" />
+      <rect x="13.6" y="3.4" width="7" height="7" rx="2.2" />
+      <rect x="3.4" y="13.6" width="7" height="7" rx="2.2" />
+      <rect x="13.6" y="13.6" width="7" height="7" rx="2.2" />
+    </svg>
+  );
+}
+
+export function StationsIcon({ className }: P) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M12 21.2s6.6-5.4 6.6-10.2a6.6 6.6 0 1 0-13.2 0C5.4 15.8 12 21.2 12 21.2z" />
+      <circle cx="12" cy="10.6" r="2.6" />
+    </svg>
+  );
+}
+
+export function AccessIcon({ className }: P) {
+  return (
+    <svg {...base} className={className}>
+      <circle cx="8.4" cy="12" r="4" />
+      <path d="M12.4 12h8.2v3.2M17.6 12v2.6" />
+    </svg>
+  );
+}

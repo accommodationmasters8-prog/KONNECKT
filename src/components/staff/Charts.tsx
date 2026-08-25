@@ -127,3 +127,116 @@ export function Donut({
     </div>
   );
 }
+
+export interface TrendPoint {
+  label: string;
+  value: number;
+}
+
+/**
+ * A trend over months.
+ *
+ * One series, drawn as an area with its line on top, because the question this
+ * chart answers is "is it going up" and a second series would make the reader
+ * work out which line is which before they can answer it. Where two measures
+ * matter, two charts side by side beat one chart with two axes — an axis
+ * nobody notices is a lie waiting to happen.
+ *
+ * The path is built from the points directly: no scale library, no layout
+ * pass, and it renders on the server so the shape is in the HTML rather than
+ * appearing a beat after the page does.
+ */
+export function TrendChart({
+  points,
+  title,
+  format,
+  tone = 'teal',
+}: {
+  points: TrendPoint[];
+  title: string;
+  /** How a value reads in the tooltip and on the axis. */
+  format: (value: number) => string;
+  tone?: 'teal' | 'green' | 'gold' | 'pink';
+}) {
+  if (points.length < 2) {
+    return (
+      <p className={styles.trendEmpty}>
+        {points.length === 0
+          ? 'Nothing reported yet. The first month of reports draws this.'
+          : 'One month reported. A trend needs a second one.'}
+      </p>
+    );
+  }
+
+  const W = 720;
+  const H = 220;
+  const PAD_X = 8;
+  const PAD_TOP = 16;
+  const PAD_BOTTOM = 28;
+
+  const max = Math.max(...points.map((p) => p.value), 1);
+  const stepX = (W - PAD_X * 2) / (points.length - 1);
+  const y = (value: number) =>
+    PAD_TOP + (1 - value / max) * (H - PAD_TOP - PAD_BOTTOM);
+
+  const coords = points.map((p, i) => [PAD_X + i * stepX, y(p.value)] as const);
+  const line = coords.map(([x, yy], i) => `${i === 0 ? 'M' : 'L'}${x.toFixed(1)} ${yy.toFixed(1)}`).join(' ');
+  const area = `${line} L${(PAD_X + (points.length - 1) * stepX).toFixed(1)} ${H - PAD_BOTTOM} L${PAD_X} ${H - PAD_BOTTOM} Z`;
+
+  const last = points[points.length - 1];
+  const first = points[0];
+  const change = first.value > 0
+    ? Math.round(((last.value - first.value) / first.value) * 1000) / 10
+    : null;
+
+  return (
+    <figure className={`${styles.trend} ${styles[tone]}`}>
+      <figcaption className={styles.trendHead}>
+        <span className={styles.trendValue}>{format(last.value)}</span>
+        <span className={styles.trendMeta}>
+          {last.label}
+          {change === null ? null : (
+            <span className={change >= 0 ? styles.trendUp : styles.trendDown}>
+              {change >= 0 ? '▲' : '▼'} {Math.abs(change)}% since {first.label}
+            </span>
+          )}
+        </span>
+      </figcaption>
+
+      <svg
+        viewBox={`0 0 ${W} ${H}`}
+        className={styles.trendSvg}
+        role="img"
+        aria-label={`${title}. ${points.map((p) => `${p.label}: ${format(p.value)}`).join('. ')}`}
+        preserveAspectRatio="none"
+      >
+        <title>{title}</title>
+        {/* Three guides, unlabelled. The figure above carries the number; a
+            gridline here is for judging shape, not for reading values off. */}
+        {[0.25, 0.5, 0.75].map((f) => (
+          <line
+            key={f}
+            x1={0} x2={W}
+            y1={PAD_TOP + f * (H - PAD_TOP - PAD_BOTTOM)}
+            y2={PAD_TOP + f * (H - PAD_TOP - PAD_BOTTOM)}
+            className={styles.trendGuide}
+          />
+        ))}
+        <path d={area} className={styles.trendArea} />
+        <path d={line} className={styles.trendLine} />
+        {coords.map(([x, yy], i) => (
+          <circle key={points[i].label} cx={x} cy={yy} r={i === coords.length - 1 ? 5 : 3}
+            className={styles.trendDot} />
+        ))}
+      </svg>
+
+      <ol className={styles.trendAxis}>
+        {points.map((p, i) => (
+          <li key={p.label} aria-hidden={i % Math.ceil(points.length / 6) === 0 ? undefined : 'true'}>
+            {i % Math.ceil(points.length / 6) === 0 ? p.label : ''}
+          </li>
+        ))}
+      </ol>
+    </figure>
+  );
+}

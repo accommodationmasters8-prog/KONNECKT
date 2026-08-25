@@ -155,3 +155,72 @@
 .gold  { --slice-colour: var(--metric-gold-from); }
 .pink  { --slice-colour: var(--metric-pink-to); }
 .slate { --slice-colour: var(--konekt-slate); }
+
+/* --- Trend -------------------------------------------------------------- */
+
+.trend { display: flex; flex-direction: column; gap: var(--space-sm); margin: 0; }
+
+.trendHead { display: flex; flex-direction: column; gap: 2px; }
+
+.trendValue {
+  font-family: var(--font-display);
+  font-size: var(--size-h3);
+  font-weight: var(--weight-black);
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.trendMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  font-size: var(--size-micro);
+  color: var(--text-body);
+}
+
+.trendUp { color: var(--konekt-green-deep); font-weight: var(--weight-semibold); }
+.trendDown { color: var(--metric-pink-from); font-weight: var(--weight-semibold); }
+
+.trendSvg {
+  inline-size: 100%;
+  block-size: 200px;
+  overflow: visible;
+}
+
+.trendGuide { stroke: var(--line-app); stroke-width: 1; vector-effect: non-scaling-stroke; }
+
+.trendArea { fill: var(--trend-fill); stroke: none; }
+
+.trendLine {
+  fill: none;
+  stroke: var(--trend-stroke);
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.trendDot { fill: var(--surface-raised); stroke: var(--trend-stroke); stroke-width: 2; vector-effect: non-scaling-stroke; }
+
+.trend.teal  { --trend-stroke: var(--metric-teal-to);  --trend-fill: color-mix(in srgb, var(--metric-teal-to) 12%, transparent); }
+.trend.green { --trend-stroke: var(--metric-green-to); --trend-fill: color-mix(in srgb, var(--metric-green-to) 12%, transparent); }
+.trend.gold  { --trend-stroke: var(--metric-gold-from);--trend-fill: color-mix(in srgb, var(--metric-gold-from) 16%, transparent); }
+.trend.pink  { --trend-stroke: var(--metric-pink-to);  --trend-fill: color-mix(in srgb, var(--metric-pink-to) 12%, transparent); }
+
+.trendAxis {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--size-nano);
+  color: var(--text-body);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+}
+
+.trendEmpty {
+  padding: var(--space-xl);
+  text-align: center;
+  font-size: var(--size-caption);
+  color: var(--text-body);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}

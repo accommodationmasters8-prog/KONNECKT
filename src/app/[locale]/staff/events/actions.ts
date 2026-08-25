@@ -3,13 +3,10 @@
 import { revalidatePath } from 'next/cache';
 import { getServerClient } from '@/lib/supabase/server';
 import { getStaffSession } from '@/lib/staff-session';
-import type { EventStatus } from '@/lib/supabase/types';
-import { nextStatuses } from '@/lib/event-lifecycle';
 
 export interface ActionResult {
   ok: boolean;
   message: string;
-  /** Set when a create succeeded, so the form can send the user to the event. */
   id?: string;
 }
 
@@ -26,259 +23,177 @@ async function requireStaff(): Promise<Gate> {
   return { ok: true, supabase, session };
 }
 
-function slugify(value: string) {
-  return value
-    .toLowerCase()
-    .normalize('NFKD')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 60);
-}
-
 type ParsedEvent =
   | { error: string; values?: undefined }
-  | { values: Record<string, unknown> & { title_en: string }; error?: undefined };
+  | { values: Record<string, unknown> & { name: string }; error?: undefined };
 
-function readEventFields(form: FormData): ParsedEvent {
-  const titleEn = String(form.get('title_en') ?? '').trim();
-  const titleSw = String(form.get('title_sw') ?? '').trim();
-  const startsAt = String(form.get('starts_at') ?? '').trim();
-  const endsAt = String(form.get('ends_at') ?? '').trim();
-  const venue = String(form.get('venue_name') ?? '').trim();
-  const zone = String(form.get('zone_code') ?? '').trim();
-  const capacityRaw = String(form.get('capacity') ?? '').trim();
-  const targetRegRaw = String(form.get('target_registrations') ?? '').trim();
-  const targetAccRaw = String(form.get('target_accounts') ?? '').trim();
-  const budgetRaw = String(form.get('budget_tzs') ?? '').trim();
+function readFields(form: FormData): ParsedEvent {
+  const name = String(form.get('name') ?? '').trim();
+  const date = String(form.get('event_date') ?? '').trim();
+  const venue = String(form.get('venue') ?? '').trim();
 
-  if (!titleEn || !titleSw) {
-    return { error: 'An event needs a title in both languages — the site is bilingual, and a missing Swahili title would render as an empty heading.' };
+  if (!name) return { error: 'Give the event a name.' };
+  if (!date) return { error: 'An event needs a date — it is what decides past or upcoming.' };
+  if (!venue) return { error: 'Where was it held?' };
+
+  const num = (key: string) => {
+    const raw = String(form.get(key) ?? '').trim();
+    if (raw === '') return null;
+    const value = Number(raw.replace(/,/g, ''));
+    return Number.isFinite(value) ? value : NaN;
+  };
+
+  const participants = num('participants');
+  const budget = num('budget_tzs');
+  const spend = num('actual_spend_tzs');
+  const accounts = num('accounts_opened');
+  const deposits = num('deposits_tzs');
+
+  if ([participants, budget, spend, accounts, deposits].some((v) => v !== null && Number.isNaN(v))) {
+    return { error: 'Every figure has to be a number.' };
   }
-  if (!startsAt || !endsAt) return { error: 'An event needs a start and an end.' };
-  if (new Date(endsAt) <= new Date(startsAt)) {
-    return { error: 'The end has to be after the start. The database refuses it otherwise.' };
-  }
-  if (!venue) return { error: 'An event needs a venue name.' };
 
-  const capacity = capacityRaw === '' ? null : Number(capacityRaw);
-  if (capacity !== null && (!Number.isInteger(capacity) || capacity <= 0)) {
-    return { error: 'Capacity must be a whole number above zero, or empty for no limit.' };
+  const endDate = String(form.get('end_date') ?? '').trim();
+  if (endDate && endDate < date) {
+    return { error: 'The end cannot be before the start.' };
+  }
+
+  const url = String(form.get('album_url') ?? '').trim();
+  if (url && !/^https?:\/\//i.test(url)) {
+    return { error: 'The album link must start with http:// or https://' };
   }
 
   return {
     values: {
-      title_en: titleEn,
-      title_sw: titleSw,
-      summary_en: String(form.get('summary_en') ?? '').trim() || null,
-      summary_sw: String(form.get('summary_sw') ?? '').trim() || null,
-      starts_at: new Date(startsAt).toISOString(),
-      ends_at: new Date(endsAt).toISOString(),
-      venue_name: venue,
-      zone_code: zone || null,
-      capacity,
-      waitlist_enabled: form.get('waitlist_enabled') === 'on',
-      target_registrations: targetRegRaw === '' ? null : Number(targetRegRaw),
-      target_accounts: targetAccRaw === '' ? null : Number(targetAccRaw),
-      budget_tzs: budgetRaw === '' ? null : Number(budgetRaw),
+      name,
+      event_date: date,
+      end_date: endDate || null,
+      venue,
+      address: String(form.get('address') ?? '').trim() || null,
+      station_id: String(form.get('station_id') ?? '').trim() || null,
+      category_id: String(form.get('category_id') ?? '').trim() || null,
+      participants: participants === null ? null : Math.round(participants),
+      budget_tzs: budget,
+      actual_spend_tzs: spend,
+      accounts_opened: accounts === null ? null : Math.round(accounts),
+      deposits_tzs: deposits,
+      album_url: url || null,
+      notes: String(form.get('notes') ?? '').trim() || null,
     },
   };
 }
 
-/** Create an event. It starts as a draft; nothing reaches the public site here. */
-export async function createEvent(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+/**
+ * Record an event.
+ *
+ * Past or upcoming is never stored — it is the date compared to today, worked
+ * out wherever it is displayed. A status column would need somebody to
+ * remember to change it the morning after, and nobody ever does.
+ */
+export async function saveEvent(_prev: ActionResult, form: FormData): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
 
-  const parsed = readEventFields(form);
+  const parsed = readFields(form);
   if (parsed.error || !parsed.values) {
     return { ok: false, message: parsed.error ?? 'Could not read the form.' };
   }
 
-  const slugBase = slugify(parsed.values.title_en);
-  const slug = `${slugBase}-${Date.now().toString(36).slice(-4)}`;
+  const id = String(form.get('id') ?? '').trim();
+
+  if (id) {
+    const { error } = await gate.supabase
+      .from('tracked_events' as never)
+      .update(parsed.values as never)
+      .eq('id', id);
+    if (error) return { ok: false, message: error.message };
+    revalidatePath('/', 'layout');
+    return { ok: true, message: 'Saved.' };
+  }
+
+  // The branch comes from the account where there is one, exactly as it does
+  // for a station: a branch officer files against their own branch or not at
+  // all.
+  const { data: staff } = await gate.supabase
+    .from('staff_users' as never)
+    .select('branch_id')
+    .eq('id', gate.session.staffId ?? '')
+    .maybeSingle();
+
+  const branchId = (staff as unknown as { branch_id: string | null } | null)?.branch_id
+    ?? String(form.get('branch_id') ?? '').trim();
+
+  if (!branchId) return { ok: false, message: 'Choose the branch this event belongs to.' };
 
   const { data, error } = await gate.supabase
-    .from('events' as never)
-    .insert({
-      ...parsed.values,
-      slug,
-      status: 'draft',
-      created_by: gate.session.staffId,
-    } as never)
+    .from('tracked_events' as never)
+    .insert({ ...parsed.values, branch_id: branchId, created_by: gate.session.staffId } as never)
     .select('id')
     .single();
 
   if (error) return { ok: false, message: error.message };
 
   revalidatePath('/', 'layout');
-  const id = (data as unknown as { id: string } | null)?.id;
-  return { ok: true, message: 'Draft created.', id };
+  return {
+    ok: true,
+    message: `${parsed.values.name} recorded.`,
+    id: (data as unknown as { id: string } | null)?.id,
+  };
 }
 
-/** Edit an event's details. Status is changed by `moveEvent`, never here. */
-export async function updateEvent(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+/** Attach one image. The database caps an event at ten. */
+export async function addEventImage(_prev: ActionResult, form: FormData): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
 
-  const id = String(form.get('id') ?? '').trim();
-  if (!id) return { ok: false, message: 'Which event?' };
+  const eventId = String(form.get('event_id') ?? '').trim();
+  const url = String(form.get('external_url') ?? '').trim();
+  const path = String(form.get('storage_path') ?? '').trim();
 
-  const parsed = readEventFields(form);
-  if (parsed.error || !parsed.values) {
-    return { ok: false, message: parsed.error ?? 'Could not read the form.' };
+  if (!eventId) return { ok: false, message: 'Which event?' };
+  if (!url && !path) return { ok: false, message: 'Add a file or paste a link.' };
+  if (url && !/^https?:\/\//i.test(url)) {
+    return { ok: false, message: 'A link must start with http:// or https://' };
   }
 
   const { error } = await gate.supabase
-    .from('events' as never)
-    .update(parsed.values as never)
-    .eq('id', id);
+    .from('tracked_event_images' as never)
+    .insert({
+      event_id: eventId,
+      external_url: url || null,
+      storage_path: path || null,
+      caption: String(form.get('caption') ?? '').trim() || null,
+      display_order: Number(form.get('display_order') ?? 0) || 0,
+      uploaded_by: gate.session.staffId,
+    } as never);
 
-  if (error) return { ok: false, message: error.message };
-
-  revalidatePath('/', 'layout');
-  return { ok: true, message: 'Saved.' };
-}
-
-/**
- * Move an event along its lifecycle.
- *
- * Reads the current status first rather than trusting the one the form was
- * rendered with: two coordinators on the same event, one of them on a stale
- * page, is the ordinary case rather than the exotic one.
- */
-export async function moveEvent(_prev: ActionResult, form: FormData): Promise<ActionResult> {
-  const gate = await requireStaff();
-  if (!gate.ok) return gate;
-
-  const id = String(form.get('id') ?? '').trim();
-  const target = String(form.get('to') ?? '').trim() as EventStatus;
-  if (!id || !target) return { ok: false, message: 'Which event, and to what?' };
-
-  const { data, error: readError } = await gate.supabase
-    .from('events' as never)
-    .select('status, published_at, title_en')
-    .eq('id', id)
-    .single();
-
-  if (readError) return { ok: false, message: readError.message };
-
-  const current = data as unknown as {
-    status: EventStatus; published_at: string | null; title_en: string;
-  };
-
-  if (!nextStatuses(current.status).includes(target)) {
+  if (error) {
     return {
       ok: false,
-      message: `An event that is ${current.status.replace(/_/g, ' ')} cannot go straight to ${target.replace(/_/g, ' ')}. Someone may have moved it since this page loaded.`,
+      message: error.message.includes('at most 10')
+        ? 'This event already has ten images. Remove one, or put the rest behind the album link.'
+        : error.message,
     };
   }
 
-  const patch: Record<string, unknown> = { status: target };
-
-  // `published_event_has_a_time` requires it, and the publication time is the
-  // fact reporting uses to say when an event became visible.
-  if (['published', 'live', 'completed'].includes(target) && !current.published_at) {
-    patch.published_at = new Date().toISOString();
-  }
-
-  const { error } = await gate.supabase
-    .from('events' as never)
-    .update(patch as never)
-    .eq('id', id)
-    // Only if it has not moved since we read it.
-    .eq('status', current.status);
-
-  if (error) return { ok: false, message: error.message };
-
   revalidatePath('/', 'layout');
-  return { ok: true, message: `${current.title_en} is now ${target.replace(/_/g, ' ')}.` };
+  return { ok: true, message: 'Image added.' };
 }
 
-/**
- * Copy an event into a new draft.
- *
- * The programme repeats: the same campus tour runs in eight zones, and
- * retyping it eight times is how a date ends up wrong in one of them. What is
- * deliberately *not* copied: the status, the publication time, and every
- * registration and check-in — those belong to the event that actually happened.
- */
-export async function duplicateEvent(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+export async function removeEventImage(_prev: ActionResult, form: FormData): Promise<ActionResult> {
   const gate = await requireStaff();
   if (!gate.ok) return gate;
 
-  const id = String(form.get('id') ?? '').trim();
-  if (!id) return { ok: false, message: 'Which event?' };
-
-  const { data, error: readError } = await gate.supabase
-    .from('events' as never)
-    .select('title_en, title_sw, summary_en, summary_sw, description_en, description_sw, starts_at, ends_at, venue_name, location_id, institution_id, branch_id, zone_code, capacity, waitlist_enabled, min_age, max_age, target_registrations, target_accounts, budget_tzs')
-    .eq('id', id)
-    .single();
-
-  if (readError) return { ok: false, message: readError.message };
-
-  const source = data as unknown as Record<string, unknown> & { title_en: string };
-
-  const { data: created, error } = await gate.supabase
-    .from('events' as never)
-    .insert({
-      ...source,
-      title_en: `${source.title_en} (copy)`,
-      slug: `${slugify(source.title_en)}-${Date.now().toString(36).slice(-5)}`,
-      status: 'draft',
-      published_at: null,
-      created_by: gate.session.staffId,
-    } as never)
-    .select('id')
-    .single();
-
-  if (error) return { ok: false, message: error.message };
-
-  return {
-    ok: true,
-    message: 'Copied into a new draft. Check the dates before you submit it.',
-    id: (created as unknown as { id: string } | null)?.id,
-  };
-}
-
-/** Assign or clear the coordinator responsible for the event. */
-export async function setCoordinator(_prev: ActionResult, form: FormData): Promise<ActionResult> {
-  const gate = await requireStaff();
-  if (!gate.ok) return gate;
-
-  const id = String(form.get('id') ?? '').trim();
-  const staffId = String(form.get('coordinator_staff_id') ?? '').trim();
-  if (!id) return { ok: false, message: 'Which event?' };
+  const id = String(form.get('image_id') ?? '').trim();
+  if (!id) return { ok: false, message: 'Which image?' };
 
   const { error } = await gate.supabase
-    .from('events' as never)
-    .update({ coordinator_staff_id: staffId || null } as never)
+    .from('tracked_event_images' as never)
+    .delete()
     .eq('id', id);
 
   if (error) return { ok: false, message: error.message };
-  return { ok: true, message: staffId ? 'Coordinator assigned.' : 'Coordinator cleared.' };
-}
-
-/**
- * Promote the next person off the waitlist.
- *
- * The work is done by `konekt.promote_from_waitlist`, which takes the row lock,
- * re-checks capacity and renumbers the queue in one transaction. Doing it here
- * in three queries would be a race with every other coordinator on the event.
- */
-export async function promoteWaitlist(_prev: ActionResult, form: FormData): Promise<ActionResult> {
-  const gate = await requireStaff();
-  if (!gate.ok) return gate;
-
-  const id = String(form.get('id') ?? '').trim();
-  if (!id) return { ok: false, message: 'Which event?' };
-
-  const { error } = await gate.supabase.rpc('promote_from_waitlist' as never, {
-    p_event_id: id,
-  } as never);
-
-  if (error) return { ok: false, message: error.message };
 
   revalidatePath('/', 'layout');
-  return { ok: true, message: 'Promoted the next person on the waitlist.' };
+  return { ok: true, message: 'Removed.' };
 }

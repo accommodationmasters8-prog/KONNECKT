@@ -1,3 +1,113 @@
+/* ===========================================================================
+   THE TRACKER — shared layout for the console's screens
+
+   White space first. Every screen is a column of cards on a flat canvas, at
+   one rhythm, so a figure means the same thing wherever it appears.
+   ======================================================================== */
+
+/* The headline row. auto-fit rather than auto-fill so four cards stretch to
+   fill a wide desk screen instead of leaving a ghost column at the end. */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-md);
+}
+
+/* Two panels side by side above 68rem, stacked below. */
+.split {
+  display: grid;
+  gap: var(--space-lg);
+}
+
+@media (min-width: 68rem) {
+  .split { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); }
+}
+
+/* --- The reporting gap --------------------------------------------------
+   Stated in words, above the charts, because a chart drawn from a third of
+   the branches is not wrong — it is incomplete, and only a sentence can say
+   which.
+   --------------------------------------------------------------------- */
+.reportingBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-sm) var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  border: 1px solid var(--line-app);
+}
+
+.reportingCount {
+  font-family: var(--font-display);
+  font-size: var(--size-h3);
+  font-weight: var(--weight-black);
+  color: var(--konekt-teal-deep);
+  font-variant-numeric: tabular-nums;
+}
+
+.reportingLabel { font-size: var(--size-caption); color: var(--text-body); }
+
+.reportingLink {
+  margin-inline-start: auto;
+  font-size: var(--size-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--konekt-teal-deep);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.reportingLink:hover { text-decoration: underline; }
+
+.panelLink {
+  font-size: var(--size-caption);
+  color: var(--konekt-teal-deep);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.panelLink:hover { text-decoration: underline; }
+
+/* --- Activity ----------------------------------------------------------- */
+
+.activity { display: flex; flex-direction: column; }
+
+.activityItem {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-sm);
+  padding-block: var(--space-sm);
+  font-size: var(--size-caption);
+  color: var(--text-body);
+}
+
+.activityItem + .activityItem { border-block-start: 1px solid var(--line-app); }
+
+.activityDot {
+  inline-size: 8px;
+  block-size: 8px;
+  border-radius: 50%;
+  flex: none;
+  translate: 0 -1px;
+}
+
+.station { background: var(--metric-teal-to); }
+.report  { background: var(--metric-green-to); }
+.event   { background: var(--metric-gold-from); }
+
+.activityText { min-inline-size: 0; }
+.activityText strong { color: var(--text-strong); font-weight: var(--weight-semibold); }
+
+.activityAt {
+  margin-inline-start: auto;
+  font-size: var(--size-nano);
+  color: var(--text-body);
+  white-space: nowrap;
+}
+
+/* --- Notices ------------------------------------------------------------ */
+
 .notice {
   display: flex;
   gap: var(--space-sm);
@@ -14,23 +124,13 @@
 .notice .tri { margin-block-start: 0.35em; flex: none; }
 .notice strong { color: var(--text-strong); display: block; margin-block-end: 2px; }
 
-/* The headline row. auto-fit rather than auto-fill so four cards stretch to
-   fill a wide desk screen instead of leaving a ghost column at the end. */
-.metrics {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
-  gap: var(--space-md);
+.hint {
+  font-size: var(--size-caption);
+  color: var(--text-body);
+  line-height: var(--leading-body);
 }
 
-/* Chart pair. The zone bars need the width; the donut is happy in a third. */
-.split {
-  display: grid;
-  gap: var(--space-lg);
-}
-
-@media (min-width: 68rem) {
-  .split { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
-}
+/* --- Tables, shared by every list screen -------------------------------- */
 
 .tableWrap { overflow-x: auto; }
 
@@ -38,14 +138,15 @@
   inline-size: 100%;
   border-collapse: collapse;
   font-size: var(--size-caption);
-  min-inline-size: 28rem;
+  min-inline-size: 44rem;
 }
 
 .table th,
 .table td {
   text-align: start;
-  padding: var(--space-sm) var(--space-md);
-  border-block-start: 1px solid var(--line-soft);
+  padding: var(--space-sm);
+  border-block-start: 1px solid var(--line-app);
+  vertical-align: middle;
 }
 
 .table thead th {
@@ -62,9 +163,124 @@
 
 .num { text-align: end; font-variant-numeric: tabular-nums; }
 
-/* A pointer to another screen, inside a panel. */
-.hint {
-  font-size: var(--size-caption);
+.sub {
+  display: block;
+  font-size: var(--size-nano);
+  font-weight: var(--weight-regular);
   color: var(--text-body);
-  line-height: var(--leading-body);
+  margin-block-start: 2px;
 }
+
+.link { color: var(--konekt-teal-deep); text-decoration: none; }
+.link:hover { text-decoration: underline; }
+
+.chip {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--size-nano);
+  font-weight: var(--weight-semibold);
+  background: var(--surface-sunken);
+  color: var(--text-body);
+  text-transform: capitalize;
+}
+
+.chipActive { background: var(--surface-tint); color: var(--konekt-teal-deep); }
+.chipWarn { background: var(--surface-sunken); color: var(--metric-gold-from); }
+
+/* --- Category cards ------------------------------------------------------ */
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--space-md);
+}
+
+/* A left edge in the category's own colour, and nothing else decorative. The
+   figure is the point of the card. */
+.categoryCard {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  border: 1px solid var(--line-app);
+  border-inline-start: 4px solid var(--card-accent);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  transition: box-shadow var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+}
+
+.categoryCard:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+
+.categoryCard.teal  { --card-accent: var(--metric-teal-to); }
+.categoryCard.green { --card-accent: var(--metric-green-to); }
+.categoryCard.gold  { --card-accent: var(--metric-gold-from); }
+.categoryCard.pink  { --card-accent: var(--metric-pink-to); }
+.categoryCard.ink   { --card-accent: var(--konekt-ink); }
+
+.categoryName {
+  font-size: var(--size-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+
+.categoryFigure {
+  font-family: var(--font-display);
+  font-size: var(--size-h2);
+  font-weight: var(--weight-black);
+  line-height: 1;
+  color: var(--card-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.categoryMeta { font-size: var(--size-micro); color: var(--text-body); }
+
+.categoryNoun {
+  font-size: var(--size-nano);
+  color: var(--text-body);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  margin-block-start: var(--space-xs);
+}
+
+/* --- Measure switch ------------------------------------------------------ */
+
+.measureBar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  border: 1px solid var(--line-app);
+}
+
+.measureLabel {
+  font-size: var(--size-nano);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-body);
+  margin-inline-end: var(--space-xs);
+}
+
+.measureOn,
+.measureOff {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: var(--size-caption);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.measureOn {
+  background: var(--konekt-teal-deep);
+  color: var(--text-on-inverse);
+  font-weight: var(--weight-semibold);
+}
+
+.measureOff { color: var(--text-body); }
+.measureOff:hover { background: var(--surface-sunken); color: var(--text-strong); }

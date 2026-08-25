@@ -4,16 +4,19 @@ import { KonektLogo } from '../KonektLogo';
 import type { Locale } from '@/i18n';
 import type { StaffRole } from '@/lib/supabase/types';
 import {
-  AccountsIcon, AuditIcon, CheckinIcon, CommunicationIcon, EventsIcon,
-  FreelancersIcon, MembersIcon, OverviewIcon, PartnersIcon, ProductsIcon,
-  SettingsIcon, SignOutIcon, SponsorshipIcon, VerificationIcon,
+  AccessIcon, AccountsIcon, AuditIcon, CategoriesIcon, CheckinIcon,
+  CommunicationIcon, EventsIcon, FreelancersIcon, MembersIcon, OverviewIcon,
+  PartnersIcon, ProductsIcon, SettingsIcon, SignOutIcon, SponsorshipIcon,
+  StationsIcon, VerificationIcon,
 } from './StaffIcons';
 import styles from './StaffShell.module.css';
 
 export type StaffSection =
-  | 'overview' | 'events' | 'checkin' | 'accounts'
-  | 'verification' | 'sponsorship' | 'members' | 'audit'
-  | 'partners' | 'settings' | 'communication' | 'products' | 'freelancers';
+  | 'overview' | 'categories' | 'stations' | 'events'
+  | 'access' | 'settings' | 'audit'
+  // Sections from the earlier build, still routable while they are retired.
+  | 'checkin' | 'accounts' | 'verification' | 'sponsorship' | 'members'
+  | 'partners' | 'communication' | 'products' | 'freelancers';
 
 export interface StaffNavItem {
   key: StaffSection;
@@ -31,6 +34,9 @@ export interface StaffUser {
 
 const ICONS: Record<StaffSection, (p: { className?: string }) => ReactNode> = {
   overview: OverviewIcon,
+  categories: CategoriesIcon,
+  stations: StationsIcon,
+  access: AccessIcon,
   events: EventsIcon,
   checkin: CheckinIcon,
   accounts: AccountsIcon,

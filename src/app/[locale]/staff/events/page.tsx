@@ -1,44 +1,37 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
-import { EventForm } from '@/components/staff/EventForm';
+import { MetricCard } from '@/components/staff/MetricCard';
+import { BarTable } from '@/components/staff/Charts';
+import { EventForm } from '@/components/staff/EventForms';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
-import { sampleEvents } from '@/lib/sample-events';
+import { count, getCategories, getStations, money, type TrackedEvent } from '@/lib/tracker';
 import { localeParams, resolveLocale } from '@/lib/page';
-import type { EventStatus } from '@/lib/supabase/types';
-import styles from './events.module.css';
+import styles from '../staff.module.css';
 
 export function generateStaticParams() {
   return localeParams();
 }
 
 export const metadata: Metadata = {
-  title: 'Events — CRDB Konekt',
+  title: 'Events — Konekt tracker',
   robots: { index: false, follow: false },
 };
 
-interface EventRow {
-  id: string;
-  title_en: string;
-  status: EventStatus;
-  starts_at: string;
-  venue_name: string;
-  zone_code: string | null;
-  capacity: number | null;
-  registered_count: number;
-}
-
 /**
- * The events console.
+ * The events tracker.
  *
- * Every event a user may reach, newest first, with what it is doing right now.
- * Scope is the database's: `staff_can_reach` gives HQ everything, a zone
- * manager their zone and a branch officer their branch, from the same query.
+ * Nobody registers through this. It records what took place — who came, what
+ * it cost, what it produced — so that two events can be compared, and so that
+ * "how many did we run this year, and what did they get us" is a query rather
+ * than a phone call to eight zones.
+ *
+ * Past and upcoming are the date against today, computed here. There is no
+ * status column to go stale.
  */
-export default async function StaffEvents({
+export default async function EventsPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -47,19 +40,38 @@ export default async function StaffEvents({
   const session = await getStaffSession();
   const supabase = await getServerClient();
 
-  let rows: EventRow[] = [];
+  let events: TrackedEvent[] = [];
+  let branches: { id: string; name: string }[] = [];
+
   if (supabase && session.signedIn) {
-    const { data } = await supabase
-      .from('events' as never)
-      .select('id, title_en, status, starts_at, venue_name, zone_code, capacity, registered_count')
-      .order('starts_at', { ascending: false })
-      .limit(100);
-    rows = (data as unknown as EventRow[]) ?? [];
+    const [eventRes, branchRes] = await Promise.all([
+      supabase.from('tracked_events' as never)
+        .select('id, name, event_date, end_date, branch_id, zone_code, station_id, category_id, venue, address, participants, budget_tzs, actual_spend_tzs, accounts_opened, deposits_tzs, album_url, notes, created_at')
+        .order('event_date', { ascending: false })
+        .limit(500),
+      session.role === 'branch'
+        ? Promise.resolve({ data: [] })
+        : supabase.from('branches' as never)
+            .select('id, name').eq('is_active', true)
+            .order('name', { ascending: true }).limit(300),
+    ]);
+    events = (eventRes.data as unknown as TrackedEvent[]) ?? [];
+    branches = (branchRes.data as unknown as { id: string; name: string }[]) ?? [];
   }
 
-  const when = new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', {
-    dateStyle: 'medium', timeStyle: 'short',
-  });
+  const [stations, categories] = await Promise.all([getStations(), getCategories()]);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const past = events.filter((e) => e.event_date < today);
+  const upcoming = events.filter((e) => e.event_date >= today)
+    .sort((a, b) => a.event_date.localeCompare(b.event_date));
+
+  const participants = past.reduce((n, e) => n + Number(e.participants ?? 0), 0);
+  const spend = past.reduce((n, e) => n + Number(e.actual_spend_tzs ?? e.budget_tzs ?? 0), 0);
+  const accounts = past.reduce((n, e) => n + Number(e.accounts_opened ?? 0), 0);
+  const costPerAccount = accounts > 0 ? spend / accounts : null;
+
+  const when = new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', { dateStyle: 'medium' });
 
   return (
     <StaffShell
@@ -67,76 +79,148 @@ export default async function StaffEvents({
       role={session.role}
       active="events"
       nav={staffNav(locale, STAFF_LABELS)}
-      title={STAFF_LABELS.events}
+      title="Events"
       scopeLabel={session.scopeLabel}
       user={session.user}
     >
-      <Panel
-        title="Programme"
-        description="Everything in your scope. Open an event to approve it, publish it, work its waitlist, or record what it produced."
-      >
-        {!supabase ? (
-          <PanelEmpty>
-            No database is attached to this deployment. The public site is
-            showing {sampleEvents.length} sample events, each labelled as a
-            sample; nothing here is real until Supabase is configured and an
-            event is created.
-          </PanelEmpty>
-        ) : !session.signedIn ? (
+      {!session.signedIn ? (
+        <Panel title="Events">
           <PanelEmpty>Sign in to see the events your role can reach.</PanelEmpty>
-        ) : rows.length === 0 ? (
-          <PanelEmpty>
-            No events in your scope yet. Create the first one below — it starts
-            as a draft and reaches the public site only after approval.
-          </PanelEmpty>
-        ) : (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th scope="col">Event</th>
-                  <th scope="col">When</th>
-                  <th scope="col">Where</th>
-                  <th scope="col">Registered</th>
-                  <th scope="col">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id}>
-                    <th scope="row">
-                      <Link href={`/${locale}/staff/events/${row.id}`} className={styles.link}>
-                        {row.title_en}
-                      </Link>
-                    </th>
-                    <td className={styles.when}>{when.format(new Date(row.starts_at))}</td>
-                    <td>
-                      {row.venue_name}
-                      {row.zone_code ? <span className={styles.zone}>{row.zone_code.replace(/_/g, ' ')}</span> : null}
-                    </td>
-                    <td className={styles.num}>
-                      {row.registered_count}
-                      {row.capacity ? <span className={styles.capacity}> / {row.capacity}</span> : null}
-                    </td>
-                    <td><span className={`${styles.status} ${styles[row.status] ?? ''}`}>{row.status.replace(/_/g, ' ')}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        </Panel>
+      ) : (
+        <>
+          <div className={styles.metrics}>
+            <MetricCard tone="teal" label="Events held" value={count(past.length, locale)}
+              note={`${count(upcoming.length, locale)} upcoming`} />
+            <MetricCard tone="green" label="People reached" value={count(participants, locale)}
+              note="Across every event held" />
+            <MetricCard tone="gold" label="Spent" value={money(spend, locale, true)}
+              note="Actual where recorded, budget where not" />
+            <MetricCard tone="ink" label="Cost per account"
+              value={costPerAccount === null ? '—' : money(costPerAccount, locale)}
+              note={accounts > 0 ? `${count(accounts, locale)} accounts opened` : 'No accounts recorded yet'} />
           </div>
-        )}
-      </Panel>
 
-      <Panel
-        title="Add an event"
-        description="Creates a draft. Nothing here reaches the public site until it has been approved and published on the event's own screen."
-      >
-        {session.signedIn ? (
-          <EventForm locale={locale} />
-        ) : (
-          <PanelEmpty>Sign in to create an event.</PanelEmpty>
-        )}
-      </Panel>
+          {upcoming.length > 0 ? (
+            <Panel title="Coming up" description="Everything dated today or later.">
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th scope="col">Event</th>
+                      <th scope="col">When</th>
+                      <th scope="col">Where</th>
+                      <th scope="col" className={styles.num}>Budget</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {upcoming.map((event) => (
+                      <tr key={event.id}>
+                        <th scope="row">{event.name}</th>
+                        <td>{when.format(new Date(event.event_date))}</td>
+                        <td>{event.venue}<span className={styles.sub}>{event.address ?? ''}</span></td>
+                        <td className={styles.num}>
+                          {event.budget_tzs ? money(Number(event.budget_tzs), locale, true) : '—'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Panel>
+          ) : null}
+
+          <Panel
+            title="Performance"
+            description="Events held, ranked by what they produced. An event with no accounts recorded sits at the bottom — that is information too."
+          >
+            {past.length === 0 ? (
+              <PanelEmpty>No events held yet.</PanelEmpty>
+            ) : (
+              <BarTable
+                caption="Events ranked by accounts opened"
+                unitLabel="Accounts"
+                rows={past
+                  .slice()
+                  .sort((a, b) => Number(b.accounts_opened ?? 0) - Number(a.accounts_opened ?? 0))
+                  .slice(0, 15)
+                  .map((event) => ({
+                    label: event.name,
+                    value: Number(event.accounts_opened ?? 0),
+                    secondary: `${when.format(new Date(event.event_date))} · ${count(Number(event.participants ?? 0), locale)} people · ${
+                      event.actual_spend_tzs || event.budget_tzs
+                        ? money(Number(event.actual_spend_tzs ?? event.budget_tzs), locale, true)
+                        : 'no cost recorded'
+                    }`,
+                  }))}
+              />
+            )}
+          </Panel>
+
+          <Panel title="Everything on record" description="Newest first.">
+            {events.length === 0 ? (
+              <PanelEmpty>
+                Nothing recorded yet. Add the first event below — it can be one
+                that already happened.
+              </PanelEmpty>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th scope="col">Event</th>
+                      <th scope="col">When</th>
+                      <th scope="col" className={styles.num}>People</th>
+                      <th scope="col" className={styles.num}>Accounts</th>
+                      <th scope="col" className={styles.num}>Spent</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {events.map((event) => (
+                      <tr key={event.id}>
+                        <th scope="row">
+                          {event.name}
+                          <span className={styles.sub}>{event.venue}</span>
+                        </th>
+                        <td>{when.format(new Date(event.event_date))}</td>
+                        <td className={styles.num}>
+                          {event.participants === null ? '—' : count(event.participants, locale)}
+                        </td>
+                        <td className={styles.num}>
+                          {event.accounts_opened === null ? '—' : count(event.accounts_opened, locale)}
+                        </td>
+                        <td className={styles.num}>
+                          {event.actual_spend_tzs || event.budget_tzs
+                            ? money(Number(event.actual_spend_tzs ?? event.budget_tzs), locale, true)
+                            : '—'}
+                        </td>
+                        <td>
+                          <span className={event.event_date < today ? styles.chip : styles.chipActive}>
+                            {event.event_date < today ? 'held' : 'upcoming'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Panel>
+
+          <Panel
+            title="Record an event"
+            description="Held or planned — the date decides which. What it cost and what it produced are what make one event comparable with another."
+          >
+            <EventForm
+              stations={stations.map((s) => ({ id: s.id, name: s.name }))}
+              categories={categories.map((c) => ({ id: c.id, name: c.name_en }))}
+              branches={branches}
+              needsBranch={session.role !== 'branch'}
+            />
+          </Panel>
+        </>
+      )}
     </StaffShell>
   );
 }
