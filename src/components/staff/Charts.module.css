@@ -115,12 +115,16 @@
 .donutValue { font-size: 30px; font-weight: var(--weight-black); }
 .donutLabel { font-size: 11px; fill: var(--text-body); }
 
+/* A row per slice, each on its own line with the figure right-aligned, so the
+   numbers form a column the eye can run down. That column is the reason this
+   is a legend and not a tooltip. */
 .legend {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 6px;
   min-inline-size: 12rem;
   flex: 1;
+  font-size: var(--size-caption);
 }
 
 .legendItem {
@@ -138,13 +142,22 @@
   background: var(--slice-colour);
 }
 
-.legendLabel { color: var(--text-body); }
+.legendLabel {
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .legendValue {
   margin-inline-start: auto;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   font-weight: var(--weight-semibold);
   font-variant-numeric: tabular-nums;
   color: var(--text-strong);
+  white-space: nowrap;
 }
 
 /* Slice colours. The deep variants, because these sit on white and the pure
@@ -230,18 +243,26 @@
    without the caps eating it, and a category with one type at 0.4% is exactly
    the case worth being able to see. */
 .pie {
-  inline-size: 132px;
-  block-size: 132px;
+  inline-size: 148px;
+  block-size: 148px;
   flex: none;
 }
 
+/* A 2px gap between wedges rather than a hairline. At this size the join is
+   the only thing separating two adjacent teals, and a 1px stroke reads as an
+   artefact where 2px reads as a decision. */
 .pieWedge {
   fill: var(--slice-colour);
   stroke: var(--surface-raised);
-  stroke-width: 1;
+  stroke-width: 2;
+  stroke-linejoin: round;
 }
 
-.legendShare { color: var(--text-body); font-weight: var(--weight-regular); }
+.legendShare {
+  color: var(--text-body);
+  font-weight: var(--weight-regular);
+  font-size: var(--size-nano);
+}
 
 /* --- Vertical bars ------------------------------------------------------
    For the same measure across a run of months, where the shape of the run is

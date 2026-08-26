@@ -1,4 +1,4 @@
-import { getServerClient } from '@/lib/supabase/server';
+import { getPublicClient, getServerClient } from '@/lib/supabase/server';
 
 /**
  * The tracker's read layer.
@@ -128,7 +128,19 @@ export interface TrackerOverview {
   reportedThisMonth: number;
   awaitingReport: number;
   events: { total: number; past: number; upcoming: number; participants: number; budget: number };
+  /** The next few and the last few, for the overview's own panel. */
+  eventList: OverviewEvent[];
   recent: ActivityItem[];
+}
+
+export interface OverviewEvent {
+  id: string;
+  name: string;
+  event_date: string;
+  venue: string;
+  participants: number | null;
+  accounts_opened: number | null;
+  past: boolean;
 }
 
 export interface ActivityItem {
@@ -147,6 +159,7 @@ const EMPTY: TrackerOverview = {
   coveragePct: null, dormancyPct: null,
   categories: [], trend: [], reportedThisMonth: 0, awaitingReport: 0,
   events: { total: 0, past: 0, upcoming: 0, participants: 0, budget: 0 },
+  eventList: [],
   recent: [],
 };
 
@@ -230,7 +243,7 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
         .gte('period_month', from)
         .limit(5000),
       supabase.from('tracked_events' as never)
-        .select('id, name, event_date, participants, budget_tzs, venue, created_at')
+        .select('id, name, event_date, participants, budget_tzs, accounts_opened, venue, created_at')
         .order('event_date', { ascending: false })
         .limit(500),
       supabase.from('station_reports' as never)
@@ -247,7 +260,8 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
     { period_month: string; deposits_tzs: number; accounts_opened: number; station_id: string }[]) ?? [];
   const events = (eventsRes.data as unknown as
     { id: string; name: string; event_date: string; participants: number | null;
-      budget_tzs: number | null; venue: string; created_at: string }[]) ?? [];
+      budget_tzs: number | null; accounts_opened: number | null; venue: string;
+      created_at: string }[]) ?? [];
 
   const sum = (pick: (row: StationLatest) => number) =>
     latest.reduce((total, row) => total + Number(pick(row) ?? 0), 0);
@@ -331,6 +345,25 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
     trend,
     reportedThisMonth,
     awaitingReport: Math.max(stations.filter((s) => s.status === 'active').length - reportedThisMonth, 0),
+    // The three closest on each side of today: what just happened and what is
+    // about to. A list ordered purely by date puts next year's event above
+    // last week's, which is the wrong end of the diary to lead with.
+    eventList: (() => {
+      const now = Date.now();
+      const shape = (e: typeof events[number]) => ({
+        id: e.id, name: e.name, event_date: e.event_date, venue: e.venue,
+        participants: e.participants, accounts_opened: e.accounts_opened,
+        past: new Date(e.event_date).getTime() < now,
+      });
+      const upcoming = events
+        .filter((e) => new Date(e.event_date).getTime() >= now)
+        .sort((a, b) => a.event_date.localeCompare(b.event_date))
+        .slice(0, 3);
+      const past = events
+        .filter((e) => new Date(e.event_date).getTime() < now)
+        .slice(0, 3);
+      return [...upcoming, ...past].map(shape);
+    })(),
     events: {
       total: events.length,
       past: events.filter((e) => e.event_date < today).length,
@@ -354,4 +387,35 @@ export function money(value: number, locale: string, compact = false) {
 
 export function count(value: number, locale: string) {
   return new Intl.NumberFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ').format(value);
+}
+
+export interface StationPin {
+  id: string;
+  name: string;
+  category_slug: string;
+  category_name: string;
+  region_name: string | null;
+}
+
+/**
+ * The pins for the public map.
+ *
+ * Read through `konekt.public_station_pins`, a deliberately narrow view: four
+ * columns, active stations only. The station table itself is closed to anon,
+ * so this cannot widen by accident — adding a column to the map means adding
+ * it to the view, in a migration somebody has to write on purpose.
+ *
+ * Uses the anon client rather than the cookie one so the landing page stays
+ * prerendered; a cookie read here would make the whole page dynamic.
+ */
+export async function getPublicStationPins(): Promise<StationPin[]> {
+  const supabase = getPublicClient();
+  if (!supabase) return [];
+
+  const { data } = await supabase
+    .from('public_station_pins' as never)
+    .select('id, name, category_slug, category_name, region_name')
+    .limit(2000);
+
+  return (data as unknown as StationPin[]) ?? [];
 }

@@ -1,0 +1,89 @@
+.section {
+  background: var(--surface-canvas);
+  border-block-end: 1px solid var(--line-soft);
+}
+
+.inner {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  align-items: center;
+  text-align: center;
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: var(--size-micro);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-accent);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.4vw, 1.625rem);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.015em;
+  color: var(--text-strong);
+}
+
+.lead {
+  font-size: var(--size-body);
+  color: var(--text-body);
+  max-inline-size: 52ch;
+  line-height: var(--leading-body);
+}
+
+/* Three columns on a laptop, stacked on a phone. Equal width on purpose: the
+   steps are equally important and a golden-ratio split would say otherwise. */
+.steps {
+  display: grid;
+  gap: var(--space-lg);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: step;
+}
+
+@media (min-width: 52rem) {
+  .steps { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--space-xl); }
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  padding: var(--space-lg);
+  background: var(--surface-raised);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-lg);
+}
+
+.stepNumber {
+  font-family: var(--font-data);
+  font-size: var(--size-caption);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--text-accent);
+}
+
+.stepTitle {
+  font-family: var(--font-display);
+  font-size: var(--size-h3);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.stepBody {
+  font-size: var(--size-caption);
+  color: var(--text-body);
+  line-height: var(--leading-body);
+}

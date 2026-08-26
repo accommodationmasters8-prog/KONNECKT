@@ -1,5 +1,6 @@
 import { AppShell } from '@/components/shell/AppShell';
 import { Hero } from '@/components/home/Hero';
+import { HowItWorks } from '@/components/home/HowItWorks';
 import { MapPreview } from '@/components/home/MapPreview';
 import { SiteFooter } from '@/components/SiteFooter';
 import { ProgressiveEnhancement } from '@/components/ProgressiveEnhancement';
@@ -27,6 +28,7 @@ export default async function LandingPage({
   return (
     <AppShell locale={locale} t={t} active="home">
       <Hero locale={locale} t={t} />
+      <HowItWorks locale={locale} t={t} />
       <MapPreview locale={locale} t={t} />
       <SiteFooter locale={locale} t={t} />
       <ProgressiveEnhancement t={t} />

@@ -24,7 +24,7 @@ export function SectionHead({
   marker?: ReactNode;
 }) {
   return (
-    <div className={`reveal-head ${styles.head}`}>
+    <div className={styles.head}>
       <div className={styles.top}>
         <p className={`t-eyebrow ${styles.eyebrow} ${styles[accent]}`}>
           {marker}

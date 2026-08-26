@@ -358,3 +358,73 @@ export const REGIONS_BY_ZONE: Record<ZoneKey, string[]> = {
     "Tabora"
   ]
 };
+
+/**
+ * A point inside each region, for placing a pin.
+ *
+ * Computed from the region's own outline rather than typed out by hand, so it
+ * cannot drift when the map is rebuilt: the average of the path's points,
+ * which for these shapes lands inside the region every time. A true centroid
+ * would be the right answer for a shape with a concave bite in it, and none of
+ * these have one worth the arithmetic.
+ *
+ * This exists because not one record in the CRDB register carries a coordinate
+ * (§3.2.5). A station is drawn at its region's centre and the map says so — a
+ * pin at a guessed street address would be a claim the data cannot support.
+ */
+export const REGION_CENTRES: Record<string, { x: number; y: number }> = (() => {
+  const out: Record<string, { x: number; y: number }> = {};
+
+  for (const region of MAP_REGIONS) {
+    // Every coordinate pair in the path, whatever commands separate them.
+    const numbers = region.d.match(/-?\d+(?:\.\d+)?/g);
+    if (!numbers || numbers.length < 4) continue;
+
+    let sumX = 0;
+    let sumY = 0;
+    let n = 0;
+    for (let i = 0; i + 1 < numbers.length; i += 2) {
+      sumX += Number(numbers[i]);
+      sumY += Number(numbers[i + 1]);
+      n += 1;
+    }
+    if (n > 0) out[region.name] = { x: sumX / n, y: sumY / n };
+  }
+
+  return out;
+})();
+
+/**
+ * The register's region spellings against the map's.
+ *
+ * The register shouts ("DAR ES SALAAM"), the map hyphenates
+ * ("Dar-Es-Salaam"), and a handful of register rows name a town where the map
+ * names a region. Everything that cannot be matched is left off the map rather
+ * than placed approximately somewhere plausible.
+ */
+const REGION_ALIASES: Record<string, string> = {
+  'DAR ES SALAAM': 'Dar-Es-Salaam',
+  'URBAN WEST': 'Zanzibar West',
+  'NORTH UNGUJA': 'Kaskazini-Unguja',
+  SUMBAWANGA: 'Rukwa',
+  SONGEA: 'Ruvuma',
+  NACHINGWEA: 'Lindi',
+  MUSOMA: 'Mara',
+  CHALINZE: 'Pwani',
+  MONDULI: 'Arusha',
+  SONGWE: 'Mbeya',
+};
+
+/** Where to draw a station, from whatever the register called its region. */
+export function regionCentre(
+  regionName: string | null | undefined,
+): { x: number; y: number } | null {
+  if (!regionName) return null;
+  const raw = regionName.trim();
+  const mapped = REGION_ALIASES[raw.toUpperCase()];
+  if (mapped && REGION_CENTRES[mapped]) return REGION_CENTRES[mapped];
+
+  // Title-case: the register shouts, the map does not.
+  const titled = raw.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+  return REGION_CENTRES[titled] ?? REGION_CENTRES[raw] ?? null;
+}

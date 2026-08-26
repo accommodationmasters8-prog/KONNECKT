@@ -192,6 +192,65 @@ export default async function TrackerOverview({
           </div>
 
           <Panel
+            title="Events"
+            description="The next three and the last three. Everything else is on the events screen."
+            action={
+              <Link href={`/${locale}/staff/events`} className={styles.panelLink}>
+                All events →
+              </Link>
+            }
+          >
+            {data.eventList.length === 0 ? (
+              <PanelEmpty>
+                Nothing recorded yet. An event added by any branch you can
+                reach appears here.
+              </PanelEmpty>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th scope="col">Event</th>
+                      <th scope="col">When</th>
+                      <th scope="col" className={styles.num}>Turnout</th>
+                      <th scope="col" className={styles.num}>Accounts</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.eventList.map((event) => (
+                      <tr key={event.id}>
+                        <th scope="row">
+                          <Link href={`/${locale}/staff/events/${event.id}`} className={styles.link}>
+                            {event.name}
+                          </Link>
+                          <span className={styles.sub}>{event.venue}</span>
+                        </th>
+                        <td>
+                          {new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', {
+                            day: 'numeric', month: 'short', year: 'numeric',
+                          }).format(new Date(event.event_date))}
+                        </td>
+                        <td className={styles.num}>
+                          {event.participants ? count(event.participants, locale) : '—'}
+                        </td>
+                        <td className={styles.num}>
+                          {event.accounts_opened ? count(event.accounts_opened, locale) : '—'}
+                        </td>
+                        <td>
+                          <span className={event.past ? styles.chip : styles.chipActive}>
+                            {event.past ? 'Held' : 'Upcoming'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Panel>
+
+          <Panel
             title="Coverage by category"
             description="How much of each category's people actually bank with CRDB. The number that decides where next month goes."
             action={

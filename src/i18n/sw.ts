@@ -45,6 +45,21 @@ const sw: Dictionary = {
     statCampuses: 'vyuo vilivyoorodheshwa',
     scrollHint: 'Teremka',
   },
+  how: {
+    eyebrow: 'Inavyofanya kazi',
+    title: 'Hatua tatu, mara moja kwa mwezi.',
+    lead:
+      'Konekt inachukua nafasi ya majedwali yaliyokuwa yakisafiri kati ya tawi na makao makuu kwa barua pepe. Kila mtu anaingiza mahali pamoja, na walio juu yao wanaona mara moja.',
+    step1Title: 'Tawi linaongeza vituo vyake',
+    step1Body:
+      'Kila chuo, sehemu ya kazi, SACCOS au kambi ambayo tawi linafanya nayo kazi, chini ya kundi lake. Huongezwa mara moja; hurekebishwa wakati wowote.',
+    step2Title: 'Linaingiza takwimu',
+    step2Body:
+      'Idadi ya watu, akaunti zilizofunguliwa, hai na zilizolala, amana na mikopo — kila siku, kila wiki au kila mwezi. Kuingiza kipindi kile kile tena kunarekebisha, hakuongezi rekodi ya pili.',
+    step3Title: 'Kanda na makao makuu wanaona papo hapo',
+    step3Body:
+      'Tawi linaona lake, kanda inaona matawi yote chini yake, makao makuu yanaona nchi nzima. Takwimu zile zile, wakati ule ule.',
+  },
 
   events: {
     eyebrow: 'Yanaendelea sasa / yajayo',
@@ -62,7 +77,7 @@ const sw: Dictionary = {
   map: {
     eyebrow: 'Ramani',
     title: 'Kanda nane. Mtandao mmoja.',
-    lead: 'Mtandao unavyofika, kanda kwa kanda. Kila alama inaonyesha kanda ambayo Konekt inafuatilia; takwimu zake zipo ndani ya mfumo.',
+    lead: 'Kila taasisi ambayo Konekt inafuatilia, imewekwa alama kwenye mkoa ambao daftari la CRDB linaiweka. Takwimu zake zipo ndani ya mfumo.',
     zoneColumn: 'Kanda',
     institutionsColumn: 'Vyuo',
     regionsColumn: 'Mikoa',

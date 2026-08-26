@@ -2,7 +2,8 @@ import Link from 'next/link';
 import { TanzaniaMap } from '../map/TanzaniaMap';
 import { SectionHead } from './SectionHead';
 import { zoneFigures } from '@/lib/zone-data';
-import { ZONE_ANCHORS } from '@/lib/tanzania-map';
+import { regionCentre } from '@/lib/tanzania-map';
+import { getPublicStationPins } from '@/lib/tracker';
 import { nationalStats } from '@/lib/seed';
 import { plural } from '@/i18n';
 import type { Dictionary, Locale } from '@/i18n';
@@ -15,15 +16,38 @@ import styles from './MapPreview.module.css';
  * totals, and a route into the full map page. The landing page shows; the map
  * page explains.
  *
- * The pins sit at each zone's area-weighted centroid rather than at any one
- * branch, because not one record in the register carries a coordinate (§3.2.5)
- * — a pin drawn at a guessed address would be the map's first false claim.
- * When branches start dropping real points on their stations, the same pin
- * layer takes those instead.
+ * The pins are the stations actually being tracked, drawn at the centre of
+ * the region the register places each in. Not one record carries a coordinate
+ * (§3.2.5), so a pin at a street address would be the map's first false
+ * claim; stations sharing a region share a pin, which carries the count. When
+ * branches start dropping real points, the same layer takes those instead.
  */
-export function MapPreview({ locale, t }: { locale: Locale; t: Dictionary }) {
+export async function MapPreview({ locale, t }: { locale: Locale; t: Dictionary }) {
   const nf = new Intl.NumberFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ');
   const top = zoneFigures;
+
+  // Real stations, placed at the centre of the region the register puts them
+  // in. Several stations in one region collapse to one pin carrying the count,
+  // which is the honest drawing: the register has no street coordinates, so
+  // eight pins scattered around Dodoma would be eight fictions.
+  const stations = await getPublicStationPins();
+  const byRegion = new Map<string, { x: number; y: number; count: number }>();
+  for (const station of stations) {
+    const centre = regionCentre(station.region_name);
+    if (!centre) continue;
+    const key = `${centre.x.toFixed(1)},${centre.y.toFixed(1)}`;
+    const seen = byRegion.get(key);
+    if (seen) seen.count += 1;
+    else byRegion.set(key, { ...centre, count: 1 });
+  }
+
+  const pins = [...byRegion.entries()].map(([key, pin]) => ({
+    id: key,
+    x: pin.x,
+    y: pin.y,
+    label: `${pin.count} tracked`,
+    count: pin.count,
+  }));
 
   const totals = [
     { value: nationalStats.branches, label: t.map.totalBranches },
@@ -55,13 +79,7 @@ export function MapPreview({ locale, t }: { locale: Locale; t: Dictionary }) {
             }))}
             title={t.pages.map.densityNote}
             className={styles.map}
-            pins={zoneFigures.map((z) => ({
-              id: z.key,
-              x: ZONE_ANCHORS[z.key].x,
-              y: ZONE_ANCHORS[z.key].y,
-              label: z.label,
-              count: z.campuses,
-            }))}
+            pins={pins}
           />
 
           <div className={styles.side}>

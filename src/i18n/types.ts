@@ -50,6 +50,17 @@ export interface Dictionary {
     statCampuses: string;
     scrollHint: string;
   };
+  how: {
+    eyebrow: string;
+    title: string;
+    lead: string;
+    step1Title: string;
+    step1Body: string;
+    step2Title: string;
+    step2Body: string;
+    step3Title: string;
+    step3Body: string;
+  };
   events: {
     eyebrow: string;
     title: string;

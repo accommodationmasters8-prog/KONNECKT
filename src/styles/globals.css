@@ -236,52 +236,13 @@ a {
   );
 }
 
-/* ---------------------------------------------------------------------------
-   CHEVRON REVEAL
-   Content enters by wiping along the chevron angle, not by fading up.
-   Pure CSS scroll-driven animation: zero JavaScript, zero payload.
+/* The chevron wipe that used to cover section heads until they scrolled into
+   view is gone. It was a scroll-driven animation painting an opaque cover over
+   the heading, which meant the heading was invisible in any static render — a
+   screenshot, a print, a PDF, a preview card — and it painted the canvas
+   colour over sections that are now white. A landing page three sections long
+   does not need content to arrive; it needs to be there. */
 
-   The wipe is scoped to a section's heading block rather than the whole
-   section, for two reasons. A skewed cover has to overhang its own box by
-   height/2 x tan(32deg) to cover the corners — over a 2000px section that is
-   620px of overhang on each side, which no percentage inset reliably
-   provides, so tall sections would wipe with uncovered wedges. And a curtain
-   dragged across an entire screen of content is not a reveal; a headline
-   arriving on the brand's own angle is.
-
-   The cover is only ever created inside @supports, so browsers without
-   scroll-driven timelines render the content plainly rather than hiding it.
-   ------------------------------------------------------------------------ */
-.reveal-head {
-  position: relative;
-}
-
-@supports (animation-timeline: view()) {
-  @media (prefers-reduced-motion: no-preference) {
-    .reveal-head {
-      overflow: clip;
-      isolation: isolate;
-    }
-    .reveal-head::after {
-      content: '';
-      position: absolute;
-      inset: -30% -150%;
-      z-index: 1;
-      pointer-events: none;
-      background: var(--reveal-cover, var(--surface-canvas));
-      transform-origin: center;
-      will-change: transform;
-      animation: chevron-wipe linear both;
-      animation-timeline: view();
-      animation-range: entry 12% cover 30%;
-    }
-  }
-}
-
-@keyframes chevron-wipe {
-  from { transform: skewX(var(--chevron-skew)) translateX(0); }
-  to   { transform: skewX(var(--chevron-skew)) translateX(230%); }
-}
 
 /* ---------------------------------------------------------------------------
    TRIANGLE PRESENCE MARKERS

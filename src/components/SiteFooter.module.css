@@ -1,7 +1,9 @@
+/* Room above it. The footer used to start the instant the content stopped,
+   which made the page feel like it ran out rather than ended. */
 .footer {
   background: var(--surface-inverse);
   color: var(--text-on-inverse);
-  padding-block-end: var(--space-xl);
+  padding-block: var(--space-2xl) var(--space-xl);
 }
 
 .inner {

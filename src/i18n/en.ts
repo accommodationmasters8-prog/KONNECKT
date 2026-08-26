@@ -42,6 +42,21 @@ const en: Dictionary = {
     statCampuses: 'campuses mapped',
     scrollHint: 'Scroll',
   },
+  how: {
+    eyebrow: 'How it works',
+    title: 'Three steps, once a month.',
+    lead:
+      'Konekt replaces the spreadsheets that used to travel between a branch and HQ by email. Everyone files into the same place, and everyone above them sees it the moment it lands.',
+    step1Title: 'A branch adds its stations',
+    step1Body:
+      'Every campus, workplace, SACCOS or barracks the branch works with, filed under the category it belongs to. Added once; corrected whenever something changes.',
+    step2Title: 'It files the figures',
+    step2Body:
+      'People in the station, accounts opened, active and dormant, deposits mobilised and loans — daily, weekly or monthly, whichever suits. Filing the same period again corrects it rather than adding a second.',
+    step3Title: 'Zone and HQ read it live',
+    step3Body:
+      'A branch sees its own book, a zone sees every branch under it, HQ sees the country. Same figures, same moment, no one waiting on a spreadsheet.',
+  },
 
   events: {
     eyebrow: 'Live now / next up',
@@ -59,7 +74,7 @@ const en: Dictionary = {
   map: {
     eyebrow: 'The map',
     title: 'Eight zones. One network.',
-    lead: 'Where the network reaches, zone by zone. A pin marks every zone Konekt is tracking; the figures behind them are inside the tracker.',
+    lead: 'Every institution Konekt tracks, pinned to the region the CRDB register places it in. The figures behind the pins are inside the tracker.',
     zoneColumn: 'Zone',
     institutionsColumn: 'Campuses',
     regionsColumn: 'Regions',
