@@ -296,3 +296,90 @@
 
 .measureOff { color: var(--text-body); }
 .measureOff:hover { background: var(--surface-sunken); color: var(--text-strong); }
+
+/* --- Movement and plain notes ------------------------------------------- */
+
+/* Direction is carried by the arrow as well as the colour: red-and-green as
+   the only signal fails for the ~8% of men who cannot separate them. */
+.up   { color: var(--metric-green-from); font-variant-numeric: tabular-nums; }
+.down { color: var(--metric-pink-from); font-variant-numeric: tabular-nums; }
+
+/* A finding stated in a sentence, where a chart would need a caption anyway. */
+.plainNote {
+  font-size: var(--size-body);
+  color: var(--text-body);
+  max-inline-size: var(--measure);
+  line-height: var(--leading-body);
+}
+
+/* A form that continues the table above it rather than starting a new card. */
+.formBelowTable {
+  margin-block-start: var(--space-lg);
+  padding-block-start: var(--space-lg);
+  border-block-start: 1px solid var(--line-app);
+}
+
+/* --- Event pictures ------------------------------------------------------ */
+
+.imageGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: var(--space-md);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.imageItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-inline-size: 0;
+}
+
+.imageThumb {
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-app);
+  background: var(--surface-sunken);
+}
+
+/* A row with no link still occupies its slot: a gap in the grid would read as
+   a picture that failed to load rather than one that was never given a URL. */
+.imageMissing {
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-md);
+  border: 1px dashed var(--line-strong);
+  background: var(--surface-sunken);
+  color: var(--text-body);
+  font-size: var(--size-nano);
+}
+
+.imageCaption {
+  font-size: var(--size-nano);
+  color: var(--text-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.downloadRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.downloadMonths {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: var(--size-caption);
+  color: var(--text-body);
+}

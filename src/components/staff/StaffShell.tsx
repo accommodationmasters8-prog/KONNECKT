@@ -7,13 +7,13 @@ import {
   AccessIcon, AccountsIcon, AuditIcon, CategoriesIcon, CheckinIcon,
   CommunicationIcon, EventsIcon, FreelancersIcon, MembersIcon, OverviewIcon,
   PartnersIcon, ProductsIcon, SettingsIcon, SignOutIcon, SponsorshipIcon,
-  StationsIcon, VerificationIcon,
+  NetworkIcon, StationsIcon, VerificationIcon,
 } from './StaffIcons';
 import styles from './StaffShell.module.css';
 
 export type StaffSection =
-  | 'overview' | 'categories' | 'stations' | 'events'
-  | 'access' | 'settings' | 'audit'
+  | 'overview' | 'network' | 'categories' | 'stations' | 'events'
+  | 'access' | 'reports' | 'settings' | 'audit'
   // Sections from the earlier build, still routable while they are retired.
   | 'checkin' | 'accounts' | 'verification' | 'sponsorship' | 'members'
   | 'partners' | 'communication' | 'products' | 'freelancers';
@@ -34,6 +34,8 @@ export interface StaffUser {
 
 const ICONS: Record<StaffSection, (p: { className?: string }) => ReactNode> = {
   overview: OverviewIcon,
+  network: NetworkIcon,
+  reports: AuditIcon,
   categories: CategoriesIcon,
   stations: StationsIcon,
   access: AccessIcon,

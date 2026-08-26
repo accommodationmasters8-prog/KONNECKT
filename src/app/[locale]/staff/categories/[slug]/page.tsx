@@ -4,7 +4,8 @@ import { notFound } from 'next/navigation';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
-import { BarTable, Donut, TrendChart } from '@/components/staff/Charts';
+import { BarTable, PieChart, TrendChart } from '@/components/staff/Charts';
+import { AddCategoryLoanType } from '@/components/staff/CategoryForms';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
@@ -86,7 +87,7 @@ export default async function CategoryPage({
   const stations = (stationRows as unknown as StationRow[]) ?? [];
   const ids = stations.map((s) => s.id);
 
-  const [latestRes, trendRes] = await Promise.all([
+  const [latestRes, trendRes, loanTypesRes, splitRes] = await Promise.all([
     ids.length
       ? supabase.from('station_latest' as never).select('*').in('station_id', ids)
       : Promise.resolve({ data: [] }),
@@ -97,7 +98,24 @@ export default async function CategoryPage({
           .gte('period_month', from)
           .limit(5000)
       : Promise.resolve({ data: [] }),
+    supabase.from('loan_products' as never)
+      .select('code, label_en, label_sw, category_id, is_active')
+      .or(`category_id.eq.${category.id},category_id.is.null`)
+      .eq('is_active', true)
+      .order('display_order', { ascending: true }),
+    // The account-type split across this category's newest reports, which is
+    // the pie: what kind of account the category's book is actually made of.
+    ids.length
+      ? supabase.from('station_report_accounts' as never)
+          .select('product_code, opened, deposits_tzs, report_id')
+          .limit(20000)
+      : Promise.resolve({ data: [] }),
   ]);
+
+  const loanTypes = (loanTypesRes.data as unknown as {
+    code: string; label_en: string; label_sw: string;
+    category_id: string | null; is_active: boolean;
+  }[]) ?? [];
 
   const latest = new Map(
     ((latestRes.data as unknown as StationLatest[]) ?? []).map((r) => [r.station_id, r]),
@@ -238,10 +256,9 @@ export default async function CategoryPage({
           {totals.portfolio === 0 ? (
             <PanelEmpty>No headcount reported yet, so there is no share to show.</PanelEmpty>
           ) : (
-            <Donut
+            <PieChart
               title="Coverage of the category"
-              total={coverage ?? 0}
-              totalLabel="% covered"
+              format={(v) => count(v, locale)}
               slices={[
                 { label: 'With an account', value: totals.accounts, tone: 'teal' },
                 {
@@ -279,6 +296,40 @@ export default async function CategoryPage({
             })}
           />
         )}
+      </Panel>
+
+      <Panel
+        title="Loan types in this category"
+        description="What a station here can record its loans against. Types with no category are CRDB products offered everywhere; the rest belong to this category alone."
+      >
+        <div className={styles.tableWrap}>
+          <table className={styles.table}>
+            <thead>
+              <tr>
+                <th scope="col">Loan type</th>
+                <th scope="col">Where it applies</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loanTypes.map((lt) => (
+                <tr key={lt.code}>
+                  <th scope="row">{locale === 'sw' ? lt.label_sw : lt.label_en}</th>
+                  <td>
+                    {lt.category_id
+                      ? <span className={styles.chipActive}>{category.name_en} only</span>
+                      : <span className={styles.chip}>Everywhere</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {session.role === 'hq' ? (
+          <div className={styles.formBelowTable}>
+            <AddCategoryLoanType categoryId={category.id} />
+          </div>
+        ) : null}
       </Panel>
 
       <Panel

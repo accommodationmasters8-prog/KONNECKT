@@ -190,3 +190,14 @@ export function AccessIcon({ className }: P) {
     </svg>
   );
 }
+
+/** Performance: three bars, one taller. A ranking, not a chart. */
+export function NetworkIcon({ className }: P) {
+  return (
+    <svg {...base} className={className}>
+      <path d="M4.5 20.2V13.4" />
+      <path d="M12 20.2V4.6" />
+      <path d="M19.5 20.2V9.8" />
+    </svg>
+  );
+}

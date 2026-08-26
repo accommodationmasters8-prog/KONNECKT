@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
@@ -116,7 +117,11 @@ export default async function EventsPage({
                   <tbody>
                     {upcoming.map((event) => (
                       <tr key={event.id}>
-                        <th scope="row">{event.name}</th>
+                        <th scope="row">
+                          <Link href={`/${locale}/staff/events/${event.id}`} className={styles.link}>
+                            {event.name}
+                          </Link>
+                        </th>
                         <td>{when.format(new Date(event.event_date))}</td>
                         <td>{event.venue}<span className={styles.sub}>{event.address ?? ''}</span></td>
                         <td className={styles.num}>
@@ -180,7 +185,9 @@ export default async function EventsPage({
                     {events.map((event) => (
                       <tr key={event.id}>
                         <th scope="row">
-                          {event.name}
+                          <Link href={`/${locale}/staff/events/${event.id}`} className={styles.link}>
+                            {event.name}
+                          </Link>
                           <span className={styles.sub}>{event.venue}</span>
                         </th>
                         <td>{when.format(new Date(event.event_date))}</td>

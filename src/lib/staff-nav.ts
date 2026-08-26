@@ -10,9 +10,11 @@ import type { StaffNavItem } from '@/components/staff/StaffShell';
  */
 export const STAFF_LABELS = {
   overview: 'Overview',
+  network: 'Performance',
   categories: 'Categories',
   stations: 'Stations',
   events: 'Events',
+  reports: 'Reports',
   access: 'Access',
   settings: 'Settings',
   audit: 'Audit log',
@@ -22,10 +24,14 @@ export function staffNav(locale: Locale, labels: Record<string, string>): StaffN
   const to = (path: string) => `/${locale}/staff${path}`;
   return [
     { key: 'overview', href: to(''), label: labels.overview, roles: ['hq', 'zone', 'branch'] },
+    // Zones for HQ, branches for a zone: the level below whoever is signed in.
+    { key: 'network', href: to('/network'), label: labels.network, roles: ['hq', 'zone', 'branch'] },
     // What is tracked, and what it adds up to.
     { key: 'categories', href: to('/categories'), label: labels.categories, roles: ['hq', 'zone', 'branch'] },
     { key: 'stations', href: to('/stations'), label: labels.stations, roles: ['hq', 'zone', 'branch'] },
     { key: 'events', href: to('/events'), label: labels.events, roles: ['hq', 'zone', 'branch'] },
+    // Take it away with you.
+    { key: 'reports', href: to('/reports'), label: labels.reports, roles: ['hq', 'zone', 'branch'] },
     // Who may see it, and the lists everything else is recorded against.
     { key: 'access', href: to('/access'), label: labels.access, roles: ['hq'] },
     { key: 'settings', href: to('/settings'), label: labels.settings, roles: ['hq'] },

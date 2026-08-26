@@ -224,3 +224,68 @@
   background: var(--surface-sunken);
   border-radius: var(--radius-md);
 }
+
+/* --- Pie ----------------------------------------------------------------
+   Real wedges. A stroked ring cannot draw a slice under about two degrees
+   without the caps eating it, and a category with one type at 0.4% is exactly
+   the case worth being able to see. */
+.pie {
+  inline-size: 132px;
+  block-size: 132px;
+  flex: none;
+}
+
+.pieWedge {
+  fill: var(--slice-colour);
+  stroke: var(--surface-raised);
+  stroke-width: 1;
+}
+
+.legendShare { color: var(--text-body); font-weight: var(--weight-regular); }
+
+/* --- Vertical bars ------------------------------------------------------
+   For the same measure across a run of months, where the shape of the run is
+   the point and the label is only a month. */
+.bars { margin: 0; }
+
+.barRow {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-xs);
+  block-size: 160px;
+  padding-block-start: var(--space-md);
+}
+
+.barItem {
+  flex: 1 1 0;
+  min-inline-size: 0;
+  block-size: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+}
+
+.barValue {
+  font-size: var(--size-nano);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-body);
+  white-space: nowrap;
+}
+
+.barColumn {
+  inline-size: 100%;
+  background: var(--slice-colour);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  min-block-size: 2px;
+}
+
+.barLabel {
+  font-size: var(--size-nano);
+  color: var(--text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-inline-size: 100%;
+}

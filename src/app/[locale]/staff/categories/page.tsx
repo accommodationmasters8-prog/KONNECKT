@@ -2,7 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
-import { BarTable } from '@/components/staff/Charts';
+import { BarTable, PieChart } from '@/components/staff/Charts';
+import { CategoryForm } from '@/components/staff/CategoryForms';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
@@ -61,6 +62,7 @@ export default async function CategoriesPage({
         </Panel>
       ) : (
         <>
+
           <Panel
             title="Coverage, side by side"
             description="Every category, and how much of its people CRDB has actually reached. Open one for the full analysis."
@@ -107,6 +109,14 @@ export default async function CategoriesPage({
               );
             })}
           </div>
+          {session.role === 'hq' ? (
+            <Panel
+              title="Add a category"
+              description="A new kind of place to track. Stations are filed under it from the moment it exists, and its own loan types are added inside it."
+            >
+              <CategoryForm />
+            </Panel>
+          ) : null}
         </>
       )}
     </StaffShell>

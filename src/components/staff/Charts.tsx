@@ -240,3 +240,129 @@ export function TrendChart({
     </figure>
   );
 }
+
+/**
+ * A pie, drawn as real wedges rather than a stroked ring.
+ *
+ * The donut above answers "how much of the whole is this one thing"; a pie
+ * answers "how does the whole divide", which is the question a category screen
+ * asks about its account types and its loan types. Different question, so a
+ * different mark rather than the same ring relabelled.
+ *
+ * Wedges are paths, not dash offsets: a dashed ring cannot render a slice
+ * under about two degrees without the stroke caps eating it, and a category
+ * with one account type at 0.4% is exactly the case worth seeing.
+ */
+export function PieChart({
+  title,
+  slices,
+  format,
+}: {
+  title: string;
+  slices: Slice[];
+  format?: (value: number) => string;
+}) {
+  const total = slices.reduce((sum, s) => sum + Math.max(0, s.value), 0);
+
+  if (total <= 0) {
+    return <p className={styles.trendEmpty}>Nothing reported to divide up yet.</p>;
+  }
+
+  const show = format ?? ((v: number) => v.toLocaleString());
+  const R = 46;
+  const C = 50;
+  let angle = -Math.PI / 2; // start at twelve o'clock
+
+  const wedges = slices
+    .filter((s) => s.value > 0)
+    .map((slice) => {
+      const share = slice.value / total;
+      const sweep = share * Math.PI * 2;
+      const x1 = C + R * Math.cos(angle);
+      const y1 = C + R * Math.sin(angle);
+      angle += sweep;
+      const x2 = C + R * Math.cos(angle);
+      const y2 = C + R * Math.sin(angle);
+      const large = sweep > Math.PI ? 1 : 0;
+
+      // A single slice at 100% has identical start and end points, which
+      // collapses the arc to nothing. Draw it as a whole circle instead.
+      const d = share >= 0.999
+        ? `M ${C} ${C - R} A ${R} ${R} 0 1 1 ${C - 0.01} ${C - R} Z`
+        : `M ${C} ${C} L ${x1.toFixed(3)} ${y1.toFixed(3)} `
+          + `A ${R} ${R} 0 ${large} 1 ${x2.toFixed(3)} ${y2.toFixed(3)} Z`;
+
+      return { d, slice };
+    });
+
+  return (
+    <div className={styles.donutWrap}>
+      <svg viewBox="0 0 100 100" className={styles.pie} role="img" aria-label={title}>
+        <title>{title}</title>
+        {wedges.map(({ d, slice }) => (
+          <path key={slice.label} d={d} className={`${styles.pieWedge} ${styles[slice.tone]}`} />
+        ))}
+      </svg>
+
+      <ul className={styles.legend}>
+        {slices.map((slice) => (
+          <li key={slice.label} className={styles.legendItem}>
+            <span className={`${styles.swatch} ${styles[slice.tone]}`} aria-hidden="true" />
+            <span className={styles.legendLabel}>{slice.label}</span>
+            <span className={styles.legendValue}>
+              {show(slice.value)}
+              <span className={styles.legendShare}>
+                {total > 0 ? ` · ${Math.round((slice.value / total) * 1000) / 10}%` : ''}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+/**
+ * Vertical bars, for a run of periods.
+ *
+ * BarTable above is for comparing named things — stations, categories — where
+ * the label needs room to be read. This is for comparing the same thing across
+ * time, where the label is a month and the shape of the run is the point.
+ */
+export function BarChart({
+  title,
+  points,
+  format,
+  tone = 'teal',
+}: {
+  title: string;
+  points: { label: string; value: number }[];
+  format?: (value: number) => string;
+  tone?: 'teal' | 'green' | 'gold' | 'pink';
+}) {
+  if (points.length === 0) {
+    return <p className={styles.trendEmpty}>Nothing reported yet.</p>;
+  }
+
+  const show = format ?? ((v: number) => v.toLocaleString());
+  const peak = Math.max(1, ...points.map((p) => p.value));
+
+  return (
+    <figure className={styles.bars} aria-label={title}>
+      <div className={styles.barRow}>
+        {points.map((point) => (
+          <div key={point.label} className={styles.barItem}>
+            <span className={styles.barValue}>{show(point.value)}</span>
+            <div
+              className={`${styles.barColumn} ${styles[tone]}`}
+              /* Percentage of the tallest, floored so a tiny month is still a
+                 visible mark rather than a gap that reads as missing data. */
+              style={{ blockSize: `${Math.max(2, (point.value / peak) * 100)}%` }}
+            />
+            <span className={styles.barLabel}>{point.label}</span>
+          </div>
+        ))}
+      </div>
+    </figure>
+  );
+}
