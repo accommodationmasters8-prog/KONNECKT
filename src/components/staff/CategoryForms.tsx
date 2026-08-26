@@ -1,8 +1,9 @@
 'use client';
 
 import { useActionState } from 'react';
+import { useState } from 'react';
 import {
-  createCategory, addCategoryLoanType, type ActionResult,
+  createCategory, addCategoryLoanType, deleteCategory, type ActionResult,
 } from '@/app/[locale]/staff/categories/actions';
 import styles from './AdminForm.module.css';
 
@@ -93,6 +94,62 @@ export function AddCategoryLoanType({ categoryId }: { categoryId: string }) {
       <div className={styles.formFoot}>
         <button type="submit" className="btn btn--primary" disabled={pending}>
           {pending ? 'Adding…' : 'Add loan type'}
+        </button>
+        <p className={state.ok ? styles.ok : styles.error} role="status" aria-live="polite">
+          {state.message}
+        </p>
+      </div>
+    </form>
+  );
+}
+
+/**
+ * Remove a category.
+ *
+ * Same shape as removing a station and for the same reason, except the blast
+ * radius is larger: every station in the category goes with it, and every
+ * month those stations ever filed. The count is stated before the field, so
+ * the number is read before the name is typed.
+ */
+export function DeleteCategory({
+  id,
+  name,
+  stations,
+}: {
+  id: string;
+  name: string;
+  stations: number;
+}) {
+  const [state, formAction, pending] = useActionState(deleteCategory, INITIAL);
+  const [typed, setTyped] = useState('');
+  const armed = typed.trim().toLowerCase() === name.toLowerCase();
+
+  return (
+    <form action={formAction} className={styles.form}>
+      <input type="hidden" name="category_id" value={id} />
+      <input type="hidden" name="expected_name" value={name} />
+
+      <label className={styles.field}>
+        <span className={styles.label}>
+          Removing this takes {stations === 0 ? 'no stations' : `${stations} station${stations === 1 ? '' : 's'}`} with it
+        </span>
+        <input
+          className={styles.input}
+          name="confirm_name"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          autoComplete="off"
+          placeholder={name}
+        />
+        <span className={styles.help}>
+          Type &ldquo;{name}&rdquo; to confirm. Every month those stations
+          filed goes too, and there is no undo.
+        </span>
+      </label>
+
+      <div className={styles.formFoot}>
+        <button type="submit" className="btn btn--quiet" disabled={pending || !armed}>
+          {pending ? 'Removing…' : 'Remove this category'}
         </button>
         <p className={state.ok ? styles.ok : styles.error} role="status" aria-live="polite">
           {state.message}

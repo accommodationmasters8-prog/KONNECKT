@@ -220,3 +220,96 @@ export async function getNetwork(
     totals,
   };
 }
+
+export interface CategorySlice {
+  key: string;
+  name: string;
+  colour: string;
+  stations: number;
+  portfolio: number;
+  accountsOpened: number;
+  deposits: number;
+  coveragePct: number | null;
+}
+
+/**
+ * How one zone or branch divides by category.
+ *
+ * The performance table answers "who"; this answers "on what". A branch three
+ * places off the bottom on deposits with 70% of its book in one category is a
+ * different problem from one spread evenly, and the ranking alone cannot tell
+ * them apart.
+ *
+ * Scope comes from row level security as everywhere else — passing a zone or
+ * branch narrows what is displayed, never what may be read.
+ */
+export async function getCategoryBreakdown(
+  opts: { zone?: string; branchId?: string } = {},
+): Promise<CategorySlice[]> {
+  const supabase = await getServerClient();
+  if (!supabase) return [];
+
+  const [stationRes, catRes] = await Promise.all([
+    supabase.from('stations' as never)
+      .select('id, category_id, zone_code, branch_id')
+      .limit(5000),
+    supabase.from('tracker_categories' as never)
+      .select('id, name_en, colour')
+      .order('display_order', { ascending: true })
+      .limit(100),
+  ]);
+
+  let stations = (stationRes.data as unknown as
+    { id: string; category_id: string; zone_code: string | null; branch_id: string }[]) ?? [];
+
+  if (opts.zone) stations = stations.filter((s) => s.zone_code === opts.zone);
+  if (opts.branchId) stations = stations.filter((s) => s.branch_id === opts.branchId);
+
+  const ids = stations.map((s) => s.id);
+  if (ids.length === 0) return [];
+
+  const { data: latestData } = await supabase
+    .from('station_latest' as never)
+    .select('station_id, portfolio, accounts_opened, deposits_tzs')
+    .in('station_id', ids);
+
+  const latest = new Map(
+    ((latestData as unknown as
+      { station_id: string; portfolio: number; accounts_opened: number; deposits_tzs: number }[]) ?? [])
+      .map((r) => [r.station_id, r]),
+  );
+
+  const categories = (catRes.data as unknown as
+    { id: string; name_en: string; colour: string }[]) ?? [];
+  const byId = new Map(categories.map((c) => [c.id, c]));
+
+  const out = new Map<string, CategorySlice>();
+  for (const station of stations) {
+    const category = byId.get(station.category_id);
+    if (!category) continue;
+    if (!out.has(category.id)) {
+      out.set(category.id, {
+        key: category.id, name: category.name_en, colour: category.colour,
+        stations: 0, portfolio: 0, accountsOpened: 0, deposits: 0, coveragePct: null,
+      });
+    }
+    const row = out.get(category.id)!;
+    row.stations += 1;
+
+    const l = latest.get(station.id);
+    if (l) {
+      row.portfolio += Number(l.portfolio);
+      row.accountsOpened += Number(l.accounts_opened);
+      row.deposits += Number(l.deposits_tzs);
+    }
+  }
+
+  return [...out.values()]
+    .map((row) => ({
+      ...row,
+      coveragePct: row.portfolio > 0
+        ? Math.round((row.accountsOpened / row.portfolio) * 1000) / 10
+        : null,
+    }))
+    .sort((a, b) => b.deposits - a.deposits);
+}

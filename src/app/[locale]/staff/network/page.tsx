@@ -6,7 +6,7 @@ import { MetricCard } from '@/components/staff/MetricCard';
 import { BarChart, PieChart } from '@/components/staff/Charts';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
-import { getNetwork, zoneWording } from '@/lib/network';
+import { getCategoryBreakdown, getNetwork, zoneWording } from '@/lib/network';
 import { count, formatPeriod, money } from '@/lib/tracker';
 import { localeParams, resolveLocale } from '@/lib/page';
 import styles from '../staff.module.css';
@@ -39,10 +39,10 @@ export default async function NetworkPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<{ zone?: string }>;
+  searchParams: Promise<{ zone?: string; branch?: string }>;
 }) {
   const { locale } = await resolveLocale(params);
-  const { zone } = await searchParams;
+  const { zone, branch } = await searchParams;
   const session = await getStaffSession();
   const nav = staffNav(locale, STAFF_LABELS);
 
@@ -59,7 +59,11 @@ export default async function NetworkPage({
     );
   }
 
-  const view = await getNetwork(session.role, zone);
+  const [view, byCategory] = await Promise.all([
+    getNetwork(session.role, zone),
+    // The snapshot below the table: what this zone or branch is made of.
+    getCategoryBreakdown({ zone, branchId: branch }),
+  ]);
   const isZoneTable = view.level === 'zone';
   const noun = isZoneTable ? 'zone' : 'branch';
 
@@ -251,6 +255,54 @@ export default async function NetworkPage({
               </table>
             </div>
           </Panel>
+
+          {byCategory.length > 0 ? (
+            <Panel
+              title="By category"
+              description="What the book here is actually made of. A branch with most of its deposits in one category is a different problem from one spread evenly, and the ranking above cannot tell them apart."
+            >
+              <div className={styles.split}>
+                <PieChart
+                  title="Deposits by category"
+                  format={(v) => money(v, locale, true)}
+                  slices={byCategory.slice(0, 5).map((c, i) => ({
+                    label: c.name,
+                    value: c.deposits,
+                    tone: (['teal', 'green', 'gold', 'pink', 'slate'] as const)[i],
+                  }))}
+                />
+
+                <div className={styles.tableWrap}>
+                  <table className={styles.table}>
+                    <thead>
+                      <tr>
+                        <th scope="col">Category</th>
+                        <th scope="col" className={styles.num}>Stations</th>
+                        <th scope="col" className={styles.num}>People</th>
+                        <th scope="col" className={styles.num}>Accounts</th>
+                        <th scope="col" className={styles.num}>Coverage</th>
+                        <th scope="col" className={styles.num}>Deposits</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {byCategory.map((c) => (
+                        <tr key={c.key}>
+                          <th scope="row">{c.name}</th>
+                          <td className={styles.num}>{count(c.stations, locale)}</td>
+                          <td className={styles.num}>{count(c.portfolio, locale)}</td>
+                          <td className={styles.num}>{count(c.accountsOpened, locale)}</td>
+                          <td className={styles.num}>
+                            {c.coveragePct === null ? '—' : `${c.coveragePct}%`}
+                          </td>
+                          <td className={styles.num}>{money(c.deposits, locale, true)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </Panel>
+          ) : null}
 
           {worst ? (
             <Panel

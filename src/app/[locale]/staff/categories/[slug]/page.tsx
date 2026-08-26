@@ -4,8 +4,9 @@ import { notFound } from 'next/navigation';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
-import { BarTable, PieChart, TrendChart } from '@/components/staff/Charts';
-import { AddCategoryLoanType } from '@/components/staff/CategoryForms';
+import { BarChart, BarTable, PieChart } from '@/components/staff/Charts';
+import { AddCategoryLoanType, DeleteCategory } from '@/components/staff/CategoryForms';
+import { StationForm } from '@/components/staff/StationForms';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
@@ -111,6 +112,14 @@ export default async function CategoryPage({
           .limit(20000)
       : Promise.resolve({ data: [] }),
   ]);
+
+  const { data: branchData } = await supabase
+    .from('branches' as never)
+    .select('id, name')
+    .eq('is_active', true)
+    .order('name', { ascending: true })
+    .limit(1000);
+  const branchOptions = (branchData as unknown as { id: string; name: string }[]) ?? [];
 
   const loanTypes = (loanTypesRes.data as unknown as {
     code: string; label_en: string; label_sw: string;
@@ -241,7 +250,7 @@ export default async function CategoryPage({
           title={`${MEASURES[measure].label} over time`}
           description="The sum across every station in this category that reported that month."
         >
-          <TrendChart
+          <BarChart
             points={trend}
             title={`${MEASURES[measure].label} for ${category.name_en}`}
             format={format}
@@ -333,6 +342,18 @@ export default async function CategoryPage({
       </Panel>
 
       <Panel
+        title={`Add a station to ${category.name_en}`}
+        description="It is filed under this category from the moment it is added, and starts reporting on whatever rhythm suits it."
+      >
+        <StationForm
+          locale={locale}
+          categories={[{ id: category.id, name: category.name_en }]}
+          branches={branchOptions}
+          needsBranch={session.role !== 'branch'}
+        />
+      </Panel>
+
+      <Panel
         title="Every station in this category"
         description="Including the ones that have never reported — those are the gap."
       >
@@ -375,6 +396,18 @@ export default async function CategoryPage({
           </table>
         </div>
       </Panel>
+      {session.role === 'hq' ? (
+        <Panel
+          title="Remove this category"
+          description="Everything filed under it goes too. Retiring the stations one by one is almost always the better move."
+        >
+          <DeleteCategory
+            id={category.id}
+            name={category.name_en}
+            stations={stations.length}
+          />
+        </Panel>
+      ) : null}
     </StaffShell>
   );
 }

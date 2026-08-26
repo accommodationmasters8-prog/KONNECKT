@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
+import { ZONE_CODES, zoneWording } from '@/lib/access-scope';
 import { MetricCard } from '@/components/staff/MetricCard';
 import { BarTable } from '@/components/staff/Charts';
 import { EventForm } from '@/components/staff/EventForms';
@@ -34,10 +35,13 @@ export const metadata: Metadata = {
  */
 export default async function EventsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ zone?: string; branch?: string; when?: string }>;
 }) {
   const { locale } = await resolveLocale(params);
+  const filter = await searchParams;
   const session = await getStaffSession();
   const supabase = await getServerClient();
 
@@ -56,7 +60,20 @@ export default async function EventsPage({
             .select('id, name').eq('is_active', true)
             .order('name', { ascending: true }).limit(300),
     ]);
-    events = (eventRes.data as unknown as TrackedEvent[]) ?? [];
+    const all = (eventRes.data as unknown as TrackedEvent[]) ?? [];
+
+    // Filtering here rather than in the query: the whole set is at most a few
+    // hundred rows and already scoped by row level security, and doing it in
+    // memory means the filter chips can count what they would show without a
+    // second round trip each.
+    const now = new Date();
+    events = all.filter((e) => {
+      if (filter.zone && e.zone_code !== filter.zone) return false;
+      if (filter.branch && e.branch_id !== filter.branch) return false;
+      if (filter.when === 'past' && new Date(e.event_date) >= now) return false;
+      if (filter.when === 'upcoming' && new Date(e.event_date) < now) return false;
+      return true;
+    });
     branches = (branchRes.data as unknown as { id: string; name: string }[]) ?? [];
   }
 
@@ -101,6 +118,31 @@ export default async function EventsPage({
               value={costPerAccount === null ? '—' : money(costPerAccount, locale)}
               note={accounts > 0 ? `${count(accounts, locale)} accounts opened` : 'No accounts recorded yet'} />
           </div>
+
+            {/* Links, not a dropdown: the choice ends up in the URL, so a zone
+                manager can send "the Lake events" to HQ and HQ opens the same
+                screen. A select holds that choice where nobody else can see it. */}
+            <nav className={styles.measureBar} aria-label="Filter events">
+              <span className={styles.measureLabel}>Show</span>
+              <Link href={`/${locale}/staff/events`}
+                className={!filter.when && !filter.zone && !filter.branch ? styles.measureOn : styles.measureOff}>
+                Everything
+              </Link>
+              <Link href={`/${locale}/staff/events?when=upcoming`}
+                className={filter.when === 'upcoming' ? styles.measureOn : styles.measureOff}>
+                Upcoming
+              </Link>
+              <Link href={`/${locale}/staff/events?when=past`}
+                className={filter.when === 'past' ? styles.measureOn : styles.measureOff}>
+                Past
+              </Link>
+              {ZONE_CODES.map((z) => (
+                <Link key={z} href={`/${locale}/staff/events?zone=${z}`}
+                  className={filter.zone === z ? styles.measureOn : styles.measureOff}>
+                  {zoneWording(z)}
+                </Link>
+              ))}
+            </nav>
 
           {upcoming.length > 0 ? (
             <Panel title="Coming up" description="Everything dated today or later.">

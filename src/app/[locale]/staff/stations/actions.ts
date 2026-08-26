@@ -23,6 +23,35 @@ async function requireStaff(): Promise<Gate> {
   return { ok: true, supabase, session };
 }
 
+const WORDING: Record<string, string> = {
+  daily: 'Day', weekly: 'Week', monthly: 'Month',
+};
+
+/**
+ * The first day of the period, normalised.
+ *
+ * A weekly figure filed on a Wednesday still describes the week that started
+ * on Monday, so the date is snapped back rather than rejected — refusing it
+ * would teach branches to pick Mondays rather than to file on the day they
+ * have the numbers.
+ */
+function periodStart(kind: string, raw: string): string | null {
+  if (kind === 'monthly') {
+    return /^\d{4}-\d{2}$/.test(raw) ? `${raw}-01`
+      : /^\d{4}-\d{2}-\d{2}$/.test(raw) ? `${raw.slice(0, 7)}-01`
+        : null;
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
+  if (kind === 'daily') return raw;
+
+  const date = new Date(`${raw}T00:00:00Z`);
+  if (Number.isNaN(date.getTime())) return null;
+  // getUTCDay: 0 is Sunday, so Sunday steps back six days, not forward one.
+  const back = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - back);
+  return date.toISOString().slice(0, 10);
+}
+
 /** A non-negative whole number from a form field; anything else is zero. */
 function num(value: FormDataEntryValue | null): number {
   const n = Number(String(value ?? '').trim());
@@ -153,10 +182,25 @@ export async function saveReport(_prev: ActionResult, form: FormData): Promise<A
   if (!gate.ok) return gate;
 
   const stationId = String(form.get('station_id') ?? '').trim();
-  const month = String(form.get('period_month') ?? '').trim();
   if (!stationId) return { ok: false, message: 'Which station?' };
-  if (!/^\d{4}-\d{2}$/.test(month)) {
-    return { ok: false, message: 'Choose the month this covers.' };
+
+  const kind = String(form.get('period_kind') ?? 'monthly');
+  if (!['daily', 'weekly', 'monthly'].includes(kind)) {
+    return { ok: false, message: 'Choose daily, weekly or monthly.' };
+  }
+
+  // One field per rhythm, because <input type="month"> and type="date" hand
+  // back different shapes and guessing which arrived is how a Monday becomes
+  // the first of the month.
+  const raw = String(form.get('period_start') ?? form.get('period_month') ?? '').trim();
+  const start = periodStart(kind, raw);
+  if (!start) {
+    return {
+      ok: false,
+      message: kind === 'monthly'
+        ? 'Choose the month this covers.'
+        : 'Choose the day this period starts on.',
+    };
   }
 
   const num = (key: string) => {
@@ -189,7 +233,8 @@ export async function saveReport(_prev: ActionResult, form: FormData): Promise<A
     .from('station_reports' as never)
     .upsert({
       station_id: stationId,
-      period_month: `${month}-01`,
+      period_month: start,
+      period_kind: kind,
       portfolio: Math.round(portfolio),
       accounts_opened: Math.round(opened),
       active_accounts: Math.round(active),
@@ -200,7 +245,7 @@ export async function saveReport(_prev: ActionResult, form: FormData): Promise<A
       note: String(form.get('note') ?? '').trim() || null,
       submitted_by: gate.session.staffId,
       submitted_at: new Date().toISOString(),
-    } as never, { onConflict: 'station_id,period_month' })
+    } as never, { onConflict: 'station_id,period_month,period_kind' })
     .select('id')
     .single();
 
@@ -209,7 +254,7 @@ export async function saveReport(_prev: ActionResult, form: FormData): Promise<A
   revalidatePath('/', 'layout');
   return {
     ok: true,
-    message: `${month} saved.`,
+    message: `${WORDING[kind]} beginning ${start} saved.`,
     id: (data as unknown as { id: string } | null)?.id,
   };
 }
@@ -357,4 +402,36 @@ export async function saveLoanBreakdown(
       ? `Saved the split across ${rows.length} loan ${rows.length === 1 ? 'type' : 'types'}.`
       : 'Cleared the loan breakdown for this month.',
   };
+}
+
+/**
+ * Remove a station, and everything filed against it.
+ *
+ * The reports, the account splits and the loan splits all cascade. That is a
+ * lot to lose to a misclick, so the form asks for the station's name to be
+ * typed back — the one confirmation people do not click through on autopilot,
+ * because it cannot be satisfied without reading.
+ */
+export async function deleteStation(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  const gate = await requireStaff();
+  if (!gate.ok) return gate;
+
+  const id = String(form.get('station_id') ?? '').trim();
+  const typed = String(form.get('confirm_name') ?? '').trim();
+  const expected = String(form.get('expected_name') ?? '').trim();
+
+  if (!id) return { ok: false, message: 'Which station?' };
+  if (typed.toLowerCase() !== expected.toLowerCase()) {
+    return { ok: false, message: 'Type the station name exactly to remove it.' };
+  }
+
+  const { error } = await gate.supabase
+    .from('stations' as never)
+    .delete()
+    .eq('id', id);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath('/', 'layout');
+  return { ok: true, message: `${expected} removed, with every month filed against it.` };
 }

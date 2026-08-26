@@ -145,3 +145,99 @@ export async function setBranchZone(
     message: raw === '' ? 'Zone cleared.' : 'Saved.',
   };
 }
+
+/**
+ * Add or edit a branch.
+ *
+ * The register gave a name and two years and nothing else — no zone, no
+ * coordinates. Everything a branch needs beyond its name has to be recorded
+ * by somebody, and this is where.
+ */
+export async function saveBranch(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  const gate = await hqOnly();
+  if (!gate.ok) return gate;
+
+  const id = String(form.get('branch_id') ?? '').trim();
+  const name = String(form.get('name') ?? '').trim();
+  if (name.length < 2) return { ok: false, message: 'Give the branch a name.' };
+
+  const year = (key: string) => {
+    const raw = String(form.get(key) ?? '').trim();
+    if (raw === '') return null;
+    const n = Number(raw);
+    // CRDB was founded in 1996 out of the old CRDB (1967); anything before
+    // that or after next year is a typo rather than a date.
+    return Number.isFinite(n) && n >= 1960 && n <= new Date().getFullYear() + 1
+      ? Math.round(n) : null;
+  };
+
+  const zone = String(form.get('zone_code') ?? '').trim();
+  const payload = {
+    name,
+    zone_code: zone === '' ? null : zone,
+    year_established: year('year_established'),
+    year_refurbished: year('year_refurbished'),
+    is_active: String(form.get('is_active') ?? 'true') === 'true',
+    notes: String(form.get('notes') ?? '').trim() || null,
+  };
+
+  const { error } = id
+    ? await gate.supabase.from('branches' as never).update(payload as never).eq('id', id)
+    : await gate.supabase.from('branches' as never)
+        .insert({ ...payload, slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-') } as never);
+
+  if (error) {
+    return {
+      ok: false,
+      message: error.message.includes('duplicate key')
+        ? `There is already a branch called ${name}.`
+        : error.message,
+    };
+  }
+
+  revalidatePath('/', 'layout');
+  return { ok: true, message: id ? `${name} saved.` : `${name} added.` };
+}
+
+/**
+ * Clear the sample data.
+ *
+ * Everything seeded for the walkthrough carries a marker in `notes`, and this
+ * removes exactly those rows: the stations loaded from the register keep their
+ * own marker and their own figures are removed with them, so what is left is
+ * an empty tracker rather than a half-populated one.
+ *
+ * Events are cleared before stations because an event's station reference is
+ * `on delete set null` rather than a cascade — clearing stations first would
+ * strand the demo events with a blank link.
+ */
+export async function clearDemoData(_prev: ActionResult): Promise<ActionResult> {
+  const gate = await hqOnly();
+  if (!gate.ok) return gate;
+
+  const { error: eventError, count: events } = await gate.supabase
+    .from('tracked_events' as never)
+    .delete({ count: 'exact' })
+    .or('notes.like.DEMO %,notes.like.Loaded from the CRDB register%');
+  if (eventError) return { ok: false, message: eventError.message };
+
+  // Reports carry the marker on the row itself, so a station loaded from the
+  // register keeps its identity while losing the invented figures.
+  const { error: reportError, count: reports } = await gate.supabase
+    .from('station_reports' as never)
+    .delete({ count: 'exact' })
+    .like('note', 'Sample figure%');
+  if (reportError) return { ok: false, message: reportError.message };
+
+  const { error: stationError, count: stations } = await gate.supabase
+    .from('stations' as never)
+    .delete({ count: 'exact' })
+    .like('notes', 'DEMO %');
+  if (stationError) return { ok: false, message: stationError.message };
+
+  revalidatePath('/', 'layout');
+  return {
+    ok: true,
+    message: `Cleared ${reports ?? 0} sample reports, ${stations ?? 0} sample stations and ${events ?? 0} sample events. Stations loaded from the register are still here, with nothing filed against them.`,
+  };
+}

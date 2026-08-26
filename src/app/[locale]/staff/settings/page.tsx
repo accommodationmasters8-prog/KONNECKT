@@ -5,6 +5,7 @@ import {
   AddProduct, ProductTable, type ProductItem,
 } from '@/components/staff/ProductLists';
 import { BranchZones, type BranchRow } from '@/components/staff/BranchZones';
+import { BranchForm, ClearDemoData } from '@/components/staff/BranchForms';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
@@ -60,7 +61,7 @@ export default async function StaffSettings({
     );
   }
 
-  const [accountsRes, loansRes, branchesRes] = await Promise.all([
+  const [accountsRes, loansRes, branchesRes, sampleRes] = await Promise.all([
     supabase.from('account_products' as never)
       .select('code, label_en, label_sw, is_active')
       .order('is_active', { ascending: false })
@@ -74,7 +75,12 @@ export default async function StaffSettings({
       .eq('is_active', true)
       .order('name', { ascending: true })
       .limit(1000),
+    supabase.from('station_reports' as never)
+      .select('id', { count: 'exact', head: true })
+      .like('note', 'Sample figure%'),
   ]);
+
+  const sampleReports = sampleRes.count ?? 0;
 
   const accounts = (accountsRes.data as unknown as ProductItem[]) ?? [];
   const loans = (loansRes.data as unknown as ProductItem[]) ?? [];
@@ -97,6 +103,15 @@ export default async function StaffSettings({
       scopeLabel={`${live(accounts)} account types · ${live(loans)} loan types in use`}
       user={session.user}
     >
+      {sampleReports > 0 ? (
+        <Panel
+          title="Sample data is loaded"
+          description="Figures seeded for the walkthrough. Real institutions, invented numbers — clear them before anyone treats a chart here as a measurement."
+        >
+          <ClearDemoData sampleReports={sampleReports} />
+        </Panel>
+      ) : null}
+
       {/* First, because it is the one list that decides who can see what. */}
       <Panel
         title="Branches and their zones"
@@ -141,6 +156,13 @@ export default async function StaffSettings({
 
       <Panel title="Add a loan type">
         <AddProduct kind="loan" noun="loan type" />
+      </Panel>
+
+      <Panel
+        title="Add a branch"
+        description="For a branch the register does not carry. Editing an existing one is done from its row above."
+      >
+        <BranchForm />
       </Panel>
     </StaffShell>
   );

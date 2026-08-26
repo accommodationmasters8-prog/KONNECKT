@@ -4,8 +4,10 @@ import { notFound } from 'next/navigation';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
-import { Donut, TrendChart } from '@/components/staff/Charts';
-import { DeleteReport, ReportForm, StationForm } from '@/components/staff/StationForms';
+import { BarChart, PieChart } from '@/components/staff/Charts';
+import {
+  DeleteReport, DeleteStation, ReportForm, StationForm,
+} from '@/components/staff/StationForms';
 import {
   AccountBreakdownForm, LoanBreakdownForm,
   type AccountRow, type LoanRow, type ProductOption,
@@ -191,7 +193,7 @@ export default async function StationPage({
           title="Deposits over time"
           description="Every month this station has reported."
         >
-          <TrendChart
+          <BarChart
             points={series.map((r) => ({ label: label(r.period_month), value: Number(r.deposits_tzs) }))}
             title={`Deposits mobilised at ${station.name}`}
             format={(v) => money(v, locale, true)}
@@ -206,10 +208,8 @@ export default async function StationPage({
           {!newest || newest.portfolio === 0 ? (
             <PanelEmpty>A headcount is needed before coverage means anything.</PanelEmpty>
           ) : (
-            <Donut
+            <PieChart
               title="Accounts against people"
-              total={coverage ?? 0}
-              totalLabel="% covered"
               slices={[
                 { label: 'With an account', value: newest.accounts_opened, tone: 'teal' },
                 {
@@ -229,6 +229,7 @@ export default async function StationPage({
       >
         <ReportForm
           stationId={station.id}
+          defaultKind={(station as unknown as { reporting_kind?: 'daily' | 'weekly' | 'monthly' }).reporting_kind ?? 'monthly'}
           months={reports.map((r) => r.period_month.slice(0, 7))}
           defaults={
             newest
@@ -350,6 +351,13 @@ export default async function StationPage({
           needsBranch={false}
           station={station}
         />
+      </Panel>
+
+      <Panel
+        title="Remove this station"
+        description="Only when it should never have been added. A station that has closed is better set to Closed above — that keeps its history readable."
+      >
+        <DeleteStation id={station.id} name={station.name} />
       </Panel>
     </StaffShell>
   );

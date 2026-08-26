@@ -1,9 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useActionState, useEffect } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import {
-  createStation, updateStation, saveReport, deleteReport, type ActionResult,
+  createStation, updateStation, saveReport, deleteReport, deleteStation,
+  type ActionResult,
 } from '@/app/[locale]/staff/stations/actions';
 import styles from './AdminForm.module.css';
 
@@ -203,14 +204,20 @@ export function ReportForm({
   stationId,
   defaults,
   months,
+  defaultKind = 'monthly',
 }: {
   stationId: string;
   defaults?: ReportFields;
-  /** Months already filed, so the picker can say which are being corrected. */
+  /** Periods already filed, so the picker can say which are being corrected. */
   months: string[];
+  /** The rhythm this station is expected on. */
+  defaultKind?: 'daily' | 'weekly' | 'monthly';
 }) {
   const [state, formAction, pending] = useActionState(saveReport, INITIAL);
-  const thisMonth = new Date().toISOString().slice(0, 7);
+  const [kind, setKind] = useState(defaultKind);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const thisMonth = today.slice(0, 7);
   const selected = defaults?.period_month?.slice(0, 7) ?? thisMonth;
 
   return (
@@ -219,15 +226,44 @@ export function ReportForm({
 
       <div className={styles.grid}>
         <label className={styles.field}>
-          <span className={styles.label}>Month</span>
-          <input className={styles.input} type="month" name="period_month"
-            defaultValue={selected} max={thisMonth} required />
+          <span className={styles.label}>This figure covers</span>
+          <select className={styles.select} name="period_kind" value={kind}
+            onChange={(e) => setKind(e.target.value as typeof kind)}>
+            <option value="daily">A single day</option>
+            <option value="weekly">A week</option>
+            <option value="monthly">A month</option>
+          </select>
           <span className={styles.help}>
-            {months.includes(selected)
-              ? 'This month is already on record — saving corrects it.'
-              : 'One record per month. Saving the same month again corrects it.'}
+            File on whatever rhythm the station actually works to. A campus
+            week has daily numbers; a SACCOS has monthly ones.
           </span>
         </label>
+
+        {kind === 'monthly' ? (
+          <label className={styles.field}>
+            <span className={styles.label}>Which month</span>
+            <input className={styles.input} type="month" name="period_start"
+              defaultValue={selected} max={thisMonth} required />
+            <span className={styles.help}>
+              {months.includes(selected)
+                ? 'This month is already on record — saving corrects it.'
+                : 'Saving the same month again corrects it rather than adding a second.'}
+            </span>
+          </label>
+        ) : (
+          <label className={styles.field}>
+            <span className={styles.label}>
+              {kind === 'weekly' ? 'Any day in that week' : 'Which day'}
+            </span>
+            <input className={styles.input} type="date" name="period_start"
+              defaultValue={today} max={today} required />
+            <span className={styles.help}>
+              {kind === 'weekly'
+                ? 'Filed on a Wednesday, it still describes the week from that Monday — the date is snapped back for you.'
+                : 'Saving the same day again corrects it.'}
+            </span>
+          </label>
+        )}
 
         <label className={styles.field}>
           <span className={styles.label}>People in it</span>
@@ -306,6 +342,53 @@ export function DeleteReport({ id, month }: { id: string; month: string }) {
       {state.message ? (
         <span className={state.ok ? styles.ok : styles.error}>{state.message}</span>
       ) : null}
+    </form>
+  );
+}
+
+/**
+ * Remove a station.
+ *
+ * The name has to be typed back. Every other confirmation in this console is a
+ * button somebody can click through on autopilot; this one cannot be satisfied
+ * without reading what is about to be destroyed, which is the point, because
+ * what is about to be destroyed is every month ever filed here.
+ */
+export function DeleteStation({ id, name }: { id: string; name: string }) {
+  const [state, formAction, pending] = useActionState(deleteStation, INITIAL);
+  const [typed, setTyped] = useState('');
+  const armed = typed.trim().toLowerCase() === name.toLowerCase();
+
+  return (
+    <form action={formAction} className={styles.form}>
+      <input type="hidden" name="station_id" value={id} />
+      <input type="hidden" name="expected_name" value={name} />
+
+      <label className={styles.field}>
+        <span className={styles.label}>Type &ldquo;{name}&rdquo; to remove it</span>
+        <input
+          className={styles.input}
+          name="confirm_name"
+          value={typed}
+          onChange={(e) => setTyped(e.target.value)}
+          autoComplete="off"
+          placeholder={name}
+        />
+        <span className={styles.help}>
+          This removes the station and every month, account split and loan
+          split filed against it. There is no undo, and the audit log keeps
+          only the fact that it happened.
+        </span>
+      </label>
+
+      <div className={styles.formFoot}>
+        <button type="submit" className="btn btn--quiet" disabled={pending || !armed}>
+          {pending ? 'Removing…' : 'Remove this station'}
+        </button>
+        <p className={state.ok ? styles.ok : styles.error} role="status" aria-live="polite">
+          {state.message}
+        </p>
+      </div>
     </form>
   );
 }

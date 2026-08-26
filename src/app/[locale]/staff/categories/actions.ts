@@ -137,3 +137,38 @@ export async function addCategoryLoanType(
   revalidatePath('/[locale]/staff/categories/[slug]', 'page');
   return { ok: true, message: `Added ${labelEn}.` };
 }
+
+/**
+ * Remove a category.
+ *
+ * Stations cascade from it, and their reports cascade from them, so this can
+ * take away years of filed figures in one statement. The name has to be typed
+ * back and the console states the station count first — a confirmation nobody
+ * reads is a confirmation that is not there.
+ */
+export async function deleteCategory(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  const gate = await hqOnly();
+  if (!gate.ok) return gate;
+
+  const id = String(form.get('category_id') ?? '').trim();
+  const typed = String(form.get('confirm_name') ?? '').trim();
+  const expected = String(form.get('expected_name') ?? '').trim();
+
+  if (!id) return { ok: false, message: 'Which category?' };
+  if (typed.toLowerCase() !== expected.toLowerCase()) {
+    return { ok: false, message: 'Type the category name exactly to remove it.' };
+  }
+
+  const { error } = await gate.supabase
+    .from('tracker_categories' as never)
+    .delete()
+    .eq('id', id);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath('/', 'layout');
+  return { ok: true, message: `${expected} removed, with every station in it.` };
+}

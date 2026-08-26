@@ -23,7 +23,14 @@ DEMO — sample data for the August 2026 walkthrough. Safe to delete.
 Spread across three branches so the roll-up is visible: Dodoma (Central),
 Mwanza and Geita (Lake), Arusha (Northern).
 
-## Removing it
+## Removing it — from the console
+
+HQ → **Settings** → **Sample data is loaded** → type `CLEAR`. That removes
+every seeded figure and leaves the 69 stations loaded from the CRDB register
+in place with nothing filed against them, which is the honest starting point
+for going live. The panel disappears once there is nothing left to clear.
+
+## Removing it — by hand
 
 Deleting the stations is enough. `station_reports` cascades from `stations`,
 and the account and loan splits cascade from `station_reports`, so one

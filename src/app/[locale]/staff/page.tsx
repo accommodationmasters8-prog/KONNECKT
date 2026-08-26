@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { MetricCard } from '@/components/staff/MetricCard';
-import { BarTable, Donut, TrendChart } from '@/components/staff/Charts';
+import { BarChart, BarTable, PieChart } from '@/components/staff/Charts';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import {
   AccountsIcon, CategoriesIcon, EventsIcon, StationsIcon,
@@ -156,7 +156,7 @@ export default async function TrackerOverview({
               title="Deposits mobilised"
               description="The sum of what every station reported that month. A month with fewer reports in it shows a lower figure — the bar above says how many are in."
             >
-              <TrendChart
+              <BarChart
                 points={trendPoints}
                 title="Deposits mobilised by month"
                 format={(v) => money(v, locale, true)}
@@ -174,10 +174,8 @@ export default async function TrackerOverview({
                   soon as the first station reports.
                 </PanelEmpty>
               ) : (
-                <Donut
+                <PieChart
                   title="Active against dormant accounts"
-                  total={data.accountsOpened}
-                  totalLabel="opened"
                   slices={[
                     { label: 'Active', value: data.activeAccounts, tone: 'green' },
                     { label: 'Dormant', value: data.dormantAccounts, tone: 'gold' },
@@ -225,7 +223,7 @@ export default async function TrackerOverview({
               title="Accounts opened by month"
               description="Reported, not projected."
             >
-              <TrendChart
+              <BarChart
                 points={accountsTrend}
                 title="Accounts opened by month"
                 format={(v) => count(v, locale)}
