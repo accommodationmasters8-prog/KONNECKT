@@ -283,7 +283,7 @@ export default async function CategoryPage({
 
       <Panel
         title={`Stations by ${MEASURES[measure].label.toLowerCase()}`}
-        description="Ranked on the newest report from each. Open one to see its full history or to file a month."
+        description="Ranked on the newest report from each. Click a station to see its full history or file a month."
       >
         {ranked.length === 0 ? (
           <PanelEmpty>
@@ -355,7 +355,7 @@ export default async function CategoryPage({
 
       <Panel
         title="Every station in this category"
-        description="Including the ones that have never reported — those are the gap."
+        description="Including the ones that have never reported — those are the gap. Click a station to open it, file a month or correct one."
       >
         <div className={styles.tableWrap}>
           <table className={styles.table}>

@@ -1,0 +1,148 @@
+/* Laid out for paper first. On screen it is a preview of the page that comes
+   out of the printer, which is why the measurements are in millimetres. */
+.page {
+  max-inline-size: 210mm;
+  margin-inline: auto;
+  padding: var(--space-xl);
+  background: var(--surface-raised);
+  color: var(--text-strong);
+  font-size: var(--size-caption);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+  margin-block-end: var(--space-lg);
+  padding-block-end: var(--space-md);
+  border-block-end: 1px solid var(--line-app);
+}
+
+.toolbarNote { font-size: var(--size-nano); color: var(--text-body); }
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  margin-block-end: var(--space-lg);
+}
+
+.logo { inline-size: 118px; block-size: auto; flex: none; }
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--size-h2);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.scope { font-size: var(--size-caption); color: var(--text-body); }
+
+.meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-sm);
+  margin: 0 0 var(--space-lg);
+  padding: var(--space-md);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+
+.meta dt {
+  font-size: var(--size-nano);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-body);
+}
+
+.meta dd { margin: 0; font-weight: var(--weight-semibold); }
+
+.totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--space-md);
+  margin-block-end: var(--space-lg);
+}
+
+.total {
+  display: flex;
+  flex-direction: column;
+  padding: var(--space-md);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+}
+
+.totalValue {
+  font-family: var(--font-data);
+  font-size: var(--size-h3);
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-accent);
+}
+
+.totalLabel { font-size: var(--size-nano); color: var(--text-body); }
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--size-nano);
+  font-variant-numeric: tabular-nums;
+}
+
+.table th,
+.table td {
+  padding: 4px 6px;
+  text-align: start;
+  border-block-end: 1px solid var(--line-soft);
+  vertical-align: top;
+}
+
+.table thead th {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-body);
+  border-block-end: 1px solid var(--line-strong);
+}
+
+.num { text-align: end; }
+
+.empty {
+  padding: var(--space-xl);
+  text-align: center;
+  color: var(--text-body);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+
+.foot {
+  margin-block-start: var(--space-lg);
+  padding-block-start: var(--space-md);
+  border-block-start: 1px solid var(--line-app);
+  font-size: var(--size-nano);
+  color: var(--text-body);
+}
+
+@media print {
+  /* The toolbar is for the person, not the paper. */
+  .toolbar { display: none; }
+
+  .page {
+    max-inline-size: none;
+    padding: 0;
+    font-size: 9pt;
+  }
+
+  /* Repeat the header on every sheet — a twelve-page table whose columns are
+     only labelled on page one is twelve pages of guessing. */
+  .table thead { display: table-header-group; }
+  .table tr { break-inside: avoid; }
+
+  .totals, .meta { break-inside: avoid; }
+  .foot { break-before: avoid; }
+}
+
+@page {
+  size: A4 landscape;
+  margin: 12mm;
+}

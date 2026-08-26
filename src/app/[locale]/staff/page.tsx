@@ -193,7 +193,7 @@ export default async function TrackerOverview({
 
           <Panel
             title="Events"
-            description="The next three and the last three. Everything else is on the events screen."
+            description="The next three and the last three. Click one to open it; everything else is on the events screen."
             action={
               <Link href={`/${locale}/staff/events`} className={styles.panelLink}>
                 All events →

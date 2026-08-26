@@ -94,7 +94,7 @@ export default async function StationsPage({
 
           <Panel
             title="Everything in your scope"
-            description="Open a station to see its full analytics and to file or correct a month."
+            description="Click a station to see its full analytics and to file or correct a month."
           >
             {stations.length === 0 ? (
               <PanelEmpty>

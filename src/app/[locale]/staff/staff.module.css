@@ -383,3 +383,14 @@
   font-size: var(--size-caption);
   color: var(--text-body);
 }
+
+/* Says the card is a door. Cards that navigate and cards that only display
+   look identical until you hover one, and a branch officer on a touchscreen
+   never hovers anything. */
+.cardHint {
+  margin-block-start: auto;
+  padding-block-start: var(--space-xs);
+  font-size: var(--size-nano);
+  font-weight: var(--weight-semibold);
+  color: var(--text-accent);
+}

@@ -105,6 +105,7 @@ export default async function CategoriesPage({
                   <span className={styles.categoryNoun}>
                     counted in {category.member_noun_en}
                   </span>
+                  <span className={styles.cardHint}>Click to open →</span>
                 </Link>
               );
             })}

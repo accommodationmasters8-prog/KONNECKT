@@ -4,7 +4,8 @@ import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
-import { formatPeriod } from '@/lib/tracker';
+import { ReportBuilder } from '@/components/staff/ReportBuilder';
+import { ZONE_CODES, zoneWording } from '@/lib/access-scope';
 import { localeParams, resolveLocale } from '@/lib/page';
 import styles from '../staff.module.css';
 
@@ -52,39 +53,20 @@ export default async function ReportsPage({
     );
   }
 
-  // The months that actually have something in them, newest first.
-  const { data } = await supabase
-    .from('station_reports' as never)
-    .select('period_month')
-    .order('period_month', { ascending: false })
-    .limit(2000);
+  const [branchRes, catRes] = await Promise.all([
+    supabase.from('branches' as never)
+      .select('id, name').eq('is_active', true)
+      .order('name', { ascending: true }).limit(1000),
+    supabase.from('tracker_categories' as never)
+      .select('id, name_en').eq('is_active', true)
+      .order('display_order', { ascending: true }).limit(100),
+  ]);
 
-  const months = [...new Set(
-    ((data as unknown as { period_month: string }[]) ?? []).map((r) => r.period_month),
-  )].slice(0, 12);
-
-  const reports = [
-    {
-      kind: 'reports',
-      title: 'Monthly figures',
-      body: 'Every month filed by every station you can reach — people, accounts, coverage, deposits and loans, one row per station per month. This is the one to take into a board pack.',
-    },
-    {
-      kind: 'stations',
-      title: 'Station register',
-      body: 'Every station with its category, branch, zone, district, status and contact. No figures — this is the list of what is being tracked.',
-    },
-    {
-      kind: 'events',
-      title: 'Events and their KPIs',
-      body: 'Every event with turnout, budget, actual spend, accounts opened and cost per account, past and upcoming.',
-    },
-    {
-      kind: 'branches',
-      title: 'Branches and zones',
-      body: 'The branch list with the zone each is assigned to. Unassigned branches are named as such — they are the ones no zone manager can see.',
-    },
-  ];
+  const branches = ((branchRes.data as unknown as { id: string; name: string }[]) ?? [])
+    .map((b) => ({ value: b.id, label: b.name }));
+  const categories = ((catRes.data as unknown as { id: string; name_en: string }[]) ?? [])
+    .map((c) => ({ value: c.id, label: c.name_en }));
+  const zones = ZONE_CODES.map((z) => ({ value: z, label: zoneWording(z) }));
 
   return (
     <StaffShell
@@ -96,35 +78,17 @@ export default async function ReportsPage({
       scopeLabel={`${session.scopeLabel} · downloads carry only what you can see`}
       user={session.user}
     >
-      {reports.map((report) => (
-        <Panel key={report.kind} title={report.title} description={report.body}>
-          <div className={styles.downloadRow}>
-            <a
-              className="btn btn--primary btn--sm"
-              href={`/api/reports/${report.kind}`}
-              download
-            >
-              Download CSV
-            </a>
-
-            {report.kind === 'reports' && months.length > 0 ? (
-              <span className={styles.downloadMonths}>
-                or one month:
-                {months.map((month) => (
-                  <a
-                    key={month}
-                    className={styles.link}
-                    href={`/api/reports/reports?month=${month}`}
-                    download
-                  >
-                    {formatPeriod(month, locale)}
-                  </a>
-                ))}
-              </span>
-            ) : null}
-          </div>
-        </Panel>
-      ))}
+      <Panel
+        title="Build a report"
+        description="Choose what goes in it and how far back. Nothing is capped — leave the dates empty and the whole history comes out."
+      >
+        <ReportBuilder
+          locale={locale}
+          zones={zones}
+          branches={branches}
+          categories={categories}
+        />
+      </Panel>
 
       <Panel title="What is in them">
         <p className={styles.plainNote}>

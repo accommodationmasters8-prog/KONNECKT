@@ -172,7 +172,7 @@ export default async function NetworkPage({
             title={isZoneTable ? 'Every zone' : 'Every branch'}
             description={
               isZoneTable
-                ? 'Ranked by deposits. Open one to see the branches inside it.'
+                ? 'Ranked by deposits. Click a zone to open the branches inside it.'
                 : 'Ranked by deposits. Coverage is what is left to win.'
             }
           >

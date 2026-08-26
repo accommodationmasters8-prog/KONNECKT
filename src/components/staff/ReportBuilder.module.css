@@ -1,0 +1,73 @@
+.wrap { display: flex; flex-direction: column; gap: var(--space-lg); }
+
+.subjects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-sm);
+  margin-block-start: var(--space-xs);
+}
+
+/* A radio drawn as a card. The native control is kept for the keyboard and
+   the screen reader and hidden visually — a div with a click handler would
+   lose both. */
+.subject,
+.subjectOn {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-app);
+  background: var(--surface-raised);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.subject:hover { border-color: var(--line-strong); }
+
+.subjectOn {
+  border-color: var(--konekt-teal-deep);
+  background: var(--surface-tint);
+}
+
+.subject:focus-within,
+.subjectOn:focus-within {
+  outline: 2px solid var(--konekt-teal-deep);
+  outline-offset: 2px;
+}
+
+.subjectTitle {
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+  font-size: var(--size-caption);
+}
+
+.subjectBody {
+  font-size: var(--size-nano);
+  color: var(--text-body);
+  line-height: var(--leading-snug);
+}
+
+.summary {
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  font-size: var(--size-caption);
+  color: var(--text-strong);
+}
+
+.summaryLabel {
+  display: block;
+  font-size: var(--size-nano);
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-wide);
+  color: var(--text-body);
+  margin-block-end: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-md);
+}

@@ -145,7 +145,10 @@ export default async function EventsPage({
             </nav>
 
           {upcoming.length > 0 ? (
-            <Panel title="Coming up" description="Everything dated today or later.">
+            <Panel
+              title="Coming up"
+              description="Dated today or later. Click any event to open it and set the budget or the venue."
+            >
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
                   <thead>
@@ -204,11 +207,19 @@ export default async function EventsPage({
             )}
           </Panel>
 
-          <Panel title="Everything on record" description="Newest first.">
-            {events.length === 0 ? (
+          {/* Past and upcoming are two different jobs. One is a record you
+              report on; the other is a plan you prepare for — and a single
+              list sorted by date puts them in the same place with a chip to
+              tell them apart, which is the smallest possible signal for the
+              biggest difference on the screen. */}
+          <Panel
+            title="Held"
+            description={`${count(past.length, locale)} recorded. Click any event to open it and add pictures or fill in what happened.`}
+          >
+            {past.length === 0 ? (
               <PanelEmpty>
-                Nothing recorded yet. Add the first event below — it can be one
-                that already happened.
+                Nothing recorded yet. Add the first below — it can be one that
+                already happened.
               </PanelEmpty>
             ) : (
               <div className={styles.tableWrap}>
@@ -220,37 +231,41 @@ export default async function EventsPage({
                       <th scope="col" className={styles.num}>People</th>
                       <th scope="col" className={styles.num}>Accounts</th>
                       <th scope="col" className={styles.num}>Spent</th>
-                      <th scope="col">Status</th>
+                      <th scope="col" className={styles.num}>Per account</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {events.map((event) => (
-                      <tr key={event.id}>
-                        <th scope="row">
-                          <Link href={`/${locale}/staff/events/${event.id}`} className={styles.link}>
-                            {event.name}
-                          </Link>
-                          <span className={styles.sub}>{event.venue}</span>
-                        </th>
-                        <td>{when.format(new Date(event.event_date))}</td>
-                        <td className={styles.num}>
-                          {event.participants === null ? '—' : count(event.participants, locale)}
-                        </td>
-                        <td className={styles.num}>
-                          {event.accounts_opened === null ? '—' : count(event.accounts_opened, locale)}
-                        </td>
-                        <td className={styles.num}>
-                          {event.actual_spend_tzs || event.budget_tzs
-                            ? money(Number(event.actual_spend_tzs ?? event.budget_tzs), locale, true)
-                            : '—'}
-                        </td>
-                        <td>
-                          <span className={event.event_date < today ? styles.chip : styles.chipActive}>
-                            {event.event_date < today ? 'held' : 'upcoming'}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {past.map((event) => {
+                      const s = Number(event.actual_spend_tzs ?? 0);
+                      const o = Number(event.accounts_opened ?? 0);
+                      return (
+                        <tr key={event.id}>
+                          <th scope="row">
+                            <Link href={`/${locale}/staff/events/${event.id}`} className={styles.link}>
+                              {event.name}
+                            </Link>
+                            <span className={styles.sub}>
+                              {event.venue} · click to open
+                            </span>
+                          </th>
+                          <td>{when.format(new Date(event.event_date))}</td>
+                          <td className={styles.num}>
+                            {event.participants === null ? '—' : count(event.participants, locale)}
+                          </td>
+                          <td className={styles.num}>
+                            {event.accounts_opened === null ? '—' : count(event.accounts_opened, locale)}
+                          </td>
+                          <td className={styles.num}>
+                            {s || event.budget_tzs
+                              ? money(Number(event.actual_spend_tzs ?? event.budget_tzs), locale, true)
+                              : '—'}
+                          </td>
+                          <td className={styles.num}>
+                            {o > 0 && s > 0 ? money(Math.round(s / o), locale, true) : '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
