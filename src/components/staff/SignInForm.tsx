@@ -129,7 +129,7 @@ export function SignInForm({
   return (
     <form className={styles.form} onSubmit={signIn} noValidate>
       <label className={styles.field}>
-        <span className={styles.label}>Access code or work email</span>
+        <span className={styles.label}>Access code or email</span>
         <input
           className={styles.input}
           type="text"

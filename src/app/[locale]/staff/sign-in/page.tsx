@@ -17,11 +17,17 @@ export const metadata: Metadata = {
 };
 
 /**
- * Staff sign-in.
+ * Sign-in.
  *
  * Its own page rather than a modal over the console: a sign-in that is a
  * dialogue cannot be linked to, cannot be bookmarked, and cannot be reached by
  * someone whose session expired on a page that then rendered empty.
+ *
+ * Two fields and one link. It had three paragraphs explaining access codes,
+ * how scope is decided, and who to ask for an account — none of which helps
+ * the person standing at it, who already has their credentials in hand and is
+ * trying to get past this screen. The one sentence worth keeping is the link
+ * for somebody holding a code they have not set up yet.
  */
 export default async function StaffSignIn({
   params,
@@ -41,20 +47,12 @@ export default async function StaffSignIn({
           <KonektLogo label="KONEKT Na CRDB" className={styles.logo} />
         </Link>
 
-        <h1 className={styles.title}>Staff console</h1>
-        <p className={styles.lead}>
-          For CRDB staff. Sign in with the access code HQ gave you, or with
-          your work email if you have one. What you can see afterwards is
-          decided by your role in the database, not by this page.
-        </p>
+        <h1 className={styles.title}>Sign in</h1>
 
         <SignInForm locale={locale} />
 
         <p className={styles.foot}>
-          Been given a code but not set it up yet?{' '}
-          <Link href={`/${locale}/staff/join`}>Redeem it here</Link>. No code at
-          all? Access is issued by HQ — ask your zone manager to raise it.{' '}
-          <Link href={`/${locale}`}>Back to the site</Link>
+          <Link href={`/${locale}/staff/join`}>Have a code to set up?</Link>
         </p>
       </div>
     </main>

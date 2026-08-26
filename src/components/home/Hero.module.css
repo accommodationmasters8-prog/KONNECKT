@@ -26,7 +26,7 @@
 }
 
 .mark {
-  inline-size: clamp(200px, 44vw, 340px);
+  inline-size: clamp(170px, 32vw, 260px);
   block-size: auto;
   margin-block: var(--space-sm) var(--space-xs);
 }
@@ -35,7 +35,7 @@
   font-family: var(--font-display);
   /* Deliberately below the site's --size-h1. A headline that fills the
      viewport is a poster; this page is a front door. */
-  font-size: clamp(1.5rem, 3.6vw, 2.25rem);
+  font-size: clamp(1.25rem, 2.6vw, 1.75rem);
   font-weight: var(--weight-bold);
   line-height: var(--leading-snug);
   letter-spacing: -0.015em;
@@ -80,7 +80,7 @@
 .statValue {
   margin: 0;
   font-family: var(--font-data);
-  font-size: clamp(1.5rem, 5vw, 2rem);
+  font-size: clamp(1.25rem, 3.4vw, 1.625rem);
   font-weight: var(--weight-bold);
   font-variant-numeric: tabular-nums;
   line-height: 1;

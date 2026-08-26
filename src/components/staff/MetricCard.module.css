@@ -95,7 +95,7 @@
    its number the same weight, and then the card stops being readable across
    a room. */
 .value {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;

@@ -24,11 +24,11 @@
 
      Scoped to this class rather than changed in tokens.css, because the site's
      scale is right for the site. */
-  --size-h1:      1.5rem;
-  --size-h2:      1.25rem;
-  --size-h3:      1rem;
-  --size-body-lg: 1rem;
-  --size-body:    0.9375rem;
+  --size-h1:      1.25rem;
+  --size-h2:      1.0625rem;
+  --size-h3:      0.9375rem;
+  --size-body-lg: 0.9375rem;
+  --size-body:    0.875rem;
   --size-caption: 0.8125rem;
 
   /* Figures line up in a column without being set in a monospace. */

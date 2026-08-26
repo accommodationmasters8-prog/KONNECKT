@@ -23,7 +23,7 @@ import styles from './MapPreview.module.css';
  */
 export function MapPreview({ locale, t }: { locale: Locale; t: Dictionary }) {
   const nf = new Intl.NumberFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ');
-  const top = zoneFigures.slice(0, 4);
+  const top = zoneFigures;
 
   const totals = [
     { value: nationalStats.branches, label: t.map.totalBranches },
@@ -77,7 +77,7 @@ export function MapPreview({ locale, t }: { locale: Locale; t: Dictionary }) {
               ))}
             </ul>
 
-            <Link href={`/${locale}/map`} prefetch={false} className="btn btn--primary">
+            <Link href={`/${locale}/map`} prefetch={false} className={`btn btn--quiet ${styles.sideAction}`}>
               {t.common.seeAll}
             </Link>
           </div>

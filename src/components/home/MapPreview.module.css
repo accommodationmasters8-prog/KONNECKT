@@ -87,3 +87,7 @@
 }
 
 .totalLabel { font-size: var(--size-micro); color: var(--text-body); }
+
+/* Auto width. A full-bleed pill under four cards reads as the most important
+   thing on the block, which it is not — the map is. */
+.sideAction { align-self: start; }
