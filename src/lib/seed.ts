@@ -168,6 +168,10 @@ export const nationalStats = {
   motherInstitutions: institutions.filter((i) => !i.isChild).length,
   childInstitutions: institutions.filter((i) => i.isChild).length,
   barracks: barracks.length,
+  /** Everything the tracker treats as a station, whatever kind of place it is.
+   *  The public pages count this rather than naming the kinds: what CRDB
+   *  tracks and where is not the internet's business. */
+  stations: institutions.length + barracks.length,
   zones: ZONES.length,
   regionsSeen: raw.regions_seen.length,
   /** Not one record in the register carries a coordinate. §3.2.5. */

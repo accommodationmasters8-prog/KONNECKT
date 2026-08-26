@@ -47,7 +47,7 @@ export interface Dictionary {
     ctaSecondary: string;
     statZones: string;
     statBranches: string;
-    statCampuses: string;
+    statStations: string;
     scrollHint: string;
   };
   how: {
@@ -61,57 +61,22 @@ export interface Dictionary {
     step3Title: string;
     step3Body: string;
   };
-  events: {
-    eyebrow: string;
-    title: string;
-    lead: string;
-    liveBadge: string;
-    soonBadge: string;
-    seedNotice: string;
-    ctaAll: string;
-    dateLabel: string;
-    placeLabel: string;
-  };
   map: {
     eyebrow: string;
     title: string;
     lead: string;
     zoneColumn: string;
-    institutionsColumn: string;
+    stationsColumn: string;
     regionsColumn: string;
-    institutionsUnit: PluralUnit;
+    stationsUnit: PluralUnit;
     regionsUnit: PluralUnit;
     totalBranches: string;
-    totalInstitutions: string;
-    totalBarracks: string;
+    totalStations: string;
+    totalCategories: string;
     totalZones: string;
     sourceNote: string;
     pendingNote: string;
     ctaMap: string;
-  };
-  membership: {
-    eyebrow: string;
-    title: string;
-    lead: string;
-    ageNote: string;
-    tiers: Record<TierKey, TierCopy>;
-    stepDownTitle: string;
-    stepDownBody: string;
-    benefitsNote: string;
-    ctaMembership: string;
-  };
-  opportunities: {
-    eyebrow: string;
-    title: string;
-    lead: string;
-    emptyTitle: string;
-    emptyBody: string;
-    emptyCta: string;
-    filtersLabel: string;
-    filterAge: string;
-    filterRegion: string;
-    filterField: string;
-    filterEducation: string;
   };
   footer: {
     tagline: string;
@@ -151,7 +116,6 @@ export interface Dictionary {
     free: string;
   };
   pages: {
-    events: { title: string; lead: string; empty: string; emptyBody: string };
     map: {
       title: string;
       lead: string;
@@ -160,36 +124,12 @@ export interface Dictionary {
       pinNote: string;
       tableCaption: string;
       colZone: string;
-      colCampuses: string;
+      colStations: string;
       colRegions: string;
       colRegionNames: string;
-    };
-    membership: { title: string; lead: string };
-    opportunities: { title: string; lead: string };
-    blog: {
-      title: string;
-      lead: string;
-      empty: string;
-      emptyBody: string;
-      featured: string;
-      latest: string;
-    };
-    me: {
-      title: string;
-      lead: string;
-      signedOut: string;
-      signedOutBody: string;
-      signIn: string;
-      tier: string;
-      noTier: string;
-      noTierBody: string;
-      myEvents: string;
-      myTickets: string;
-      myReferrals: string;
-      referralCode: string;
-      consentCentre: string;
-      consentBody: string;
-      profile: string;
+    liveCaption: string;
+    colRegion: string;
+    colWhich: string;
     };
   };
 }

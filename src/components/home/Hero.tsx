@@ -20,7 +20,7 @@ export function Hero({ locale, t }: { locale: Locale; t: Dictionary }) {
 
   const stats = [
     { value: nationalStats.branches, label: t.hero.statBranches },
-    { value: nationalStats.institutions, label: t.hero.statCampuses },
+    { value: nationalStats.stations, label: t.hero.statStations },
     { value: nationalStats.zones, label: t.hero.statZones },
   ];
 

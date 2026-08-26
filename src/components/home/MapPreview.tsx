@@ -51,8 +51,7 @@ export async function MapPreview({ locale, t }: { locale: Locale; t: Dictionary 
 
   const totals = [
     { value: nationalStats.branches, label: t.map.totalBranches },
-    { value: nationalStats.institutions, label: t.map.totalInstitutions },
-    { value: nationalStats.barracks, label: t.map.totalBarracks },
+    { value: nationalStats.stations, label: t.map.totalStations },
     { value: nationalStats.zones, label: t.map.totalZones },
   ];
 
@@ -89,7 +88,7 @@ export async function MapPreview({ locale, t }: { locale: Locale; t: Dictionary 
                   <span className={styles.zoneName}>{z.label}</span>
                   <span className={`t-data ${styles.zoneValue}`}>{nf.format(z.campuses)}</span>
                   <span className={styles.zoneUnit}>
-                    {plural(locale, z.campuses, t.map.institutionsUnit)}
+                    {plural(locale, z.campuses, t.map.stationsUnit)}
                   </span>
                 </li>
               ))}

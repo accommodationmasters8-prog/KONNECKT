@@ -10,10 +10,10 @@ import type { Dictionary } from './types';
  */
 const sw: Dictionary = {
   meta: {
-    title: 'CRDB Konekt — jumuiya ya vijana ya Benki ya CRDB',
+    title: 'Konekt — mfumo wa ndani wa Benki ya CRDB',
     description:
-      'Matukio, fursa na akaunti inayokua pamoja nawe. CRDB Konekt ni mahali vijana wa Tanzania wanapokutana, wanapohudhuria na wanaposonga mbele.',
-    ogAlt: 'Alama ya CRDB Konekt kwa rangi ya kijani-bahari, njano na waridi.',
+      'Konekt ni mfumo wa ndani wa Benki ya CRDB wa kufuatilia na kuchambua takwimu. Ruhusa ya kuingia hutolewa na makao makuu.',
+    ogAlt: 'Alama ya Konekt kwa rangi ya kijani-bahari, njano na waridi.',
   },
 
   nav: {
@@ -42,7 +42,7 @@ const sw: Dictionary = {
     ctaSecondary: 'Ona ramani',
     statZones: 'kanda',
     statBranches: 'matawi ya CRDB',
-    statCampuses: 'vyuo vilivyoorodheshwa',
+    statStations: 'vituo vinavyofuatiliwa',
     scrollHint: 'Teremka',
   },
   how: {
@@ -52,7 +52,7 @@ const sw: Dictionary = {
       'Konekt inachukua nafasi ya majedwali yaliyokuwa yakisafiri kati ya tawi na makao makuu kwa barua pepe. Kila mtu anaingiza mahali pamoja, na walio juu yao wanaona mara moja.',
     step1Title: 'Tawi linaongeza vituo vyake',
     step1Body:
-      'Kila chuo, sehemu ya kazi, SACCOS au kambi ambayo tawi linafanya nayo kazi, chini ya kundi lake. Huongezwa mara moja; hurekebishwa wakati wowote.',
+      'Kila taasisi, sehemu ya kazi au kikundi ambacho tawi linafanya nacho kazi, chini ya kundi lake. Huongezwa mara moja; hurekebishwa wakati wowote.',
     step2Title: 'Linaingiza takwimu',
     step2Body:
       'Idadi ya watu, akaunti zilizofunguliwa, hai na zilizolala, amana na mikopo — kila siku, kila wiki au kila mwezi. Kuingiza kipindi kile kile tena kunarekebisha, hakuongezi rekodi ya pili.',
@@ -61,98 +61,24 @@ const sw: Dictionary = {
       'Tawi linaona lake, kanda inaona matawi yote chini yake, makao makuu yanaona nchi nzima. Takwimu zile zile, wakati ule ule.',
   },
 
-  events: {
-    eyebrow: 'Yanaendelea sasa / yajayo',
-    title: 'Kinachoendelea karibu nawe',
-    lead: 'Ziara za vyuo, kliniki za fedha, michezo na maonyesho ya ajira. Kila tukio ni bure kuhudhuria na kujiandikisha kunachukua dakika chache.',
-    liveBadge: 'Yanaendelea',
-    soonBadge: 'Yajayo',
-    seedNotice:
-      'Ratiba ya mfano. Tarehe halisi zitafunguliwa kwa usajili kalenda ya matukio itakapoanza.',
-    ctaAll: 'Ona kalenda nzima',
-    dateLabel: 'Tarehe',
-    placeLabel: 'Mahali',
-  },
-
   map: {
     eyebrow: 'Ramani',
     title: 'Kanda nane. Mtandao mmoja.',
-    lead: 'Kila taasisi ambayo Konekt inafuatilia, imewekwa alama kwenye mkoa ambao daftari la CRDB linaiweka. Takwimu zake zipo ndani ya mfumo.',
+    lead: 'Kila kituo ambacho Konekt inafuatilia, kimewekwa alama kwenye mkoa ambao daftari la CRDB linakiweka. Takwimu zake zipo ndani ya mfumo.',
     zoneColumn: 'Kanda',
-    institutionsColumn: 'Vyuo',
+    stationsColumn: 'Vituo',
     regionsColumn: 'Mikoa',
-    institutionsUnit: { one: 'chuo', other: 'vyuo' },
+    stationsUnit: { one: 'kituo', other: 'vituo' },
     regionsUnit: { one: 'mkoa', other: 'mikoa' },
     totalBranches: 'matawi ya CRDB nchini',
-    totalInstitutions: 'vyuo vikuu na vyuo',
-    totalBarracks: 'kambi za JKT',
+    totalStations: 'vituo vinavyofuatiliwa',
+    totalCategories: 'makundi',
     totalZones: 'kanda',
     sourceNote:
-      'Idadi hizi zinatoka moja kwa moja katika daftari za matawi ya CRDB, TCU na JKT, Agosti 2026.',
+      'Idadi hizi zinatoka moja kwa moja katika daftari za CRDB, Agosti 2026.',
     pendingNote:
-      'Vyuo vimepangwa kwa kanda ambazo CRDB imeviwekea. Matawi na kambi bado hayana kanda wala viwianishi katika daftari — hivyo vitakuja na hatua ya kutafuta viwianishi, na hakuna alama itakayowekwa kwenye ramani hai kabla afisa wa tawi hajaithibitisha.',
+      'Vituo vimepangwa kwa kanda ambazo CRDB imeviwekea. Daftari halina viwianishi, hivyo kila kimoja kimewekwa alama katikati ya mkoa wake hadi afisa wa tawi athibitishe mahali.',
     ctaMap: 'Ramani hai itafunguliwa katika toleo lijalo',
-  },
-
-  membership: {
-    eyebrow: 'Uanachama',
-    title: 'Silver, Gold, Platinum',
-    lead: 'Uanachama ni bure na unaanza mara tu unapofungua akaunti ya vijana ya CRDB. Daraja lako unalichuma — kwa kuweka akiba, kwa kukopa vizuri, na kwa kuhudhuria matukio ya Konekt.',
-    ageNote: 'Ni kwa wenye akaunti wenye miaka 18 hadi 35.',
-    tiers: {
-      silver: {
-        name: 'Silver',
-        blurb: 'Hapa ndipo kila mtu anapoanzia. Fungua akaunti na umo.',
-        points: [
-          'Kila tukio la Konekt, kuingia bure',
-          'Ubao wa fursa',
-          'Zana za fedha na malengo ya akiba',
-        ],
-      },
-      gold: {
-        name: 'Gold',
-        blurb:
-          'Kwa wanachama wanaoweka akiba kwa uthabiti na wanaohudhuria. Hupitiwa kila robo mwaka.',
-        points: [
-          'Yote yaliyo katika Silver',
-          'Angalau tukio moja la Konekt kwa robo mwaka',
-          'Nafasi za kipaumbele katika matukio yenye idadi ndogo',
-          'Punguzo la washirika kwa usafiri, data na huduma za chuoni',
-        ],
-      },
-      platinum: {
-        name: 'Platinum',
-        blurb:
-          'Daraja la juu kabisa. Hupitiwa mara mbili kwa mwaka, kwa akiba, hali ya mkopo na mchango kwa jumuiya.',
-        points: [
-          'Yote yaliyo katika Gold',
-          'Matukio mawili ya Konekt kwa mwaka, pamoja na wawili uliowaleta waliomaliza usajili',
-          'Mialiko ya vikao maalum na ushauri wa kitaalamu',
-          'Manufaa mapana zaidi ya washirika',
-        ],
-      },
-    },
-    stepDownTitle: 'Ukishuka chini ya kiwango',
-    stepDownBody:
-      'Unashuka daraja moja tu, huondolewi, na unabaki na manufaa yako kwa miezi mitatu unaporudi juu.',
-    benefitsNote:
-      'Manufaa ya washirika ni ya dalili na yanasubiri idhini ya Masoko na Sheria.',
-    ctaMembership: 'Soma vigezo vyote',
-  },
-
-  opportunities: {
-    eyebrow: 'Fursa',
-    title: 'Ajira, mafunzo kwa vitendo, ufadhili wa masomo, ruzuku',
-    lead: 'Ubao mmoja, uliochujwa kulingana na unachostahili kweli — kwa umri, kwa mkoa, kwa uliyosomea.',
-    emptyTitle: 'Hakuna kilichoorodheshwa bado',
-    emptyBody:
-      'Ubao utafunguliwa matangazo ya kwanza yaliyohakikiwa yatakapoingia. Hakuna kinachochapishwa hapa kabla mtu wa CRDB hajakithibitisha, kwa hiyo utabaki mtupu badala ya kujazwa vitu visivyo halisi.',
-    emptyCta: 'Nijulishe utakapofunguliwa',
-    filtersLabel: 'Ubao utachuja kwa (bado haujaanza kufanya kazi)',
-    filterAge: 'Umri',
-    filterRegion: 'Mkoa',
-    filterField: 'Fani ya masomo',
-    filterEducation: 'Kiwango cha elimu',
   },
 
   footer: {
@@ -200,63 +126,22 @@ const sw: Dictionary = {
   },
 
   pages: {
-    events: {
-      title: 'Kila kinachoendelea karibu nawe',
-      lead: 'Ziara za vyuo, kliniki za fedha, michezo na maonyesho ya ajira. Bure kuhudhuria, dakika chache kujiandikisha.',
-      empty: 'Kalenda bado haijafunguliwa',
-      emptyBody:
-        'Matukio yataonekana hapa mara waratibu watakapoanza kuyachapisha. Hakuna kinachoorodheshwa kabla hakijawa halisi na cha kujiandikisha.',
-    },
     map: {
       title: 'Kanda nane. Matawi 252. Mtandao mmoja.',
-      lead: 'CRDB imekuwa katika miji hii kwa miaka arobaini. Konekt inaweka kila tawi, chuo na kambi kwenye ramani moja ili upate lililo karibu nawe na uone kinachoendelea hapo.',
-      legend: 'Rangi inaonyesha idadi ya vyuo ambavyo daftari linaviweka katika kila kanda',
+      lead: 'Kila kituo ambacho Konekt inafuatilia, kwenye ramani moja, pamoja na mkoa kilipo na nini kingine kinafuatiliwa hapo.',
+      legend: 'Rangi inaonyesha idadi ya vituo ambavyo daftari linaviweka katika kila kanda',
       densityNote:
         'Kila mpaka hapa ni halisi: taarifa za kiutawala za Natural Earth 1:10m, mikoa yote 30, iliyopangwa katika kanda nane za CRDB.',
       pinNote:
         'Bado hakuna alama za maeneo, na hilo ni la makusudi. Hakuna rekodi hata moja katika daftari la CRDB yenye viwianishi. Hatua ya kutafuta viwianishi inafuata, na hakuna alama itakayofika kwenye ramani hii kabla afisa wa tawi hajaithibitisha.',
-      tableCaption: 'Vyuo na mikoa kwa kila kanda, kutoka daftari la CRDB',
+      tableCaption: 'Vituo na mikoa kwa kila kanda, kutoka daftari la CRDB',
       colZone: 'Kanda',
-      colCampuses: 'Vyuo',
+      colStations: 'Vituo',
       colRegions: 'Mikoa',
       colRegionNames: 'Inayohusisha',
-    },
-    membership: {
-      title: 'Silver, Gold, Platinum',
-      lead: 'Uanachama ni bure na unaanza mara tu unapofungua akaunti ya vijana ya CRDB. Daraja lako unalichuma — kwa kuweka akiba, kwa kukopa vizuri, na kwa kuhudhuria.',
-    },
-    opportunities: {
-      title: 'Ajira, mafunzo kwa vitendo, ufadhili wa masomo, ruzuku',
-      lead: 'Ubao mmoja, uliochujwa kulingana na unachostahili kweli — kwa umri, kwa mkoa, kwa uliyosomea.',
-    },
-    blog: {
-      title: 'Habari',
-      lead: 'Fedha, maisha ya chuoni, na wanachama wenzako wa Konekt wanachojenga. Imeandikwa na jumuiya na CRDB.',
-      empty: 'Bado hakuna habari iliyochapishwa',
-      emptyBody:
-        'Makala ya kwanza yataonekana timu ya wahariri itakapoanza kuchapisha. Hakuna kinachojazwa ili tu kujaza ukurasa.',
-      featured: 'Iliyoangaziwa',
-      latest: 'Mpya',
-    },
-    me: {
-      title: 'Konekt yako',
-      lead: 'Daraja lako, tiketi zako, uliowaleta.',
-      signedOut: 'Ingia kwa namba yako ya simu',
-      signedOutBody:
-        'Msimbo mmoja kwa SMS na umeingia. Hakuna nywila ya kusahau, wala hakuna cha kujaza ambacho CRDB haina tayari.',
-      signIn: 'Nitumie msimbo',
-      tier: 'Daraja lako',
-      noTier: 'Bado huna daraja',
-      noTierBody:
-        'Daraja lako linahesabiwa na CRDB kutokana na matumizi ya akaunti yako na litaonekana hapa baada ya tathmini yako ya kwanza.',
-      myEvents: 'Matukio yangu',
-      myTickets: 'Tiketi zangu',
-      myReferrals: 'Niliowaleta',
-      referralCode: 'Msimbo wako wa kualika',
-      consentCentre: 'Kituo cha idhini',
-      consentBody:
-        'Chagua hasa tunachoweza kukutumia, na kwa njia gani. Mabadiliko yanaanza kufanya kazi mara moja.',
-      profile: 'Wasifu',
+      liveCaption: 'Vituo vilivyo kwenye ramani sasa, kwa mkoa',
+      colRegion: 'Mkoa',
+      colWhich: 'Vituo vipi',
     },
   },
 };
