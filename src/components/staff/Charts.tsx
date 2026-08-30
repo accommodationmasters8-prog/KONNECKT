@@ -12,36 +12,53 @@ import styles from './Charts.module.css';
  * branch connection pays for every kilobyte twice.
  */
 
+/**
+ * A series colour, named by the brand hue it comes from.
+ *
+ * The five categorical slots are `teal indigo pink gold green`, in that fixed
+ * order. `slate` is not one of them — it is the neutral residual ("everyone
+ * else", "not yet reached") and is only correct where the slice carries its
+ * own label saying so.
+ */
+export type SeriesTone = 'teal' | 'indigo' | 'pink' | 'gold' | 'green' | 'slate';
+
 export interface Slice {
   label: string;
   value: number;
-  tone: 'teal' | 'green' | 'gold' | 'pink' | 'slate';
+  tone: SeriesTone;
 }
 
 export function BarTable({
   caption,
   unitLabel,
   rows,
+  rowLabel = 'Name',
+  format,
 }: {
   caption: string;
-  /** Column header for the number, e.g. "Campuses". */
+  /** Column header for the number, e.g. "Accounts". */
   unitLabel: string;
   rows: { label: string; value: number; secondary?: string }[];
+  /** What the first column is. It said "Zone" on every screen, including the
+   *  ones ranking stations and categories. */
+  rowLabel?: string;
+  format?: (value: number) => string;
 }) {
   const max = Math.max(1, ...rows.map((r) => r.value));
+  const show = format ?? ((v: number) => v.toLocaleString());
 
   return (
     <table className={styles.barTable}>
       <caption className="visually-hidden">{caption}</caption>
       <thead>
         <tr>
-          <th scope="col">Zone</th>
+          <th scope="col">{rowLabel}</th>
           <th scope="col" className={styles.barCol}>{unitLabel}</th>
           <th scope="col" className={styles.numCol}>{unitLabel}</th>
         </tr>
       </thead>
       <tbody>
-        {rows.map((row) => (
+        {rows.map((row, i) => (
           <tr key={row.label}>
             <th scope="row">
               {row.label}
@@ -52,12 +69,12 @@ export function BarTable({
                   value, and a bar announced as well would read it twice. */}
               <span className={styles.barTrack} aria-hidden="true">
                 <span
-                  className={styles.barFill}
-                  style={{ inlineSize: `${Math.round((row.value / max) * 100)}%` }}
+                  className={`${styles.barFill} ${i === 0 ? styles.barFillLead : ''}`}
+                  style={{ inlineSize: `${Math.max(1.5, (row.value / max) * 100).toFixed(1)}%` }}
                 />
               </span>
             </td>
-            <td className={styles.numCol}>{row.value}</td>
+            <td className={styles.numCol}>{show(row.value)}</td>
           </tr>
         ))}
       </tbody>
@@ -257,10 +274,13 @@ export function PieChart({
   title,
   slices,
   format,
+  centreLabel,
 }: {
   title: string;
   slices: Slice[];
   format?: (value: number) => string;
+  /** What the number in the hole is. Defaults to "total". */
+  centreLabel?: string;
 }) {
   const total = slices.reduce((sum, s) => sum + Math.max(0, s.value), 0);
 
@@ -269,39 +289,86 @@ export function PieChart({
   }
 
   const show = format ?? ((v: number) => v.toLocaleString());
-  const R = 46;
-  const C = 50;
-  let angle = -Math.PI / 2; // start at twelve o'clock
 
-  const wedges = slices
-    .filter((s) => s.value > 0)
-    .map((slice) => {
-      const share = slice.value / total;
-      const sweep = share * Math.PI * 2;
-      const x1 = C + R * Math.cos(angle);
-      const y1 = C + R * Math.sin(angle);
-      angle += sweep;
-      const x2 = C + R * Math.cos(angle);
-      const y2 = C + R * Math.sin(angle);
-      const large = sweep > Math.PI ? 1 : 0;
+  // A ring, not a disc. The hole carries the total, which is the number
+  // everybody reads first and which a pie makes you sum the legend to find.
+  const C = 100;
+  const R_OUT = 92;
+  const R_IN = 58;
+  const GAP = 0.022; // radians trimmed from each end — the 2px surface gap
 
-      // A single slice at 100% has identical start and end points, which
-      // collapses the arc to nothing. Draw it as a whole circle instead.
-      const d = share >= 0.999
-        ? `M ${C} ${C - R} A ${R} ${R} 0 1 1 ${C - 0.01} ${C - R} Z`
-        : `M ${C} ${C} L ${x1.toFixed(3)} ${y1.toFixed(3)} `
-          + `A ${R} ${R} 0 ${large} 1 ${x2.toFixed(3)} ${y2.toFixed(3)} Z`;
+  const live = slices.filter((s) => s.value > 0);
+  let angle = -Math.PI / 2; // twelve o'clock
 
-      return { d, slice };
-    });
+  const wedges = live.map((slice) => {
+    const share = slice.value / total;
+    const sweep = share * Math.PI * 2;
+
+    // Trim both ends so neighbouring wedges never touch. A slice smaller than
+    // the gap itself would invert, so the trim shrinks with the slice.
+    const trim = Math.min(GAP, sweep / 3);
+    const a0 = angle + trim;
+    const a1 = angle + sweep - trim;
+    const mid = angle + sweep / 2;
+    angle += sweep;
+
+    const pt = (r: number, a: number) =>
+      `${(C + r * Math.cos(a)).toFixed(2)} ${(C + r * Math.sin(a)).toFixed(2)}`;
+    const large = a1 - a0 > Math.PI ? 1 : 0;
+
+    const d =
+      `M ${pt(R_OUT, a0)} ` +
+      `A ${R_OUT} ${R_OUT} 0 ${large} 1 ${pt(R_OUT, a1)} ` +
+      `L ${pt(R_IN, a1)} ` +
+      `A ${R_IN} ${R_IN} 0 ${large} 0 ${pt(R_IN, a0)} Z`;
+
+    // Direct labels only where the wedge can hold one. A number on every
+    // slice turns the ring into a scatter of digits, and the legend below
+    // already carries every figure.
+    const labelR = (R_OUT + R_IN) / 2;
+    return {
+      slice,
+      d,
+      share,
+      showLabel: share >= 0.08,
+      lx: C + labelR * Math.cos(mid),
+      ly: C + labelR * Math.sin(mid),
+    };
+  });
 
   return (
     <div className={styles.donutWrap}>
-      <svg viewBox="0 0 100 100" className={styles.pie} role="img" aria-label={title}>
+      <svg viewBox="0 0 200 200" className={styles.pie} role="img" aria-label={title}>
         <title>{title}</title>
-        {wedges.map(({ d, slice }) => (
-          <path key={slice.label} d={d} className={`${styles.pieWedge} ${styles[slice.tone]}`} />
+
+        {wedges.map((w) => (
+          <path
+            key={w.slice.label}
+            d={w.d}
+            className={`${styles.pieWedge} ${styles[w.slice.tone]}`}
+          />
         ))}
+
+        {wedges.map((w) =>
+          w.showLabel ? (
+            <text
+              key={`${w.slice.label}-pct`}
+              x={w.lx}
+              y={w.ly + 4}
+              className={styles.wedgeLabel}
+              textAnchor="middle"
+            >
+              {Math.round(w.share * 100)}%
+            </text>
+          ) : null,
+        )}
+
+        <text x={C} y={C - 2} className={styles.holeValue} textAnchor="middle">
+          {show(total)}
+        </text>
+        <text x={C} y={C + 18} className={styles.holeLabel} textAnchor="middle">
+          {centreLabel ?? 'total'}
+        </text>
       </svg>
 
       <ul className={styles.legend}>
@@ -312,7 +379,7 @@ export function PieChart({
             <span className={styles.legendValue}>
               {show(slice.value)}
               <span className={styles.legendShare}>
-                {total > 0 ? ` · ${Math.round((slice.value / total) * 1000) / 10}%` : ''}
+                {` · ${Math.round((slice.value / total) * 1000) / 10}%`}
               </span>
             </span>
           </li>
@@ -323,11 +390,17 @@ export function PieChart({
 }
 
 /**
- * Vertical bars, for a run of periods.
+ * Vertical bars over a run of periods.
  *
- * BarTable above is for comparing named things — stations, categories — where
- * the label needs room to be read. This is for comparing the same thing across
- * time, where the label is a month and the shape of the run is the point.
+ * BarTable above compares named things, where the label needs room to be read.
+ * This compares one thing across time, where the shape of the run is the point.
+ *
+ * It was a row of floating blocks with a number over each: no baseline, no
+ * scale, nothing to read a height against, which is what made it look drawn
+ * rather than measured. Now it has a zero line the bars sit on, two recessive
+ * gridlines, the scale stated once at the top, and values only on the bars
+ * worth calling out — the tallest and the newest. A number over every bar is
+ * a table pretending to be a chart.
  */
 export function BarChart({
   title,
@@ -338,7 +411,7 @@ export function BarChart({
   title: string;
   points: { label: string; value: number }[];
   format?: (value: number) => string;
-  tone?: 'teal' | 'green' | 'gold' | 'pink';
+  tone?: 'teal' | 'green' | 'gold' | 'pink' | 'indigo';
 }) {
   if (points.length === 0) {
     return <p className={styles.trendEmpty}>Nothing reported yet.</p>;
@@ -347,21 +420,61 @@ export function BarChart({
   const show = format ?? ((v: number) => v.toLocaleString());
   const peak = Math.max(1, ...points.map((p) => p.value));
 
+  // A round ceiling above the tallest bar, so the top gridline is a number a
+  // person would say out loud rather than whatever the maximum happened to be.
+  const magnitude = 10 ** Math.floor(Math.log10(peak));
+  const ceiling = Math.ceil(peak / (magnitude / 2)) * (magnitude / 2) || 1;
+
+  const peakAt = points.reduce((best, p, i) => (p.value > points[best].value ? i : best), 0);
+  const lastAt = points.length - 1;
+
   return (
     <figure className={styles.bars} aria-label={title}>
+      <div className={styles.barPlot}>
+        {/* Recessive: the gridlines exist to read a height against, not to be
+            looked at. Each carries its own number, on the line it belongs to —
+            a scale printed in a row above the plot names two values and
+            attaches neither of them to anything. */}
+        <span className={styles.gridline} style={{ insetBlockStart: '0%' }} aria-hidden="true">
+          <span className={styles.gridValue}>{show(ceiling)}</span>
+        </span>
+        <span className={styles.gridline} style={{ insetBlockStart: '50%' }} aria-hidden="true">
+          <span className={styles.gridValue}>{show(ceiling / 2)}</span>
+        </span>
+
+        <div className={styles.barRow}>
+          {points.map((point, i) => (
+            <div key={point.label} className={styles.barItem}>
+              {i === peakAt || i === lastAt ? (
+                <span
+                  className={[
+                    styles.barValue,
+                    // An edge bar's label is anchored to that edge instead of
+                    // centred, or half of it renders outside the plot.
+                    i === 0 ? styles.barValueStart : '',
+                    i === lastAt ? styles.barValueEnd : '',
+                  ].filter(Boolean).join(' ')}
+                  style={{ insetBlockEnd: `calc(${((point.value / ceiling) * 100).toFixed(1)}% + 6px)` }}
+                >
+                  {show(point.value)}
+                </span>
+              ) : null}
+              <div
+                className={`${styles.barColumn} ${styles[tone]} ${i === lastAt ? styles.barColumnNow : ''}`}
+                /* Floored at 2% so a near-zero period is still a visible mark
+                   rather than a gap that reads as missing data. */
+                style={{ blockSize: `${Math.max(2, (point.value / ceiling) * 100).toFixed(1)}%` }}
+              />
+            </div>
+          ))}
+        </div>
+
+        <span className={styles.baseline} aria-hidden="true" />
+      </div>
+
       <div className={styles.barRow}>
         {points.map((point) => (
-          <div key={point.label} className={styles.barItem}>
-            <span className={styles.barValue}>{show(point.value)}</span>
-            <div
-              className={`${styles.barColumn} ${styles[tone]}`}
-              /* Percentage of the tallest, floored so a tiny period is still a
-                 visible mark rather than a gap that reads as missing data.
-                 Capped at 88% so the value label above always has room. */
-              style={{ blockSize: `${Math.min(88, Math.max(3, (point.value / peak) * 88))}%` }}
-            />
-            <span className={styles.barLabel}>{point.label}</span>
-          </div>
+          <span key={point.label} className={styles.barLabel}>{point.label}</span>
         ))}
       </div>
     </figure>

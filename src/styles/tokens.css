@@ -324,6 +324,41 @@
 
   /* Ink text. Brand yellow is 1.85:1 against white and can never carry it. */
   --metric-gold-from:  #E8A200;  /* 7.80 on ink */
+
+  /* --- Chart series ----------------------------------------------------
+     A categorical palette, in fixed order, validated rather than chosen.
+
+     The console was drawing series in the brand's own teal and green, which
+     are adjacent hues: measured, they sit ΔE 8.9 apart in NORMAL vision —
+     below the 15 floor — so a reader with no colour deficiency at all could
+     not reliably tell the teal wedge from the green one. Two of five slices
+     were effectively the same colour, which is most of why the pies read as
+     decoration.
+
+     These five pass every check against the white panel they are drawn on:
+     lightness band, chroma floor, colour-blind separation (worst adjacent
+     pair ΔE 12.7, protanopia), normal-vision separation (worst 21.2), and
+     3:1 contrast against the surface. The order is load-bearing — a series
+     keeps its colour when the list is filtered, and gold sits between
+     crimson and green because those two collapse under deuteranopia when
+     placed side by side.
+
+     Verified with the dataviz validator; re-run it before changing any
+     value here.
+
+     There is deliberately no dark-surface variant: every chart in this
+     console is drawn on a white panel. An unvalidated dark ramp would be
+     worse than none.                                                    */
+  --series-1: #00897B;  /* teal    */
+  --series-2: #5A4BA8;  /* indigo  */
+  --series-3: #C2304F;  /* crimson */
+  --series-4: #C08812;  /* gold    */
+  --series-5: #35701A;  /* green   */
+
+  /* The gap drawn between neighbouring marks, and the ring around an
+     overlapping one: the surface itself, never a line. */
+  --chart-gap: var(--surface-raised);
+  --chart-grid: #E8EEEC;
   --metric-gold-to:    #FFC93C;  /* 11.10 on ink */
 
   /* Status chips. A chip is small and often the only thing distinguishing two

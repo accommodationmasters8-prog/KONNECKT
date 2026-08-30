@@ -48,23 +48,23 @@
   .barCol, .barCell { display: none; }
 }
 
+/* Thin. A ranked bar is read by comparing lengths, and a fat bar spends
+   height saying nothing the length has not already said. */
 .barTrack {
   display: block;
-  block-size: 10px;
+  block-size: 8px;
   border-radius: var(--radius-pill);
-  background: var(--surface-sunken);
+  background: var(--chart-grid);
   overflow: hidden;
 }
 
 .barFill {
   display: block;
   block-size: 100%;
-  border-radius: var(--radius-pill);
-  background-image: linear-gradient(
-    90deg,
-    var(--metric-teal-from),
-    var(--metric-teal-to)
-  );
+  /* Rounded at the data end only; the other end is anchored to zero, and a
+     bar rounded there floats off the axis it is measured against. */
+  border-radius: 0 4px 4px 0;
+  background: var(--series-1);
 }
 
 .numCol {
@@ -163,11 +163,17 @@
 /* Slice colours. The deep variants, because these sit on white and the pure
    brand values do not clear AA there — a legend swatch is decoration but the
    donut is the figure, so it holds to the same bar. */
-.teal  { --slice-colour: var(--metric-teal-to); }
-.green { --slice-colour: var(--metric-green-to); }
-.gold  { --slice-colour: var(--metric-gold-from); }
-.pink  { --slice-colour: var(--metric-pink-to); }
-.slate { --slice-colour: var(--konekt-slate); }
+/* The series palette, in fixed order.
+
+   The names are the brand's; the values are the validated categorical steps.
+   `slate` is not a series — it is the neutral "everything else" slot, and it
+   is only ever used for a residual that carries its own label. */
+.teal   { --slice-colour: var(--series-1); }
+.indigo { --slice-colour: var(--series-2); }
+.pink   { --slice-colour: var(--series-3); }
+.gold   { --slice-colour: var(--series-4); }
+.green  { --slice-colour: var(--series-5); }
+.slate  { --slice-colour: var(--konekt-slate); }
 
 /* --- Trend -------------------------------------------------------------- */
 
@@ -272,8 +278,9 @@
 .barRow {
   display: flex;
   align-items: flex-end;
-  gap: var(--space-sm);
-  block-size: 190px;
+  /* 2px of surface between neighbouring marks, per the mark spec: a gap the
+     ground shows through, never a stroke. */
+  gap: 2px;
   padding-block-start: var(--space-md);
 }
 
@@ -303,12 +310,17 @@
    Thinner than the slot they sit in, and centred: a bar filling its whole
    column reads as a stacked area, not as a bar. */
 .barColumn {
+  /* Without `flex: none` these are flex children that shrink to equal widths,
+     which silently equalised every bar's height too — the chart rendered and
+     misrepresented the data. */
   flex: none;
-  inline-size: min(100%, 34px);
+  inline-size: min(100%, 26px);
   margin-inline: auto;
   background: var(--slice-colour);
-  border-radius: 5px 5px 0 0;
-  min-block-size: 3px;
+  /* Rounded at the data end only. A bar rounded at the baseline floats off
+     the axis it is measured against. */
+  border-radius: 4px 4px 0 0;
+  min-block-size: 2px;
 }
 
 .barLabel {
@@ -319,3 +331,116 @@
   text-overflow: ellipsis;
   max-inline-size: 100%;
 }
+
+
+/* --- The ring ------------------------------------------------------------
+   A donut rather than a pie: the hole holds the total, which is the number
+   everybody reads first and which a solid pie makes you sum the legend to
+   find. Wedges are separated by the surface itself rather than by a stroke,
+   so a slice never borrows a neighbour's edge as its own. */
+
+.pieWedge {
+  fill: var(--slice-colour);
+  stroke: var(--chart-gap);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.wedgeLabel {
+  fill: var(--surface-raised);
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 700;
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--konekt-ink) 45%, transparent);
+  stroke-width: 2.5px;
+  stroke-linejoin: round;
+}
+
+.holeValue {
+  fill: var(--text-strong);
+  font-family: var(--font-data);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.holeLabel {
+  fill: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* --- Bar chart furniture -------------------------------------------------
+   What turns a row of blocks into a measurement: a line they stand on, two
+   gridlines to read a height against, and the scale said once. */
+
+.barPlot {
+  position: relative;
+  block-size: 9.5rem;
+  /* Room above the plot for the tallest bar's value label, which sits outside
+     the 0–100% height the bars are measured in. */
+  margin-block-start: 1.25rem;
+}
+
+.gridline {
+  position: absolute;
+  inset-inline: 0;
+  block-size: 1px;
+  background: var(--chart-grid);
+}
+
+/* The scale, on the line it describes. */
+.gridValue {
+  position: absolute;
+  inset-block-end: 2px;
+  inset-inline-start: 0;
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  color: var(--text-muted);
+  background: var(--surface-raised);
+  padding-inline-end: 4px;
+}
+
+.baseline {
+  position: absolute;
+  inset-inline: 0;
+  inset-block-end: 0;
+  block-size: 1px;
+  background: var(--line-strong);
+}
+
+.barPlot .barRow {
+  position: absolute;
+  inset: 0;
+  align-items: flex-end;
+}
+
+.barItem { position: relative; }
+
+.barValue {
+  position: absolute;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-data);
+  font-size: var(--size-micro);
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+/* An edge bar's label anchors to that edge. Centred, half of it renders
+   outside the plot — which is what the first render of this chart did. */
+.barValueStart { inset-inline-start: 0; transform: none; }
+.barValueEnd { inset-inline-start: auto; inset-inline-end: 0; transform: none; }
+
+/* The newest period, called out. Everything before it is history; this one
+   is the number somebody is about to be asked about. */
+.barColumnNow {
+  outline: 2px solid var(--chart-gap);
+  outline-offset: -1px;
+}
+
+/* The top of a ranking, marked. In a list sorted by size the leader is the
+   answer to the question the ranking was opened to ask. */
+.barFillLead { background: var(--konekt-ink); }

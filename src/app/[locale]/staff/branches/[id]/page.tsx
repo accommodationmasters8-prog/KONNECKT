@@ -17,6 +17,12 @@ import { count, formatPeriod, getCategories, money } from '@/lib/tracker';
 import { resolveLocale } from '@/lib/page';
 import styles from '../../staff.module.css';
 
+/* The categorical order, fixed. A series keeps its colour when the list is
+   filtered — colour follows the entity, never its rank — and gold sits
+   between crimson and green because those two collapse into each other under
+   deuteranopia when placed side by side. */
+const SERIES = ['teal', 'indigo', 'pink', 'gold', 'green'] as const;
+
 export const metadata: Metadata = {
   title: 'Branch — Konekt tracker',
   robots: { index: false, follow: false },
@@ -226,7 +232,7 @@ export default async function BranchPage({
             slices={byCategory.slice(0, 5).map((c, i) => ({
               label: c.name,
               value: c.deposits,
-              tone: (['teal', 'green', 'gold', 'pink', 'slate'] as const)[i],
+              tone: SERIES[i % SERIES.length],
             }))}
           />
         </Panel>

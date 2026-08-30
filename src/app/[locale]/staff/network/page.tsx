@@ -13,6 +13,12 @@ import { count, formatPeriod, money } from '@/lib/tracker';
 import { localeParams, resolveLocale } from '@/lib/page';
 import styles from '../staff.module.css';
 
+/* The categorical order, fixed. A series keeps its colour when the list is
+   filtered — colour follows the entity, never its rank — and gold sits
+   between crimson and green because those two collapse into each other under
+   deuteranopia when placed side by side. */
+const SERIES = ['teal', 'indigo', 'pink', 'gold', 'green'] as const;
+
 export function generateStaticParams() {
   return localeParams();
 }
@@ -178,7 +184,7 @@ export default async function NetworkPage({
                 slices={view.rows.slice(0, 5).map((r, i) => ({
                   label: r.name,
                   value: r.deposits,
-                  tone: (['teal', 'green', 'gold', 'pink', 'slate'] as const)[i],
+                  tone: SERIES[i % SERIES.length],
                 }))}
               />
             </Panel>
@@ -347,7 +353,7 @@ export default async function NetworkPage({
                   slices={byCategory.slice(0, 5).map((c, i) => ({
                     label: c.name,
                     value: c.deposits,
-                    tone: (['teal', 'green', 'gold', 'pink', 'slate'] as const)[i],
+                    tone: SERIES[i % SERIES.length],
                   }))}
                 />
 
