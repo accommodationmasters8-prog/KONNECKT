@@ -394,3 +394,18 @@
   font-weight: var(--weight-semibold);
   color: var(--text-accent);
 }
+
+/* Zone › Branch › Station. The trail matters more here than anywhere else in
+   the console: a station is the only screen you can arrive at from four
+   different directions, and it is where people ask "whose is this?". */
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--size-caption);
+  color: var(--text-body);
+  text-transform: capitalize;
+}
+
+.crumbHere { color: var(--text-strong); font-weight: var(--weight-semibold); }

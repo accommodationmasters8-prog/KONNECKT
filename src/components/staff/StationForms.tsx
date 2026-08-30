@@ -42,12 +42,16 @@ export function StationForm({
   branches,
   needsBranch,
   station,
+  fixedBranchId,
 }: {
   locale: string;
   categories: CategoryOption[];
   branches: BranchOption[];
   needsBranch: boolean;
   station?: StationFields;
+  /** Set when the form is opened from a branch: the answer is already known,
+   *  so the field becomes a hidden input rather than a one-option dropdown. */
+  fixedBranchId?: string;
 }) {
   const editing = Boolean(station?.id);
   const [state, formAction, pending] = useActionState(
@@ -63,6 +67,7 @@ export function StationForm({
   return (
     <form action={formAction} className={styles.form}>
       {station?.id ? <input type="hidden" name="id" value={station.id} /> : null}
+      {fixedBranchId ? <input type="hidden" name="branch_id" value={fixedBranchId} /> : null}
 
       <div className={styles.grid}>
         <label className={styles.field}>

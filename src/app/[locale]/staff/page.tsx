@@ -71,7 +71,7 @@ export default async function TrackerOverview({
       user={session.user}
       actions={
         session.signedIn ? (
-          <Link href={`/${locale}/staff/stations`} className="btn btn--primary btn--sm">
+          <Link href={`/${locale}/staff/branches`} className="btn btn--primary btn--sm">
             Add a station
           </Link>
         ) : null

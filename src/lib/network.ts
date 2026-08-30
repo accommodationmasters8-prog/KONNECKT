@@ -382,3 +382,138 @@ export async function getCategoryBreakdown(
     }))
     .sort((a, b) => b.deposits - a.deposits);
 }
+
+export interface BranchNode {
+  id: string;
+  name: string;
+  zone: string | null;
+  stations: number;
+  reporting: number;
+  portfolio: number;
+  accountsOpened: number;
+  deposits: number;
+  coveragePct: number | null;
+}
+
+export interface ZoneNode {
+  zone: string;
+  label: string;
+  branches: BranchNode[];
+  stations: number;
+  deposits: number;
+}
+
+/**
+ * The tree: zones own branches, branches own stations.
+ *
+ * One hierarchy, read once. The console had two — a flat station list and a
+ * performance drill-down — which meant a station could be reached by two
+ * routes that disagreed about what it belonged to. A branch is the only thing
+ * that owns a station (branch_id is NOT NULL on the table), and a zone is
+ * derived from the branch by trigger, so this shape is not a presentation
+ * choice: it is what the database already enforces.
+ *
+ * Branches with no stations are included. A branch nobody has added anything
+ * to is exactly the branch somebody needs to go and look at.
+ */
+export async function getBranchTree(): Promise<ZoneNode[]> {
+  const supabase = await getServerClient();
+  if (!supabase) return [];
+
+  const [branchRes, stationRes] = await Promise.all([
+    supabase.from('branches' as never)
+      .select('id, name, zone_code')
+      .eq('is_active', true)
+      .order('name', { ascending: true })
+      .limit(2000),
+    supabase.from('stations' as never)
+      .select('id, branch_id, zone_code, status')
+      .limit(5000),
+  ]);
+
+  const branches = (branchRes.data as unknown as
+    { id: string; name: string; zone_code: string | null }[]) ?? [];
+  const stations = (stationRes.data as unknown as
+    { id: string; branch_id: string; zone_code: string | null; status: string }[]) ?? [];
+
+  const ids = stations.map((s) => s.id);
+  const { data: latestData } = ids.length
+    ? await supabase.from('station_latest' as never)
+        .select('station_id, period_month, portfolio, accounts_opened, deposits_tzs')
+        .in('station_id', ids)
+    : { data: [] };
+
+  const latest = new Map(
+    ((latestData as unknown as Record<string, unknown>[]) ?? [])
+      .map((r) => [r.station_id as string, r]),
+  );
+
+  const period = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
+  })();
+
+  const byBranch = new Map<string, BranchNode>();
+  for (const branch of branches) {
+    byBranch.set(branch.id, {
+      id: branch.id, name: branch.name, zone: branch.zone_code,
+      stations: 0, reporting: 0, portfolio: 0, accountsOpened: 0,
+      deposits: 0, coveragePct: null,
+    });
+  }
+
+  for (const station of stations) {
+    // A station whose branch is not in the visible list still counts against
+    // its zone — dropping it would make the zone total disagree with the sum
+    // of what is shown, which is the kind of thing people stop trusting.
+    let node = byBranch.get(station.branch_id);
+    if (!node) {
+      node = {
+        id: station.branch_id, name: 'Unnamed branch', zone: station.zone_code,
+        stations: 0, reporting: 0, portfolio: 0, accountsOpened: 0,
+        deposits: 0, coveragePct: null,
+      };
+      byBranch.set(station.branch_id, node);
+    }
+
+    node.stations += 1;
+    const l = latest.get(station.id);
+    if (l) {
+      node.portfolio += Number(l.portfolio ?? 0);
+      node.accountsOpened += Number(l.accounts_opened ?? 0);
+      node.deposits += Number(l.deposits_tzs ?? 0);
+      if (String(l.period_month) === period) node.reporting += 1;
+    }
+  }
+
+  const zones = new Map<string, ZoneNode>();
+  for (const branch of byBranch.values()) {
+    branch.coveragePct = branch.portfolio > 0
+      ? Math.round((branch.accountsOpened / branch.portfolio) * 1000) / 10
+      : null;
+
+    const key = branch.zone ?? 'UNASSIGNED';
+    if (!zones.has(key)) {
+      zones.set(key, {
+        zone: key,
+        label: key === 'UNASSIGNED' ? 'No zone assigned' : zoneWording(key),
+        branches: [], stations: 0, deposits: 0,
+      });
+    }
+    const zone = zones.get(key)!;
+    zone.branches.push(branch);
+    zone.stations += branch.stations;
+    zone.deposits += branch.deposits;
+  }
+
+  for (const zone of zones.values()) {
+    zone.branches.sort((a, b) => b.deposits - a.deposits || a.name.localeCompare(b.name));
+  }
+
+  return [...zones.values()].sort((a, b) => {
+    // Unassigned last: it is a to-do list, not a zone.
+    if (a.zone === 'UNASSIGNED') return 1;
+    if (b.zone === 'UNASSIGNED') return -1;
+    return b.deposits - a.deposits;
+  });
+}

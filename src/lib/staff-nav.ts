@@ -11,6 +11,7 @@ import type { StaffNavItem } from '@/components/staff/StaffShell';
 export const STAFF_LABELS = {
   overview: 'Overview',
   network: 'Performance',
+  branches: 'Branches',
   categories: 'Categories',
   stations: 'Stations',
   events: 'Events',
@@ -28,7 +29,9 @@ export function staffNav(locale: Locale, labels: Record<string, string>): StaffN
     { key: 'network', href: to('/network'), label: labels.network, roles: ['hq', 'zone', 'branch'] },
     // What is tracked, and what it adds up to.
     { key: 'categories', href: to('/categories'), label: labels.categories, roles: ['hq', 'zone', 'branch'] },
-    { key: 'stations', href: to('/stations'), label: labels.stations, roles: ['hq', 'zone', 'branch'] },
+    // The tree: a zone owns branches, a branch owns stations. One hierarchy,
+    // and the only place structure is changed.
+    { key: 'branches', href: to('/branches'), label: labels.branches, roles: ['hq', 'zone', 'branch'] },
     { key: 'events', href: to('/events'), label: labels.events, roles: ['hq', 'zone', 'branch'] },
     // Take it away with you.
     { key: 'reports', href: to('/reports'), label: labels.reports, roles: ['hq', 'zone', 'branch'] },

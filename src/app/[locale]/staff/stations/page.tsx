@@ -3,7 +3,6 @@ import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
-import { StationForm } from '@/components/staff/StationForms';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
@@ -71,12 +70,17 @@ export default async function StationsPage({
       role={session.role}
       active="stations"
       nav={staffNav(locale, STAFF_LABELS)}
-      title="Stations"
+      title="Find a station"
       scopeLabel={session.scopeLabel}
       user={session.user}
+      actions={
+        <Link href={`/${locale}/staff/branches`} className={styles.link}>
+          ← The tree: zones, branches, stations
+        </Link>
+      }
     >
       {!session.signedIn ? (
-        <Panel title="Stations">
+        <Panel title="Find a station">
           <PanelEmpty>Sign in to see the stations your role can reach.</PanelEmpty>
         </Panel>
       ) : (
@@ -93,8 +97,8 @@ export default async function StationsPage({
           </div>
 
           <Panel
-            title="Everything in your scope"
-            description="Click a station to see its full analytics and to file or correct a month."
+            title="Every station you can reach"
+            description="One flat list for when you know the name but not the branch. The tree — zone, branch, station — is under Branches."
           >
             {stations.length === 0 ? (
               <PanelEmpty>
@@ -161,24 +165,6 @@ export default async function StationsPage({
             )}
           </Panel>
 
-          <Panel
-            title="Add a station"
-            description="One named place: an institution, organisation, school or group. It belongs to the branch that reports on it, and everything it produces counts towards that branch, its zone and HQ."
-          >
-            {categories.length === 0 ? (
-              <PanelEmpty>
-                No categories exist yet. HQ creates those first — a station has
-                to belong to one.
-              </PanelEmpty>
-            ) : (
-              <StationForm
-                locale={locale}
-                categories={categories.map((c) => ({ id: c.id, name: c.name_en }))}
-                branches={branches}
-                needsBranch={session.role !== 'branch'}
-              />
-            )}
-          </Panel>
         </>
       )}
     </StaffShell>

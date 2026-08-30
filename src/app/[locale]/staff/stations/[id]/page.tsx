@@ -92,6 +92,17 @@ export default async function StationPage({
     loans_value_tzs: Number(r.loans_value_tzs),
   }));
 
+  // Where this station sits. A station page with no trail back to its branch
+  // is a leaf with no tree, and the branch is the thing that owns it.
+  const { data: branchData } = await supabase
+    .from('branches' as never)
+    .select('id, name, zone_code')
+    .eq('id', station.branch_id)
+    .maybeSingle();
+
+  const branch = branchData as unknown as
+    { id: string; name: string; zone_code: string | null } | null;
+
   const newest = reports[0];
   const previous = reports[1];
 
@@ -154,7 +165,23 @@ export default async function StationPage({
       ].filter(Boolean).join(' · ')}
       user={session.user}
       actions={
-        <Link href={`/${locale}/staff/stations`} className={styles.link}>← All stations</Link>
+        branch ? (
+          <nav className={styles.crumbs} aria-label="Where this station sits">
+            {branch.zone_code ? (
+              <Link href={`/${locale}/staff/network?zone=${branch.zone_code}`} className={styles.link}>
+                {branch.zone_code.replace(/_/g, ' ')}
+              </Link>
+            ) : null}
+            <span aria-hidden="true">›</span>
+            <Link href={`/${locale}/staff/branches/${branch.id}`} className={styles.link}>
+              {branch.name}
+            </Link>
+            <span aria-hidden="true">›</span>
+            <span className={styles.crumbHere}>{station.name}</span>
+          </nav>
+        ) : (
+          <Link href={`/${locale}/staff/branches`} className={styles.link}>← All branches</Link>
+        )
       }
     >
       <div className={styles.metrics}>
