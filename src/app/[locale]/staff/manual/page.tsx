@@ -101,11 +101,38 @@ export default async function ManualPage({
 
           <div className={styles.chapters}>
             {sections.map((section, i) => (
-              <section key={section.id} id={section.id} className={styles.chapter}>
-                <span className={styles.chapterNum}>
-                  {String(i + 1).padStart(2, '0')}
-                </span>
-                <h2 className={styles.chapterTitle}>{section.title}</h2>
+              /* A native <details>, not a scripted accordion. People already
+                 know this control — the chevron, the click target, the way it
+                 behaves with a keyboard — and reimplementing it would be a
+                 worse copy of something the browser does correctly. It also
+                 opens on print and can be linked to.
+
+                 The first chapter starts open so the page never loads as a
+                 wall of closed bars with nothing to read. They are deliberately
+                 not an exclusive group: `name` would shut one chapter to open
+                 another, which is wrong for a reference somebody reads with two
+                 sections side by side — and on paper it would print exactly one
+                 of them. */
+              <details
+                key={section.id}
+                id={section.id}
+                className={styles.chapter}
+                open={i === 0}
+              >
+                <summary className={styles.summary}>
+                  <span className={styles.chapterNum}>
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <h2 className={styles.chapterTitle}>{section.title}</h2>
+                  <span className={styles.chevron} aria-hidden="true">
+                    <svg viewBox="0 0 16 16" width="14" height="14" fill="none">
+                      <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.75"
+                        strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                </summary>
+
+                <div className={styles.chapterBody}>
                 {section.lead ? <p className={styles.lead}>{section.lead}</p> : null}
 
                 {section.blocks.map((block, b) => {
@@ -192,7 +219,8 @@ export default async function ManualPage({
                     </aside>
                   );
                 })}
-              </section>
+                </div>
+              </details>
             ))}
           </div>
         </div>

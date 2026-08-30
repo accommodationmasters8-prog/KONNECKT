@@ -40,10 +40,30 @@ export async function Hero({ locale, t }: { locale: Locale; t: Dictionary }) {
   ];
 
   return (
-    <section className={styles.hero}>
-      {/* Ambient only: a single wash behind the mark, no edges, nothing to
-          read. Marked decorative so it is never announced. */}
-      <span className={styles.wash} aria-hidden="true" />
+    /* `on-ink` switches the shared button and link styles to their inverse
+       variants. The ghost button in particular is a dark outline on white and
+       becomes invisible here without it. */
+    <section className={`on-ink ${styles.hero}`}>
+      {/* The video is the ground, not an element on it.
+          `muted` + `playsInline` are what let it autoplay at all — every
+          browser blocks a hero that could make noise, and iOS blocks one that
+          would go full screen. `aria-hidden` because it carries no
+          information: everything it says is said again in the headline.
+          The container is painted with the brand ink underneath, so the first
+          frame, a slow connection and a browser that will not decode it all
+          land on a designed ground rather than on black. */}
+      <div className={styles.stage} aria-hidden="true">
+        <video
+          className={styles.video}
+          src="/media/konekt-hero.mp4"
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+        />
+        <span className={styles.scrim} />
+      </div>
 
       <div className={`shell ${styles.inner}`}>
         <span className={`${styles.badge} ${styles.r1}`}>

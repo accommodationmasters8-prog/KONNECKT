@@ -31,31 +31,31 @@ const en: Dictionary = {
   },
 
   hero: {
-    eyebrow: 'Internal tracker · Na CRDB',
-    headline: 'Every station CRDB tracks, in one place.',
+    eyebrow: 'Na CRDB',
+    headline: 'Every youth CRDB reaches, station by station.',
     subline:
-      'Konekt is CRDB\u2019s internal tracking and analytics tool. Portfolios, accounts, deposits and loans \u2014 recorded station by station, rolled up from branch to zone to HQ.',
+      'Accounts, SimBanking, Lipa Hapa, cards and loans. Recorded where they happen. Read by the branch, the zone and HQ at the same time.',
     ctaPrimary: 'Sign in',
     ctaSecondary: 'See the map',
     statZones: 'zones',
-    statBranches: 'CRDB branches',
-    statStations: 'stations tracked',
+    statBranches: 'branches',
+    statStations: 'stations',
     scrollHint: 'Scroll',
   },
   how: {
     eyebrow: 'How it works',
-    title: 'Three steps, once a month.',
+    title: 'Three steps.',
     lead:
-      'Konekt replaces the spreadsheets that used to travel between a branch and HQ by email. Everyone files into the same place, and everyone above them sees it the moment it lands.',
+      'No more spreadsheets by email. Everyone files in one place, and everyone above them sees it as it lands.',
     step1Title: 'A branch adds its stations',
     step1Body:
-      'Every institution, workplace or group the branch works with, filed under the category it belongs to. Added once; corrected whenever something changes.',
+      'Every school, campus, barracks, stand or salon the branch works with, filed under its category. Added once, corrected any time.',
     step2Title: 'It files the figures',
     step2Body:
       'People in the station, accounts opened, active and dormant, deposits mobilised and loans — daily, weekly or monthly, whichever suits. Filing the same period again corrects it rather than adding a second.',
     step3Title: 'Zone and HQ read it live',
     step3Body:
-      'A branch sees its own book, a zone sees every branch under it, HQ sees the country. Same figures, same moment, no one waiting on a spreadsheet.',
+      'A branch sees its own. A zone sees its branches. HQ sees the country. Same figures, same moment.',
   },
 
   map: {

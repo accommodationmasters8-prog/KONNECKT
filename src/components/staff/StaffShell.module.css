@@ -56,8 +56,29 @@
     position: sticky;
     inset-block-start: 0;
     block-size: 100dvh;
+    /* The rail is exactly one viewport tall, so anything past that has to
+       scroll inside it rather than overflow out of it. Without this the nav
+       simply grew past the bottom of the screen and took Sign out with it —
+       `margin-block-start: auto` cannot push a footer into view that is
+       already below the fold. */
+    overflow: hidden;
     padding: var(--space-lg) var(--space-md);
   }
+
+  /* The sections scroll; the brand, the name and Sign out never do. Those
+     three are how you know where you are and how you leave, and neither
+     should ever be a thing you have to go looking for. */
+  .nav {
+    flex: 1 1 auto;
+    min-block-size: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+
+  .brand,
+  .who,
+  .railFoot { flex: none; }
 }
 
 .brand {
@@ -171,7 +192,14 @@
   font-weight: var(--weight-semibold);
 }
 
-.railFoot { margin-block-start: auto; padding-block-start: var(--space-md); }
+/* Separated from the sections by a rule, because leaving is a different kind
+   of action from navigating and should not read as the eleventh item in a list
+   of ten. */
+.railFoot {
+  margin-block-start: auto;
+  padding-block-start: var(--space-md);
+  border-block-start: 1px solid var(--line-app);
+}
 
 @media (max-width: 59.999rem) {
   .railFoot { margin-block-start: 0; padding-block-start: 0; }

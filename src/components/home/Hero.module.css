@@ -1,38 +1,59 @@
 /* The front door.
 
-   White ground, everything centred on one axis, and the space around things
-   doing the work no gradient or shadow is asked to do. What changed from the
-   first version is confidence: the mark is nearly twice the size, the headline
-   is set at display scale rather than apologetically below it, and the whole
-   thing arrives in one orchestrated sequence instead of appearing all at once
-   like a document. */
+   The video is the ground the page stands on rather than a picture placed on
+   it, so everything above it — the mark, the headline, the figures — is set on
+   ink and reads in one pass. Two things keep it from being decoration: it is
+   silent and it never asks to be watched, and the ink underneath means the
+   page is finished before a single frame arrives. */
 
 .hero {
   position: relative;
+  isolation: isolate;
   overflow: hidden;
-  background: var(--surface-raised);
-  color: var(--text-strong);
-  padding-block: clamp(var(--space-2xl), 9vw, 7rem);
-  border-block-end: 1px solid var(--line-soft);
+  /* Painted first, so the hero is complete before the video decodes, on a
+     connection too slow to decode it, and in a browser that will not. */
+  background-color: var(--konekt-ink);
+  background-image: var(--ramp-ink);
+  color: var(--text-on-inverse);
+  padding-block: clamp(var(--space-2xl), 9vw, 6.5rem);
 }
 
-/* One wash, behind the mark, with no edge anywhere. It is the only non-flat
-   thing on the page and it is doing atmosphere, not decoration. */
-.wash {
+.stage {
   position: absolute;
-  inset-block-start: -22%;
-  inset-inline-start: 50%;
-  translate: -50% 0;
-  inline-size: min(120%, 62rem);
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(
-    circle at 50% 42%,
-    color-mix(in srgb, var(--konekt-teal) 13%, transparent) 0%,
-    color-mix(in srgb, var(--konekt-teal) 5%, transparent) 38%,
-    transparent 66%
-  );
+  inset: 0;
+  z-index: -1;
   pointer-events: none;
+}
+
+.video {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+  /* Held back so the mark and the type stay the brightest things on screen.
+     At full strength the footage competes with the wordmark, which is the one
+     element on this page that must never lose. */
+  opacity: 0.5;
+}
+
+/* Contrast, not atmosphere. Text over moving footage fails the moment a light
+   frame passes under it, so the scrim is what the type is actually measured
+   against — a fixed ground the video plays behind. */
+.scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--konekt-ink) 72%, transparent) 0%,
+      color-mix(in srgb, var(--konekt-ink) 58%, transparent) 45%,
+      color-mix(in srgb, var(--konekt-ink) 88%, transparent) 100%
+    );
+}
+
+/* Motion is decoration here and nothing is lost without it: the still first
+   frame under the same scrim says exactly what the moving one does. */
+@media (prefers-reduced-motion: reduce) {
+  .video { display: none; }
 }
 
 .inner {
@@ -51,22 +72,22 @@
   align-items: center;
   gap: var(--space-2xs);
   padding: 5px 14px 5px 10px;
-  border: 1px solid var(--line-soft);
+  border: 1px solid var(--line-on-inverse);
   border-radius: var(--radius-pill);
-  background: var(--surface-canvas);
+  background: color-mix(in srgb, var(--konekt-ink) 55%, transparent);
   font-family: var(--font-display);
   font-size: var(--size-micro);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  color: var(--text-accent);
+  color: var(--konekt-teal-light);
 }
 
 .dot {
   inline-size: 6px;
   block-size: 6px;
   border-radius: 50%;
-  background: var(--konekt-teal);
+  background: var(--konekt-teal-light);
 }
 
 /* --- the mark ----------------------------------------------------------- */
@@ -85,15 +106,16 @@
   font-weight: var(--weight-bold);
   line-height: 1.04;
   letter-spacing: -0.03em;
-  max-inline-size: 18ch;
+  max-inline-size: 17ch;
   text-wrap: balance;
   margin: 0;
+  color: var(--text-on-inverse);
 }
 
 .subline {
   font-size: var(--size-body);
-  color: var(--text-body);
-  max-inline-size: 52ch;
+  color: var(--text-muted-on-inverse);
+  max-inline-size: 50ch;
   line-height: var(--leading-body);
   margin: 0;
 }
@@ -123,7 +145,7 @@
   margin: 0;
   margin-block-start: clamp(var(--space-xl), 5vw, 3.5rem);
   padding-block-start: var(--space-lg);
-  border-block-start: 1px solid var(--line-soft);
+  border-block-start: 1px solid var(--line-on-inverse);
   inline-size: min(100%, 52rem);
 }
 
@@ -141,12 +163,12 @@
   font-variant-numeric: tabular-nums;
   line-height: 1;
   letter-spacing: -0.03em;
-  color: var(--text-accent);
+  color: var(--konekt-teal-light);
 }
 
 .statLabel {
   font-size: var(--size-micro);
-  color: var(--text-body);
+  color: var(--text-muted-on-inverse);
   line-height: var(--leading-snug);
 }
 

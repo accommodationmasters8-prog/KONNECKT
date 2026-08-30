@@ -100,29 +100,84 @@
 
 /* --- chapters ----------------------------------------------------------- */
 
-.chapters { display: grid; gap: var(--space-2xl); min-inline-size: 0; }
+/* Chapters are a stack of disclosures, not a scroll. Eleven chapters open at
+   once is a document you scroll past; eleven closed bars is a table of
+   contents you can act on, which is what a reference is for. */
+.chapters { display: grid; gap: 0; min-inline-size: 0; }
 
-.chapter { scroll-margin-block-start: var(--space-lg); }
+.chapter {
+  scroll-margin-block-start: var(--space-lg);
+  border-block-end: 1px solid var(--line-app);
+}
+
+.chapter:first-child { border-block-start: 1px solid var(--line-app); }
+
+/* The whole bar is the target, not just the words — a click area the width of
+   the column is the difference between a control people use and one they aim
+   at. */
+.summary {
+  display: grid;
+  grid-template-columns: 2rem 1fr 1.25rem;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-block: var(--space-md);
+  cursor: pointer;
+  list-style: none;
+}
+
+.summary::-webkit-details-marker { display: none; }
+
+.summary:focus-visible {
+  outline: 2px solid var(--konekt-teal);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (hover: hover) {
+  .summary:hover .chapterTitle { color: var(--konekt-teal-deep); }
+}
 
 .chapterNum {
-  display: block;
   font-family: var(--font-data);
   font-size: var(--size-nano);
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   color: var(--konekt-teal-deep);
-  margin-block-end: var(--space-2xs);
 }
 
 .chapterTitle {
-  margin: 0 0 var(--space-sm);
-  padding-block-end: var(--space-sm);
-  border-block-end: 1px solid var(--line-app);
+  margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(1.25rem, 3vw, 1.6rem);
-  line-height: 1.15;
-  letter-spacing: -0.015em;
+  /* Smaller than it was. A chapter heading in a list of eleven is a label to
+     scan, not a banner — it was set at the same weight as the page title and
+     made the contents read as eleven competing pages. */
+  font-size: var(--size-h4);
+  font-weight: var(--weight-bold);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
   color: var(--text-strong);
   text-wrap: balance;
+}
+
+.chevron {
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  transition: rotate var(--dur-base) var(--ease-out);
+}
+
+.chapter[open] .chevron { rotate: 180deg; }
+
+.chapterBody {
+  padding-block-end: var(--space-lg);
+  padding-inline-start: calc(2rem + var(--space-sm));
+}
+
+@media (max-width: 40rem) {
+  .chapterBody { padding-inline-start: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chevron { transition: none; }
 }
 
 .lead {
@@ -285,7 +340,15 @@
   .toc { display: none; }
   .body { display: block; }
   .chapters { display: block; }
-  .chapter { break-inside: auto; margin-block-end: 24pt; }
+  .chevron { display: none; }
+
+  /* Every chapter prints, open or not. A reader who collapsed three sections
+     before hitting print wanted a tidy screen, not a manual with three
+     chapters missing. */
+  .chapter > .chapterBody { display: block !important; }
+  .summary { cursor: auto; padding-block: 12pt 6pt; }
+  .chapterTitle { font-size: 13pt; }
+  .chapter { break-inside: auto; border: none; margin-block-end: 12pt; }
   .chapterTitle { break-after: avoid; }
   .lead, .stepWhat { break-after: avoid; }
   .table, .tree, .note, .warn, .steps li { break-inside: avoid; }

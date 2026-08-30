@@ -35,7 +35,7 @@ const sw: Dictionary = {
 
   hero: {
     eyebrow: 'Kifuatiliaji cha ndani · Na CRDB',
-    headline: 'Kila kituo CRDB inachofuatilia, mahali pamoja.',
+    headline: 'Kila kijana CRDB inayemfikia, kituo kwa kituo.',
     subline:
       'Konekt ni kifaa cha ndani cha CRDB cha kufuatilia na kuchambua takwimu. Idadi ya watu, akaunti, amana na mikopo \u2014 kwa kila kituo, kutoka tawi hadi kanda hadi makao makuu.',
     ctaPrimary: 'Ingia',
