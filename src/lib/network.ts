@@ -53,6 +53,18 @@ interface ReportRow {
   loans_value_tzs: number;
 }
 
+export interface BranchStation {
+  id: string;
+  name: string;
+  category: string;
+  status: string;
+  portfolio: number;
+  accountsOpened: number;
+  deposits: number;
+  coveragePct: number | null;
+  lastReport: string | null;
+}
+
 export interface NetworkView {
   /** Zones when HQ is signed in, branches otherwise. */
   rows: Performer[];
@@ -230,6 +242,63 @@ export interface CategorySlice {
   accountsOpened: number;
   deposits: number;
   coveragePct: number | null;
+}
+
+/**
+ * The stations inside one branch.
+ *
+ * The bottom of the drill-down: HQ opens the country, picks a zone, picks a
+ * branch, and arrives at the actual places. Without this the trail stops at a
+ * branch name and a total, which is the level at which nobody can do anything.
+ */
+export async function getBranchStations(branchId: string): Promise<BranchStation[]> {
+  const supabase = await getServerClient();
+  if (!supabase) return [];
+
+  const [stationRes, catRes] = await Promise.all([
+    supabase.from('stations' as never)
+      .select('id, name, category_id, status, last_report_month')
+      .eq('branch_id', branchId)
+      .order('name', { ascending: true })
+      .limit(2000),
+    supabase.from('tracker_categories' as never).select('id, name_en').limit(200),
+  ]);
+
+  const stations = (stationRes.data as unknown as
+    { id: string; name: string; category_id: string; status: string;
+      last_report_month: string | null }[]) ?? [];
+  if (stations.length === 0) return [];
+
+  const catName = new Map(
+    ((catRes.data as unknown as { id: string; name_en: string }[]) ?? [])
+      .map((c) => [c.id, c.name_en]),
+  );
+
+  const { data: latestData } = await supabase
+    .from('station_latest' as never)
+    .select('station_id, portfolio, accounts_opened, deposits_tzs, coverage_pct')
+    .in('station_id', stations.map((s) => s.id));
+
+  const latest = new Map(
+    ((latestData as unknown as Record<string, unknown>[]) ?? [])
+      .map((r) => [r.station_id as string, r]),
+  );
+
+  return stations.map((station) => {
+    const l = latest.get(station.id);
+    return {
+      id: station.id,
+      name: station.name,
+      category: catName.get(station.category_id) ?? '—',
+      status: station.status,
+      portfolio: Number(l?.portfolio ?? 0),
+      accountsOpened: Number(l?.accounts_opened ?? 0),
+      deposits: Number(l?.deposits_tzs ?? 0),
+      coveragePct: l?.coverage_pct === null || l?.coverage_pct === undefined
+        ? null : Number(l.coverage_pct),
+      lastReport: station.last_report_month,
+    };
+  }).sort((a, b) => b.deposits - a.deposits);
 }
 
 /**

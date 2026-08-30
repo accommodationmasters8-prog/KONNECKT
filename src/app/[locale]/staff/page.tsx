@@ -193,6 +193,76 @@ export default async function TrackerOverview({
             </Panel>
           </div>
 
+          {/* Structure before performance: how much there is to look at,
+              before how it is doing. HQ opens this to orient, and four money
+              cards alone do not say whether they are reading a country or a
+              district. */}
+          <div className={styles.metrics}>
+            <MetricCard
+              tone="teal"
+              label="Categories"
+              value={count(data.totalCategories, locale)}
+              note="Kinds of place being tracked"
+              href={`/${locale}/staff/categories`}
+              hint="Open categories"
+            />
+            <MetricCard
+              tone="green"
+              label="Stations"
+              value={count(data.stations, locale)}
+              note={`${count(data.activeStations, locale)} active`}
+              href={`/${locale}/staff/stations`}
+              hint="Open stations"
+            />
+            <MetricCard
+              tone="gold"
+              label="Branches reporting"
+              value={count(data.totalBranches, locale)}
+              note={`${count(data.branchesReporting, locale)} filed this period · ${count(data.zonesCovered, locale)} zones`}
+              href={`/${locale}/staff/network`}
+              hint="Compare them"
+            />
+            <MetricCard
+              tone="pink"
+              label="SimBanking activated"
+              value={nothingYet ? '—' : count(data.simbanking, locale)}
+              note={
+                nothingYet
+                  ? 'Nothing reported yet'
+                  : `${count(data.cardsIssued, locale)} cards · ${count(data.lipaHapa, locale)} Lipa Hapa`
+              }
+            />
+          </div>
+
+          {/* Categories lead the analysis: the question HQ asks first is
+              which kind of place is working, not which branch. */}
+          <Panel
+            title="Coverage by category"
+            description="How much of each category's people actually bank with CRDB. The number that decides where next month goes."
+            action={
+              <Link href={`/${locale}/staff/categories`} className={styles.panelLink}>
+                Open categories →
+              </Link>
+            }
+          >
+            {data.categories.length === 0 ? (
+              <PanelEmpty>No categories yet.</PanelEmpty>
+            ) : (
+              <BarTable
+                caption="Coverage by category"
+                unitLabel="Accounts"
+                rows={data.categories.map((category) => ({
+                  label: category.name_en,
+                  value: category.accounts_opened,
+                  secondary:
+                    category.portfolio > 0
+                      ? `${category.coverage_pct ?? 0}% of ${count(category.portfolio, locale)} · ${category.stations} stations`
+                      : `${category.stations} stations · no portfolio reported`,
+                }))}
+              />
+            )}
+          </Panel>
+
           <Panel
             title="Events"
             description="The next three and the last three. Click one to open it; everything else is on the events screen."
@@ -252,32 +322,6 @@ export default async function TrackerOverview({
             )}
           </Panel>
 
-          <Panel
-            title="Coverage by category"
-            description="How much of each category's people actually bank with CRDB. The number that decides where next month goes."
-            action={
-              <Link href={`/${locale}/staff/categories`} className={styles.panelLink}>
-                Open categories →
-              </Link>
-            }
-          >
-            {data.categories.length === 0 ? (
-              <PanelEmpty>No categories yet.</PanelEmpty>
-            ) : (
-              <BarTable
-                caption="Coverage by category"
-                unitLabel="Accounts"
-                rows={data.categories.map((category) => ({
-                  label: category.name_en,
-                  value: category.accounts_opened,
-                  secondary:
-                    category.portfolio > 0
-                      ? `${category.coverage_pct ?? 0}% of ${count(category.portfolio, locale)} · ${category.stations} stations`
-                      : `${category.stations} stations · no portfolio reported`,
-                }))}
-              />
-            )}
-          </Panel>
 
           <div className={styles.split}>
             <Panel

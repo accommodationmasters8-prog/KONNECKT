@@ -135,6 +135,14 @@ export interface TrackerOverview {
   trend: { month: string; deposits: number; accounts: number; stations: number }[];
   reportedThisMonth: number;
   awaitingReport: number;
+  /** Structure, not performance: how much there is to look at. */
+  totalCategories: number;
+  totalBranches: number;
+  branchesReporting: number;
+  zonesCovered: number;
+  simbanking: number;
+  cardsIssued: number;
+  lipaHapa: number;
   /** Named, not counted: a count is a status, a name is the next click. */
   due: { id: string; name: string; lastReport: string | null }[];
   events: { total: number; past: number; upcoming: number; participants: number; budget: number };
@@ -168,6 +176,8 @@ const EMPTY: TrackerOverview = {
   deposits: 0, loansValue: 0, loansCount: 0,
   coveragePct: null, dormancyPct: null,
   categories: [], trend: [], reportedThisMonth: 0, awaitingReport: 0, due: [],
+  totalCategories: 0, totalBranches: 0, branchesReporting: 0, zonesCovered: 0,
+  simbanking: 0, cardsIssued: 0, lipaHapa: 0,
   events: { total: 0, past: 0, upcoming: 0, participants: 0, budget: 0 },
   eventList: [],
   recent: [],
@@ -244,7 +254,7 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
   const [stationsRes, latestRes, categoryRes, trendRes, eventsRes, recentReportsRes] =
     await Promise.all([
       supabase.from('stations' as never)
-        .select('id, name, status, category_id, created_at')
+        .select('id, name, status, category_id, branch_id, zone_code, created_at')
         .limit(2000),
       supabase.from('station_latest' as never).select('*').limit(2000),
       supabase.from('category_totals' as never).select('*'),
@@ -263,7 +273,8 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
     ]);
 
   const stations = (stationsRes.data as unknown as
-    { id: string; name: string; status: string; category_id: string; created_at: string }[]) ?? [];
+    { id: string; name: string; status: string; category_id: string;
+      branch_id: string; zone_code: string | null; created_at: string }[]) ?? [];
   const latest = (latestRes.data as unknown as StationLatest[]) ?? [];
   const categories = (categoryRes.data as unknown as CategoryTotals[]) ?? [];
   const trendRows = (trendRes.data as unknown as
@@ -377,6 +388,23 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
     trend,
     reportedThisMonth,
     due,
+    totalCategories: categories.length,
+    // Branches and zones that actually have something in them: a count of
+    // every branch in the register would say 252 and mean nothing.
+    totalBranches: new Set(stations.map((s) => s.branch_id)).size,
+    branchesReporting: new Set(
+      latest
+        .filter((r) => r.period_month === period)
+        .map((r) => stations.find((s) => s.id === r.station_id)?.branch_id)
+        .filter(Boolean),
+    ).size,
+    zonesCovered: new Set(stations.map((s) => s.zone_code).filter(Boolean)).size,
+    simbanking: latest.reduce((a, r) => a + Number(
+      (r as unknown as { simbanking_activated?: number }).simbanking_activated ?? 0), 0),
+    cardsIssued: latest.reduce((a, r) => a + Number(
+      (r as unknown as { cards_issued?: number }).cards_issued ?? 0), 0),
+    lipaHapa: latest.reduce((a, r) => a + Number(
+      (r as unknown as { lipa_hapa_registered?: number }).lipa_hapa_registered ?? 0), 0),
     awaitingReport: Math.max(stations.filter((s) => s.status === 'active').length - reportedThisMonth, 0),
     // The three closest on each side of today: what just happened and what is
     // about to. A list ordered purely by date puts next year's event above

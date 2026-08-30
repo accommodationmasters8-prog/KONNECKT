@@ -63,27 +63,6 @@ export default async function CategoriesPage({
       ) : (
         <>
 
-          <Panel
-            title="Coverage, side by side"
-            description="Every category, and how much of its people CRDB has actually reached. Open one for the full analysis."
-          >
-            {totals.length === 0 ? (
-              <PanelEmpty>No categories yet.</PanelEmpty>
-            ) : (
-              <BarTable
-                caption="Coverage by category"
-                unitLabel="Accounts"
-                rows={totals.map((t) => ({
-                  label: t.name_en,
-                  value: t.accounts_opened,
-                  secondary: t.portfolio > 0
-                    ? `${t.coverage_pct ?? 0}% of ${count(t.portfolio, locale)} people`
-                    : 'No portfolio reported',
-                }))}
-              />
-            )}
-          </Panel>
-
           <div className={styles.cardGrid}>
             {categories.map((category) => {
               const t = byId.get(category.id);
@@ -110,6 +89,27 @@ export default async function CategoriesPage({
               );
             })}
           </div>
+
+          <Panel
+            title="Coverage, side by side"
+            description="The same categories ranked against each other. A category with 40,000 accounts and 2% coverage is a bigger opportunity than one with 8,000 and 60%."
+          >
+            {totals.length === 0 ? (
+              <PanelEmpty>No categories yet.</PanelEmpty>
+            ) : (
+              <BarTable
+                caption="Coverage by category"
+                unitLabel="Accounts"
+                rows={totals.map((t) => ({
+                  label: t.name_en,
+                  value: t.accounts_opened,
+                  secondary: t.portfolio > 0
+                    ? `${t.coverage_pct ?? 0}% of ${count(t.portfolio, locale)} people`
+                    : 'No portfolio reported',
+                }))}
+              />
+            )}
+          </Panel>
           {session.role === 'hq' ? (
             <Panel
               title="Add a category"

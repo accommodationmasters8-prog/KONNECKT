@@ -6,7 +6,9 @@ import { MetricCard } from '@/components/staff/MetricCard';
 import { BarChart, PieChart } from '@/components/staff/Charts';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
-import { getCategoryBreakdown, getNetwork, zoneWording } from '@/lib/network';
+import {
+  getBranchStations, getCategoryBreakdown, getNetwork, zoneWording,
+} from '@/lib/network';
 import { count, formatPeriod, money } from '@/lib/tracker';
 import { localeParams, resolveLocale } from '@/lib/page';
 import styles from '../staff.module.css';
@@ -59,11 +61,17 @@ export default async function NetworkPage({
     );
   }
 
-  const [view, byCategory] = await Promise.all([
+  const [view, byCategory, branchStations] = await Promise.all([
     getNetwork(session.role, zone),
     // The snapshot below the table: what this zone or branch is made of.
     getCategoryBreakdown({ zone, branchId: branch }),
+    // The bottom of the trail: the actual places inside one branch.
+    branch ? getBranchStations(branch) : Promise.resolve([]),
   ]);
+
+  const openBranch = branch
+    ? view.rows.find((r) => r.key === branch) ?? null
+    : null;
   const isZoneTable = view.level === 'zone';
   const noun = isZoneTable ? 'zone' : 'branch';
 
@@ -81,7 +89,11 @@ export default async function NetworkPage({
       role={session.role}
       active="network"
       nav={nav}
-      title={zone ? `${zoneWording(zone)} zone` : 'Performance'}
+      title={
+        openBranch ? openBranch.name
+          : zone ? `${zoneWording(zone)} zone`
+            : 'Performance'
+      }
       scopeLabel={[
         `${count(view.rows.length, locale)} ${noun}${view.rows.length === 1 ? '' : 's'}`,
         view.latestMonth ? formatPeriod(view.latestMonth, locale) : 'nothing reported',
@@ -89,7 +101,11 @@ export default async function NetworkPage({
       ].join(' · ')}
       user={session.user}
       actions={
-        zone ? (
+        branch && zone ? (
+          <Link href={`/${locale}/staff/network?zone=${zone}`} className={styles.link}>
+            ← Back to {zoneWording(zone)}
+          </Link>
+        ) : zone || branch ? (
           <Link href={`/${locale}/staff/network`} className={styles.link}>
             ← All zones
           </Link>
@@ -201,7 +217,14 @@ export default async function NetworkPage({
                           >
                             {row.name}
                           </Link>
-                        ) : row.name}
+                        ) : (
+                          <Link
+                            href={`/${locale}/staff/network?${zone ? `zone=${zone}&` : ''}branch=${row.key}`}
+                            className={styles.link}
+                          >
+                            {row.name}
+                          </Link>
+                        )}
                         {row.branches !== null ? (
                           <span className={styles.sub}>
                             {count(row.branches, locale)} branches
@@ -255,6 +278,53 @@ export default async function NetworkPage({
               </table>
             </div>
           </Panel>
+
+          {branch && branchStations.length > 0 ? (
+            <Panel
+              title={`Stations in ${openBranch?.name ?? 'this branch'}`}
+              description="Every place this branch reports on, ranked by deposits. Click one to open its full history or file a period."
+            >
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th scope="col">Station</th>
+                      <th scope="col">Category</th>
+                      <th scope="col" className={styles.num}>People</th>
+                      <th scope="col" className={styles.num}>Accounts</th>
+                      <th scope="col" className={styles.num}>Coverage</th>
+                      <th scope="col" className={styles.num}>Deposits</th>
+                      <th scope="col">Last report</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {branchStations.map((station) => (
+                      <tr key={station.id}>
+                        <th scope="row">
+                          <Link href={`/${locale}/staff/stations/${station.id}`} className={styles.link}>
+                            {station.name}
+                          </Link>
+                          <span className={styles.sub}>click to open</span>
+                        </th>
+                        <td>{station.category}</td>
+                        <td className={styles.num}>{count(station.portfolio, locale)}</td>
+                        <td className={styles.num}>{count(station.accountsOpened, locale)}</td>
+                        <td className={styles.num}>
+                          {station.coveragePct === null ? '—' : `${station.coveragePct}%`}
+                        </td>
+                        <td className={styles.num}>{money(station.deposits, locale, true)}</td>
+                        <td>
+                          {station.lastReport
+                            ? <span className={styles.chip}>{formatPeriod(station.lastReport, locale)}</span>
+                            : <span className={styles.chipWarn}>never</span>}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Panel>
+          ) : null}
 
           {byCategory.length > 0 ? (
             <Panel

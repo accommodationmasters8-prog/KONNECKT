@@ -355,9 +355,10 @@ export function BarChart({
             <span className={styles.barValue}>{show(point.value)}</span>
             <div
               className={`${styles.barColumn} ${styles[tone]}`}
-              /* Percentage of the tallest, floored so a tiny month is still a
-                 visible mark rather than a gap that reads as missing data. */
-              style={{ blockSize: `${Math.max(2, (point.value / peak) * 100)}%` }}
+              /* Percentage of the tallest, floored so a tiny period is still a
+                 visible mark rather than a gap that reads as missing data.
+                 Capped at 88% so the value label above always has room. */
+              style={{ blockSize: `${Math.min(88, Math.max(3, (point.value / peak) * 88))}%` }}
             />
             <span className={styles.barLabel}>{point.label}</span>
           </div>
