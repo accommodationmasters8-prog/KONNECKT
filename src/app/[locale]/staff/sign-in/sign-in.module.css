@@ -1,28 +1,127 @@
+/* The auth screens: one page, split in two.
+
+   It was a single card centred in an empty field — a form floating in grey,
+   which on a wide branch monitor is a small box surrounded by nothing. Split
+   horizontally, the left half carries the mark and says what the person is
+   signing into, and the right half is only the form. On a phone the split
+   collapses and the brand panel becomes a short header, so the form is still
+   the first thing under the thumb. */
+
 .page {
   min-block-size: 100dvh;
   display: grid;
-  place-items: center;
-  padding: var(--space-lg);
-  background: var(--surface-app);
+  grid-template-columns: 1fr;
+  background: var(--surface-raised);
+}
+
+@media (min-width: 60rem) {
+  .page { grid-template-columns: 1.05fr 1fr; }
+}
+
+/* --- the brand half ----------------------------------------------------- */
+
+.aside {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--space-xl);
+  padding: clamp(var(--space-lg), 5vw, var(--space-2xl));
+  background: var(--konekt-ink);
+  background-image: var(--ramp-ink);
+  color: var(--text-on-inverse);
+}
+
+/* Ambient, edgeless, and the only non-flat thing on either half. */
+.wash {
+  position: absolute;
+  inset-block-start: -18%;
+  inset-inline-end: -22%;
+  inline-size: min(80%, 34rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--konekt-teal) 30%, transparent) 0%,
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+.brand { display: block; text-decoration: none; position: relative; }
+
+.logo { inline-size: clamp(170px, 26vw, 260px); block-size: auto; }
+
+.pitch { position: relative; display: grid; gap: var(--space-sm); }
+
+.pitchTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3.2vw, 2.25rem);
+  font-weight: var(--weight-bold);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  max-inline-size: 20ch;
+  color: var(--text-on-inverse);
+  text-wrap: balance;
+}
+
+.pitchBody {
+  margin: 0;
+  max-inline-size: 46ch;
+  font-size: var(--size-caption);
+  line-height: var(--leading-body);
+  color: var(--text-muted-on-inverse);
+}
+
+/* Three lines saying what is behind the door. Not a feature list — the people
+   here already know what Konekt is; it is there so the panel is not empty. */
+.points {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-xs);
+}
+
+.point {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-xs);
+  font-size: var(--size-micro);
+  color: var(--text-muted-on-inverse);
+}
+
+.tick { color: var(--konekt-teal-light); flex: none; }
+
+.asideFoot {
+  position: relative;
+  font-size: var(--size-nano);
+  color: var(--text-muted-on-inverse);
+  opacity: 0.8;
+}
+
+/* --- the form half ------------------------------------------------------ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(var(--space-lg), 5vw, var(--space-2xl));
 }
 
 .card {
-  inline-size: min(28rem, 100%);
+  inline-size: min(26rem, 100%);
+  margin-inline: auto;
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
-  padding: var(--space-xl);
-  border-radius: var(--radius-xl);
-  background: var(--surface-raised);
-  border: 1px solid var(--line-app);
 }
 
-.brand { display: block; text-decoration: none; }
-
-/* The logo on white, at the size it is drawn to be read at. */
-.logo { inline-size: 160px; block-size: auto; }
-
 .title {
+  margin: 0;
   font-family: var(--font-display);
   font-size: var(--size-h3);
   font-weight: var(--weight-black);
@@ -31,6 +130,7 @@
 }
 
 .lead {
+  margin: 0;
   font-size: var(--size-caption);
   color: var(--text-body);
   line-height: var(--leading-body);
@@ -45,3 +145,22 @@
 }
 
 .foot a { color: var(--konekt-teal-deep); }
+
+/* --- the reveal ---------------------------------------------------------
+   The form arrives a beat after the panel it sits in, so the eye lands on the
+   fields rather than on everything at once. `backwards` keeps each element
+   hidden through its own delay instead of flashing at full opacity first. */
+
+@keyframes authIn {
+  from { opacity: 0; translate: 0 10px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+.a1, .a2, .a3 { animation: authIn 560ms var(--ease-out) backwards; }
+.a1 { animation-delay: 60ms; }
+.a2 { animation-delay: 130ms; }
+.a3 { animation-delay: 200ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .a1, .a2, .a3 { animation: none; }
+}

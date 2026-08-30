@@ -52,13 +52,32 @@ export function isAccessEmail(email: string | null | undefined): boolean {
 /**
  * A new code, from the platform's own randomness.
  *
- * 31^8 is about 850 billion, and codes are only guessable while unredeemed,
- * so the exposure is a race against a window measured in days rather than an
+ * 31^8 is about 850 billion, and codes are only guessable while unredeemed, so
+ * the exposure is a race against a window measured in days rather than an
  * offline attack. Server-side only in practice, but `crypto` is on both.
+ *
+ * Rejection sampling rather than `byte % 31`. The alphabet has 31 letters and
+ * a byte has 256 values: 256 = 8x31 + 8, so a modulo would hand the first
+ * eight letters nine chances each and the remaining twenty-three only eight —
+ * about 12% more A-H in every position than anything else. That is a biased
+ * credential, and a biased credential is a smaller keyspace than the one you
+ * think you have. Bytes at or above 248 are thrown away instead, which costs
+ * a few extra bytes of entropy and nothing else.
  */
 export function generateCode(): string {
-  const bytes = new Uint8Array(8);
-  crypto.getRandomValues(bytes);
-  const body = Array.from(bytes, (b) => ALPHABET[b % ALPHABET.length]).join('');
+  const limit = 256 - (256 % ALPHABET.length); // 248
+  const out: string[] = [];
+
+  while (out.length < 8) {
+    const batch = new Uint8Array(16);
+    crypto.getRandomValues(batch);
+    for (const b of batch) {
+      if (b >= limit) continue;
+      out.push(ALPHABET[b % ALPHABET.length]);
+      if (out.length === 8) break;
+    }
+  }
+
+  const body = out.join('');
   return `KNK-${body.slice(0, 4)}-${body.slice(4)}`;
 }

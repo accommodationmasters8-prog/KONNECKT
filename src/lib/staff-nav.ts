@@ -19,6 +19,7 @@ export const STAFF_LABELS = {
   access: 'Access',
   settings: 'Settings',
   audit: 'Audit log',
+  manual: 'Manual',
 };
 
 export function staffNav(locale: Locale, labels: Record<string, string>): StaffNavItem[] {
@@ -39,5 +40,8 @@ export function staffNav(locale: Locale, labels: Record<string, string>): StaffN
     { key: 'access', href: to('/access'), label: labels.access, roles: ['hq'] },
     { key: 'settings', href: to('/settings'), label: labels.settings, roles: ['hq'] },
     { key: 'audit', href: to('/audit'), label: labels.audit, roles: ['hq'] },
+    // How to use the thing. Every level, because every level gets the chapters
+    // written for it rather than a shorter version of HQ's.
+    { key: 'manual', href: to('/manual'), label: labels.manual, roles: ['hq', 'zone', 'branch'] },
   ];
 }

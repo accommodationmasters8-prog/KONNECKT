@@ -202,7 +202,7 @@ export async function redeemAccess(
 
   const { data: row } = await admin
     .from('access_grants' as never)
-    .select('id, role, zone_code, branch_id, expires_at, redeemed_at, revoked_at')
+    .select('id, role, zone_code, branch_id, expires_at, redeemed_at, revoked_at, claimed_at')
     .eq('code', code)
     .maybeSingle();
 
@@ -214,6 +214,7 @@ export async function redeemAccess(
     expires_at: string | null;
     redeemed_at: string | null;
     revoked_at: string | null;
+    claimed_at: string | null;
   } | null;
 
   // One message for every way a code can fail, on purpose. Distinguishing
@@ -228,6 +229,48 @@ export async function redeemAccess(
   if (grant.revoked_at || grant.redeemed_at) return refuse;
   if (grant.expires_at && new Date(grant.expires_at) < new Date()) return refuse;
 
+  // Claim the grant before creating anything, with the test inside the write
+  // rather than in the read above it.
+  //
+  // Reading `redeemed_at` and then acting on the answer is two statements with
+  // a gap between them, and two requests carrying the same code both pass the
+  // check. Nothing catastrophic follows — the code maps to one deterministic
+  // address, so the second `createUser` collides on the unique email — but the
+  // loser then runs the rollback below and deletes the winner's freshly
+  // created auth user.
+  //
+  // The claim cannot be written to `redeemed_at`: the database requires that
+  // column and `staff_user_id` to be set together, and there is no staff user
+  // yet. Hence `claimed_at`, and a conditional update on it that exactly one
+  // request wins.
+  const STALE_CLAIM_MS = 10 * 60 * 1000;
+  const claimedRecently =
+    grant.claimed_at !== null
+    && Date.now() - new Date(grant.claimed_at).getTime() < STALE_CLAIM_MS;
+
+  if (claimedRecently) return refuse;
+
+  const { data: claimed } = await admin
+    .from('access_grants' as never)
+    .update({ claimed_at: new Date().toISOString() } as never)
+    .eq('id', grant.id)
+    .is('redeemed_at', null)
+    .is('revoked_at', null)
+    // Whatever this request read a moment ago. A concurrent claim has already
+    // changed it, so that request's update matches nothing and it is refused.
+    .or(`claimed_at.is.null,claimed_at.eq.${grant.claimed_at ?? '1970-01-01'}`)
+    .select('id');
+
+  if (!claimed || (claimed as unknown[]).length === 0) return refuse;
+
+  /** Put the code back in play when setting the account up fails. */
+  const release = async () => {
+    await admin
+      .from('access_grants' as never)
+      .update({ claimed_at: null } as never)
+      .eq('id', grant.id);
+  };
+
   const email = accessCodeEmail(code);
 
   const { data: created, error: authError } = await admin.auth.admin.createUser({
@@ -238,6 +281,7 @@ export async function redeemAccess(
   });
 
   if (authError || !created?.user) {
+    await release();
     return { ok: false, message: authError?.message ?? 'Could not create the account.' };
   }
 
@@ -260,20 +304,27 @@ export async function redeemAccess(
     // redeemed a second time into a working account while the first one sits
     // there signing in to nothing.
     await admin.auth.admin.deleteUser(created.user.id);
+    await release();
     return { ok: false, message: staffError?.message ?? 'Could not set up the account.' };
   }
 
   const staffId = (staffRow as unknown as { id: string }).id;
 
+  // The claim is converted into a redemption. These two columns are written
+  // together because the database insists on it: a redeemed code with no
+  // holder is exactly the row an audit cannot explain.
   const { error: markError } = await admin
     .from('access_grants' as never)
-    .update({ redeemed_at: new Date().toISOString(), staff_user_id: staffId } as never)
-    .eq('id', grant.id)
-    .is('redeemed_at', null);
+    .update({
+      redeemed_at: new Date().toISOString(),
+      staff_user_id: staffId,
+    } as never)
+    .eq('id', grant.id);
 
   if (markError) {
     await admin.from('staff_users' as never).delete().eq('id', staffId);
     await admin.auth.admin.deleteUser(created.user.id);
+    await release();
     return { ok: false, message: markError.message };
   }
 

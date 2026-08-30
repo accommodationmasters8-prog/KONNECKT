@@ -49,6 +49,17 @@ export async function getServerClient() {
  * needs elevated access, the answer is a policy, not this client.
  */
 export function getServiceClient() {
+  // Enforced, not just documented. The comment above has been the only thing
+  // standing between this key and a client bundle; one `'use client'` at the
+  // top of a file that imports it would have shipped a row-security bypass to
+  // every browser. `window` exists only there, so this throws in the one place
+  // it must never run — loudly, at the call, rather than silently at build.
+  if (typeof window !== 'undefined') {
+    throw new Error(
+      'getServiceClient() was called in the browser. It holds a key that bypasses row level security and must never leave the server.',
+    );
+  }
+
   // Same story as the browser key: `sb_secret_...` on a new project, a
   // service-role JWT on an older one.
   const key = process.env.SUPABASE_SECRET_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;

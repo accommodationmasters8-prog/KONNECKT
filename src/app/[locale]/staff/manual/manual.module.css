@@ -1,0 +1,294 @@
+/* The manual reads as a document inside a console.
+
+   Everything else in the staff area is a dashboard — scanned, operated, dense.
+   A manual is read, so it gets a measure, a serif, and room. The console's own
+   tokens still supply every colour, so it is the same product in a different
+   register rather than a second design. */
+
+.doc {
+  --measure: 68ch;
+  background: var(--surface-raised);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  padding: clamp(var(--space-lg), 4vw, var(--space-2xl));
+}
+
+/* --- masthead ----------------------------------------------------------- */
+
+.masthead {
+  border-block-end: 2px solid var(--text-strong);
+  padding-block-end: var(--space-lg);
+  margin-block-end: var(--space-xl);
+}
+
+.edition {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--konekt-teal-deep);
+}
+
+.title {
+  margin: 0 0 var(--space-sm);
+  font-family: var(--font-display);
+  font-size: clamp(1.9rem, 5vw, 2.8rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--text-strong);
+  text-wrap: balance;
+}
+
+.standfirst {
+  margin: 0;
+  max-inline-size: 58ch;
+  font-size: var(--size-body);
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+/* --- two columns -------------------------------------------------------- */
+
+.body { display: grid; gap: var(--space-xl); }
+
+@media (min-width: 62rem) {
+  .body {
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: var(--space-2xl);
+    align-items: start;
+  }
+}
+
+.toc { position: sticky; inset-block-start: var(--space-lg); }
+
+.tocHead {
+  margin: 0 0 var(--space-sm);
+  padding-block-end: var(--space-xs);
+  border-block-end: 1px solid var(--line-app);
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.tocList { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+
+.tocLink {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: var(--space-2xs);
+  padding: 5px 6px 5px 0;
+  border-radius: 4px;
+  font-size: var(--size-micro);
+  line-height: 1.35;
+  color: var(--text-strong);
+  text-decoration: none;
+}
+
+.tocNum {
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  color: var(--text-muted);
+  padding-block-start: 2px;
+}
+
+@media (hover: hover) {
+  .tocLink:hover { background: var(--konekt-mist); color: var(--konekt-teal-deep); }
+}
+
+/* --- chapters ----------------------------------------------------------- */
+
+.chapters { display: grid; gap: var(--space-2xl); min-inline-size: 0; }
+
+.chapter { scroll-margin-block-start: var(--space-lg); }
+
+.chapterNum {
+  display: block;
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  letter-spacing: 0.16em;
+  color: var(--konekt-teal-deep);
+  margin-block-end: var(--space-2xs);
+}
+
+.chapterTitle {
+  margin: 0 0 var(--space-sm);
+  padding-block-end: var(--space-sm);
+  border-block-end: 1px solid var(--line-app);
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 3vw, 1.6rem);
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  color: var(--text-strong);
+  text-wrap: balance;
+}
+
+.lead {
+  margin: 0 0 var(--space-md);
+  max-inline-size: var(--measure);
+  font-size: var(--size-body);
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+.para {
+  margin: 0 0 var(--space-md);
+  max-inline-size: var(--measure);
+  line-height: 1.7;
+}
+
+.list {
+  margin: 0 0 var(--space-md);
+  padding-inline-start: 20px;
+  max-inline-size: var(--measure);
+}
+
+.list li { margin-block-end: var(--space-xs); line-height: 1.65; }
+
+/* --- the tree ----------------------------------------------------------- */
+
+.tree {
+  margin-block: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-sm);
+  background: var(--surface-canvas);
+  font-family: var(--font-data);
+  font-size: var(--size-micro);
+  line-height: 2;
+  overflow-x: auto;
+}
+
+.treeLine { white-space: pre; }
+.treeArm { color: var(--line-strong); }
+
+/* --- steps -------------------------------------------------------------- */
+
+.steps {
+  list-style: none;
+  counter-reset: step;
+  margin: var(--space-md) 0 0;
+  padding: 0;
+}
+
+.steps li {
+  counter-increment: step;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: var(--space-md);
+  padding-block: var(--space-sm);
+  border-block-start: 1px solid var(--line-app);
+}
+
+.steps li::before {
+  content: counter(step);
+  font-family: var(--font-data);
+  font-size: var(--size-micro);
+  color: var(--konekt-teal-deep);
+  padding-block-start: 3px;
+}
+
+.stepWhat { margin: 0 0 2px; font-weight: 600; }
+
+.stepHow {
+  margin: 0;
+  max-inline-size: 62ch;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+/* --- tables ------------------------------------------------------------- */
+
+.tableWrap {
+  overflow-x: auto;
+  margin-block: var(--space-md);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-sm);
+}
+
+.table { border-collapse: collapse; inline-size: 100%; font-size: var(--size-micro); }
+
+.table th,
+.table td {
+  text-align: start;
+  padding: 9px 13px;
+  border-block-end: 1px solid var(--line-app);
+  vertical-align: top;
+}
+
+.table thead th {
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.table tbody tr:last-child th,
+.table tbody tr:last-child td { border-block-end: none; }
+
+.table tbody th { font-weight: 600; color: var(--text-strong); }
+.table tbody td { color: var(--text-muted); }
+
+.cellNo { opacity: 0.5; }
+
+/* --- callouts ----------------------------------------------------------- */
+
+.note,
+.warn {
+  margin-block: var(--space-md);
+  padding: var(--space-md) var(--space-lg);
+  border-inline-start: 3px solid var(--konekt-teal);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--konekt-mist);
+}
+
+.warn {
+  border-inline-start-color: var(--metric-pink-to);
+  background: color-mix(in srgb, var(--metric-pink-to) 8%, var(--surface-raised));
+}
+
+.noteHead {
+  margin: 0 0 var(--space-2xs);
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--konekt-teal-deep);
+}
+
+.warn .noteHead { color: var(--metric-pink-to); }
+
+.noteText { margin: 0; max-inline-size: 64ch; line-height: 1.65; }
+
+.colophon {
+  margin-block-start: var(--space-2xl);
+  padding-block-start: var(--space-lg);
+  border-block-start: 2px solid var(--text-strong);
+  font-size: var(--size-micro);
+  color: var(--text-muted);
+  max-inline-size: 70ch;
+}
+
+/* --- on paper -----------------------------------------------------------
+   The manual is the one console screen people will actually print, so the
+   print rules are part of the design rather than an afterthought. The console
+   chrome goes, the two columns become one, and a chapter never breaks across
+   a page in the middle of its own heading. */
+
+@media print {
+  .doc { border: none; border-radius: 0; padding: 0; }
+  .toc { display: none; }
+  .body { display: block; }
+  .chapters { display: block; }
+  .chapter { break-inside: auto; margin-block-end: 24pt; }
+  .chapterTitle { break-after: avoid; }
+  .lead, .stepWhat { break-after: avoid; }
+  .table, .tree, .note, .warn, .steps li { break-inside: avoid; }
+  .tableWrap { overflow: visible; }
+  .colophon { break-before: avoid; }
+}

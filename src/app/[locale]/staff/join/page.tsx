@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { KonektLogo } from '@/components/KonektLogo';
+import { AuthAside } from '@/components/staff/AuthAside';
 import { JoinForm } from '@/components/staff/AccessForms';
 import { localeParams, resolveLocale } from '@/lib/page';
 import styles from '../sign-in/sign-in.module.css';
@@ -31,23 +31,33 @@ export default async function JoinPage({
 
   return (
     <main className={styles.page}>
-      <div className={styles.card}>
-        <Link href={`/${locale}`} className={styles.brand}>
-          <KonektLogo label="KONEKT Na CRDB" className={styles.logo} />
-        </Link>
+      <AuthAside
+        locale={locale}
+        title="One code, once. Then it is your account."
+        body="HQ issued you a code. Redeeming it creates your account at exactly the level the code carries — you do not choose your own scope, and there is nothing to confirm in an inbox."
+        points={[
+          'The code becomes your username.',
+          'You choose the passphrase, and only you know it.',
+          'A code works once. After that it is spent.',
+        ]}
+      />
 
-        <h1 className={styles.title}>Set up your access</h1>
-        <p className={styles.lead}>
-          HQ has given you a code. It becomes your username — there is no work
-          email in this, and nothing to confirm in an inbox. Choose a
-          passphrase and you are in.
-        </p>
+      <div className={styles.panel}>
+        <div className={styles.card}>
+          <h1 className={`${styles.title} ${styles.a1}`}>Set up your access</h1>
+          <p className={`${styles.lead} ${styles.a1}`}>
+            Enter the code exactly as HQ gave it to you, with or without the
+            dashes.
+          </p>
 
-        <JoinForm locale={locale} />
+          <div className={styles.a2}>
+            <JoinForm locale={locale} />
+          </div>
 
-        <p className={styles.foot}>
-          Already set up? <Link href={`/${locale}/staff/sign-in`}>Sign in</Link>
-        </p>
+          <p className={`${styles.foot} ${styles.a3}`}>
+            Already set up? <Link href={`/${locale}/staff/sign-in`}>Sign in</Link>
+          </p>
+        </div>
       </div>
     </main>
   );

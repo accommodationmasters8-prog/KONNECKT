@@ -1,3 +1,15 @@
+/* The project's own Supabase origin, for the connect-src allowance. Read from
+   the same variable the client uses, so a project swap cannot leave the policy
+   pointing at the previous one. Falls back to the wildcard when unset, which
+   is the case for a build with no database attached. */
+const supabaseOrigin = (() => {
+  try {
+    return new URL(process.env.NEXT_PUBLIC_SUPABASE_URL ?? '').origin;
+  } catch {
+    return 'https://*.supabase.co';
+  }
+})();
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -37,6 +49,55 @@ const nextConfig = {
         headers: [
           { key: 'X-Content-Type-Options', value: 'nosniff' },
           { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+
+          /* Clickjacking. The console has one-click destructive actions —
+             delete a station, clear the sample data, revoke a grant — and
+             without this any site could load it in an invisible frame over
+             its own buttons and harvest the clicks. `frame-ancestors` in the
+             policy below is the modern rule; the header stays for the older
+             browsers a branch desktop still runs. */
+          { key: 'X-Frame-Options', value: 'DENY' },
+
+          /* Nothing here needs a camera, a microphone or a location, so no
+             embedded frame gets to ask for one either. */
+          {
+            key: 'Permissions-Policy',
+            value: 'camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()',
+          },
+
+          /* HSTS. Vercel already redirects to HTTPS; this stops the first
+             plaintext request from being made at all, which is the one an
+             attacker on a branch's wifi gets to answer. */
+          {
+            key: 'Strict-Transport-Security',
+            value: 'max-age=63072000; includeSubDomains; preload',
+          },
+
+          /* The content policy.
+             `'unsafe-inline'` on scripts is not a choice while Next inlines
+             its own bootstrap without a nonce — issuing one needs the
+             middleware to rewrite every response, which would cost a render
+             on requests that are currently static. Everything else is shut:
+             no plugins, no other origin's frames, no form posting away from
+             this site, and connections only to this origin and Supabase. */
+          {
+            key: 'Content-Security-Policy',
+            value: [
+              "default-src 'self'",
+              "base-uri 'self'",
+              "object-src 'none'",
+              "frame-ancestors 'none'",
+              "form-action 'self'",
+              "script-src 'self' 'unsafe-inline'",
+              "style-src 'self' 'unsafe-inline'",
+              "img-src 'self' data: blob: https:",
+              "font-src 'self' data:",
+              `connect-src 'self' ${supabaseOrigin} https://*.supabase.co wss://*.supabase.co`,
+              "worker-src 'self'",
+              "manifest-src 'self'",
+              'upgrade-insecure-requests',
+            ].join('; '),
+          },
         ],
       },
     ];

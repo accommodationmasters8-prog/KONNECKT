@@ -1,14 +1,42 @@
-/* White ground, one column, centred. The whole design decision here is the
-   space around things — nothing is competing for the eye, so nothing needs a
-   gradient or a glow to win. */
+/* The front door.
+
+   White ground, everything centred on one axis, and the space around things
+   doing the work no gradient or shadow is asked to do. What changed from the
+   first version is confidence: the mark is nearly twice the size, the headline
+   is set at display scale rather than apologetically below it, and the whole
+   thing arrives in one orchestrated sequence instead of appearing all at once
+   like a document. */
+
 .hero {
+  position: relative;
+  overflow: hidden;
   background: var(--surface-raised);
   color: var(--text-strong);
-  padding-block: var(--space-2xl);
+  padding-block: clamp(var(--space-2xl), 9vw, 7rem);
   border-block-end: 1px solid var(--line-soft);
 }
 
+/* One wash, behind the mark, with no edge anywhere. It is the only non-flat
+   thing on the page and it is doing atmosphere, not decoration. */
+.wash {
+  position: absolute;
+  inset-block-start: -22%;
+  inset-inline-start: 50%;
+  translate: -50% 0;
+  inline-size: min(120%, 62rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 42%,
+    color-mix(in srgb, var(--konekt-teal) 13%, transparent) 0%,
+    color-mix(in srgb, var(--konekt-teal) 5%, transparent) 38%,
+    transparent 66%
+  );
+  pointer-events: none;
+}
+
 .inner {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -16,7 +44,16 @@
   gap: var(--space-md);
 }
 
-.eyebrow {
+/* --- badge -------------------------------------------------------------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: 5px 14px 5px 10px;
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-pill);
+  background: var(--surface-canvas);
   font-family: var(--font-display);
   font-size: var(--size-micro);
   font-weight: var(--weight-bold);
@@ -25,28 +62,40 @@
   color: var(--text-accent);
 }
 
-.mark {
-  inline-size: clamp(170px, 32vw, 260px);
-  block-size: auto;
-  margin-block: var(--space-sm) var(--space-xs);
+.dot {
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: var(--konekt-teal);
 }
+
+/* --- the mark ----------------------------------------------------------- */
+
+.mark {
+  inline-size: clamp(230px, 44vw, 420px);
+  block-size: auto;
+  margin-block: var(--space-md) var(--space-xs);
+}
+
+/* --- type --------------------------------------------------------------- */
 
 .headline {
   font-family: var(--font-display);
-  /* Deliberately below the site's --size-h1. A headline that fills the
-     viewport is a poster; this page is a front door. */
-  font-size: clamp(1.25rem, 2.6vw, 1.75rem);
+  font-size: clamp(1.75rem, 5vw, 3.25rem);
   font-weight: var(--weight-bold);
-  line-height: var(--leading-snug);
-  letter-spacing: -0.015em;
-  max-inline-size: 22ch;
+  line-height: 1.04;
+  letter-spacing: -0.03em;
+  max-inline-size: 18ch;
+  text-wrap: balance;
+  margin: 0;
 }
 
 .subline {
   font-size: var(--size-body);
   color: var(--text-body);
-  max-inline-size: 46ch;
+  max-inline-size: 52ch;
   line-height: var(--leading-body);
+  margin: 0;
 }
 
 .actions {
@@ -54,37 +103,44 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: var(--space-sm);
-  margin-block-start: var(--space-sm);
+  margin-block-start: var(--space-md);
 }
 
-/* --- The three figures -------------------------------------------------- */
+/* The one micro-interaction on the page: a button that lifts a hair when the
+   pointer is over it. No shadow — the movement is the affordance. */
+.cta { transition: translate var(--dur-base) var(--ease-out); }
+
+@media (hover: hover) {
+  .cta:hover { translate: 0 -2px; }
+}
+
+/* --- the figures -------------------------------------------------------- */
 
 .stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-lg);
   margin: 0;
-  margin-block-start: var(--space-xl);
+  margin-block-start: clamp(var(--space-xl), 5vw, 3.5rem);
   padding-block-start: var(--space-lg);
   border-block-start: 1px solid var(--line-soft);
-  inline-size: min(100%, 40rem);
+  inline-size: min(100%, 52rem);
 }
 
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-inline-size: 0;
+@media (min-width: 44rem) {
+  .stats { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
+
+.stat { display: flex; flex-direction: column; gap: 3px; min-inline-size: 0; }
 
 .statValue {
   margin: 0;
   font-family: var(--font-data);
-  font-size: clamp(1.25rem, 3.4vw, 1.625rem);
+  font-size: clamp(1.5rem, 4vw, 2.125rem);
   font-weight: var(--weight-bold);
   font-variant-numeric: tabular-nums;
   line-height: 1;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
   color: var(--text-accent);
 }
 
@@ -92,4 +148,30 @@
   font-size: var(--size-micro);
   color: var(--text-body);
   line-height: var(--leading-snug);
+}
+
+/* --- the reveal ---------------------------------------------------------
+   One sequence, top to bottom, 70ms apart. `backwards` matters: without it
+   each element paints at full opacity for the length of its own delay, which
+   is the flash that makes a staggered reveal look broken. */
+
+@keyframes riseIn {
+  from { opacity: 0; translate: 0 14px; }
+  to   { opacity: 1; translate: 0 0; }
+}
+
+.r1, .r2, .r3, .r4, .r5, .r6 {
+  animation: riseIn 620ms var(--ease-out) backwards;
+}
+
+.r1 { animation-delay: 0ms; }
+.r2 { animation-delay: 70ms; }
+.r3 { animation-delay: 140ms; }
+.r4 { animation-delay: 210ms; }
+.r5 { animation-delay: 280ms; }
+.r6 { animation-delay: 350ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .r1, .r2, .r3, .r4, .r5, .r6 { animation: none; }
+  .cta { transition: none; }
 }
