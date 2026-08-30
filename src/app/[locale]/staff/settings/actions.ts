@@ -78,6 +78,80 @@ export async function addProduct(_prev: ActionResult, form: FormData): Promise<A
 }
 
 /**
+ * Point a type at a category, or back at everybody.
+ *
+ * A Scholar Account means nothing at a bodaboda stand. Until now every type
+ * appeared everywhere, so a branch filing a bodaboda split scrolled past six
+ * kinds of account its riders cannot hold — and a list you scroll past is a
+ * list you eventually tick the wrong row in.
+ */
+export async function setProductCategory(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  const gate = await hqOnly();
+  if (!gate.ok) return gate;
+
+  const kind = String(form.get('kind') ?? '') as Kind;
+  if (kind !== 'account' && kind !== 'loan') return { ok: false, message: 'Which list?' };
+
+  const code = String(form.get('code') ?? '').trim();
+  const category = String(form.get('category_id') ?? '').trim();
+  if (!code) return { ok: false, message: 'Which type?' };
+
+  const { error } = await gate.supabase
+    .from(TABLE[kind] as never)
+    .update({ category_id: category === '' ? null : category } as never)
+    .eq('code', code);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath('/', 'layout');
+  return {
+    ok: true,
+    message: category === '' ? 'Now offered everywhere.' : 'Scoped to that category.',
+  };
+}
+
+/**
+ * Delete a type outright.
+ *
+ * Retiring is the right move once anything has been filed against a code —
+ * the history stays readable. This is for the one somebody added yesterday by
+ * mistake, and the database refuses it the moment a report references it.
+ */
+export async function deleteProduct(
+  _prev: ActionResult,
+  form: FormData,
+): Promise<ActionResult> {
+  const gate = await hqOnly();
+  if (!gate.ok) return gate;
+
+  const kind = String(form.get('kind') ?? '') as Kind;
+  if (kind !== 'account' && kind !== 'loan') return { ok: false, message: 'Which list?' };
+
+  const code = String(form.get('code') ?? '').trim();
+  if (!code) return { ok: false, message: 'Which type?' };
+
+  const { error } = await gate.supabase
+    .from(TABLE[kind] as never)
+    .delete()
+    .eq('code', code);
+
+  if (error) {
+    return {
+      ok: false,
+      message: error.message.includes('violates foreign key')
+        ? 'Figures have already been filed against this type. Retire it instead — deleting would make those months unreadable.'
+        : error.message,
+    };
+  }
+
+  revalidatePath('/', 'layout');
+  return { ok: true, message: `${code} deleted.` };
+}
+
+/**
  * Retire a type, or bring it back.
  *
  * Never a delete. Months already filed reference the code, and removing the

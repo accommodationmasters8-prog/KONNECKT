@@ -53,13 +53,17 @@ export default async function ReportsPage({
     );
   }
 
-  const [branchRes, catRes] = await Promise.all([
+  const [branchRes, catRes, eventRes] = await Promise.all([
     supabase.from('branches' as never)
       .select('id, name').eq('is_active', true)
       .order('name', { ascending: true }).limit(1000),
     supabase.from('tracker_categories' as never)
       .select('id, name_en').eq('is_active', true)
       .order('display_order', { ascending: true }).limit(100),
+    supabase.from('tracked_events' as never)
+      .select('id, name, event_date')
+      .order('event_date', { ascending: false })
+      .limit(300),
   ]);
 
   const branches = ((branchRes.data as unknown as { id: string; name: string }[]) ?? [])
@@ -67,6 +71,9 @@ export default async function ReportsPage({
   const categories = ((catRes.data as unknown as { id: string; name_en: string }[]) ?? [])
     .map((c) => ({ value: c.id, label: c.name_en }));
   const zones = ZONE_CODES.map((z) => ({ value: z, label: zoneWording(z) }));
+  const events = ((eventRes.data as unknown as
+    { id: string; name: string; event_date: string }[]) ?? [])
+    .map((e) => ({ value: e.id, label: `${e.name} — ${e.event_date}` }));
 
   return (
     <StaffShell
@@ -87,6 +94,7 @@ export default async function ReportsPage({
           zones={zones}
           branches={branches}
           categories={categories}
+          events={events}
         />
       </Panel>
 

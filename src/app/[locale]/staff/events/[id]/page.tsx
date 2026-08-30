@@ -21,6 +21,9 @@ export const metadata: Metadata = {
 
 interface EventRow extends EventFields {
   id: string;
+  simbanking_activated?: number | null;
+  cards_issued?: number | null;
+  lipa_hapa_registered?: number | null;
   name: string;
   event_date: string;
   venue: string;
@@ -74,7 +77,7 @@ export default async function EventPage({
 
   const [eventRes, imagesRes, stationsRes, categories] = await Promise.all([
     supabase.from('tracked_events' as never)
-      .select('id, name, event_date, end_date, venue, address, station_id, category_id, branch_id, zone_code, participants, budget_tzs, actual_spend_tzs, accounts_opened, deposits_tzs, album_url, notes')
+      .select('id, name, event_date, end_date, venue, address, station_id, category_id, branch_id, zone_code, participants, budget_tzs, actual_spend_tzs, accounts_opened, simbanking_activated, cards_issued, lipa_hapa_registered, deposits_tzs, album_url, notes')
       .eq('id', id)
       .maybeSingle(),
     supabase.from('tracked_event_images' as never)
@@ -101,7 +104,6 @@ export default async function EventPage({
   const past = new Date(event.event_date) < new Date();
   const spend = Number(event.actual_spend_tzs ?? 0);
   const opened = Number(event.accounts_opened ?? 0);
-  const costPer = opened > 0 && spend > 0 ? Math.round(spend / opened) : null;
   const budget = Number(event.budget_tzs ?? 0);
   const variance = budget > 0 && spend > 0
     ? Math.round(((spend - budget) / budget) * 1000) / 10
@@ -125,7 +127,17 @@ export default async function EventPage({
       ].filter(Boolean).join(' · ')}
       user={session.user}
       actions={
-        <Link href={`/${locale}/staff/events`} className={styles.link}>← All events</Link>
+        <>
+          <a
+            className="btn btn--quiet btn--sm"
+            href={`/${locale}/staff/reports/print?kind=event&event=${event.id}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Report with pictures
+          </a>
+          <Link href={`/${locale}/staff/events`} className={styles.link}>← All events</Link>
+        </>
       }
     >
       <div className={styles.metrics}>
@@ -147,19 +159,27 @@ export default async function EventPage({
         />
         <MetricCard
           tone="gold"
-          label="Cost per account"
-          value={costPer ? money(costPer, locale, true) : '—'}
+          label="SimBanking activated"
+          value={
+            event.simbanking_activated
+              ? count(Number(event.simbanking_activated), locale)
+              : '—'
+          }
           note={
-            variance === null
-              ? 'Needs spend and accounts'
-              : `${variance >= 0 ? 'over' : 'under'} budget by ${Math.abs(variance)}%`
+            event.cards_issued || event.lipa_hapa_registered
+              ? `${count(Number(event.cards_issued ?? 0), locale)} cards · ${count(Number(event.lipa_hapa_registered ?? 0), locale)} Lipa Hapa`
+              : 'Cards and Lipa Hapa not recorded'
           }
         />
         <MetricCard
           tone="ink"
           label="Deposits raised"
           value={event.deposits_tzs ? money(Number(event.deposits_tzs), locale, true) : '—'}
-          note={budget ? `against ${money(budget, locale, true)} budgeted` : 'No budget set'}
+          note={
+            variance === null
+              ? budget ? `against ${money(budget, locale, true)} budgeted` : 'No budget set'
+              : `spend ${variance >= 0 ? 'over' : 'under'} budget by ${Math.abs(variance)}%`
+          }
         />
       </div>
 

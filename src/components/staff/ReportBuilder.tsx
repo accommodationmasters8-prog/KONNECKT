@@ -31,6 +31,12 @@ const SUBJECTS = [
     body: 'The branch list and the zone each is assigned to.',
     dated: false,
   },
+  {
+    kind: 'event',
+    title: 'One event, in full',
+    body: 'Every figure for a single event, with its pictures laid out in the PDF.',
+    dated: false,
+  },
 ] as const;
 
 /**
@@ -51,11 +57,13 @@ export function ReportBuilder({
   zones,
   branches,
   categories,
+  events,
 }: {
   locale: string;
   zones: Option[];
   branches: Option[];
   categories: Option[];
+  events: Option[];
 }) {
   const [kind, setKind] = useState<string>('reports');
   const [from, setFrom] = useState('');
@@ -63,6 +71,7 @@ export function ReportBuilder({
   const [zone, setZone] = useState('');
   const [branch, setBranch] = useState('');
   const [category, setCategory] = useState('');
+  const [event, setEvent] = useState('');
 
   const subject = SUBJECTS.find((s) => s.kind === kind)!;
 
@@ -72,6 +81,7 @@ export function ReportBuilder({
   if (zone) query.set('zone', zone);
   if (branch) query.set('branch', branch);
   if (category && kind === 'reports') query.set('category', category);
+  if (kind === 'event' && event) query.set('event', event);
 
   const qs = query.toString();
   const csvHref = `/api/reports/${kind}${qs ? `?${qs}` : ''}`;
@@ -152,6 +162,20 @@ export function ReportBuilder({
           </select>
         </label>
 
+        {kind === 'event' ? (
+          <label className={`${styles.field} ${styles.gridWide}`}>
+            <span className={styles.label}>Which event</span>
+            <select className={styles.select} value={event}
+              onChange={(e) => setEvent(e.target.value)}>
+              <option value="">Choose an event</option>
+              {events.map((e) => <option key={e.value} value={e.value}>{e.label}</option>)}
+            </select>
+            <span className={styles.help}>
+              The PDF carries its pictures; the CSV carries its figures.
+            </span>
+          </label>
+        ) : null}
+
         {kind === 'reports' ? (
           <label className={styles.field}>
             <span className={styles.label}>Category</span>
@@ -170,7 +194,12 @@ export function ReportBuilder({
       </p>
 
       <div className={builder.actions}>
-        <a className="btn btn--primary" href={csvHref} download>
+        <a
+          className={kind === 'event' && !event ? 'btn btn--primary is-disabled' : 'btn btn--primary'}
+          href={csvHref}
+          download
+          aria-disabled={kind === 'event' && !event}
+        >
           Download CSV
         </a>
         <a className="btn btn--quiet" href={printHref} target="_blank" rel="noreferrer">

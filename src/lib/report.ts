@@ -15,7 +15,7 @@ import { zoneWording } from '@/lib/access-scope';
  * the real one.
  */
 
-export type ReportKind = 'reports' | 'stations' | 'events' | 'branches';
+export type ReportKind = 'reports' | 'stations' | 'events' | 'branches' | 'event';
 
 export interface ReportRequest {
   kind: string;
@@ -24,6 +24,21 @@ export interface ReportRequest {
   zone?: string;
   branch?: string;
   category?: string;
+  /** One event, in full, with its pictures. */
+  eventId?: string;
+}
+
+export interface EventDossier {
+  name: string;
+  date: string;
+  venue: string;
+  address: string | null;
+  branch: string;
+  zone: string | null;
+  notes: string | null;
+  albumUrl: string | null;
+  images: { id: string; url: string | null; caption: string | null }[];
+  facts: { label: string; value: string }[];
 }
 
 export interface BuiltReport {
@@ -33,13 +48,17 @@ export interface BuiltReport {
   headers: string[];
   rows: (string | number | null)[][];
   summary: { label: string; value: string }[];
+  /** Set only for a single-event dossier, which the print view lays out with
+   *  the pictures rather than as a table. */
+  dossier?: EventDossier;
 }
 
 const KINDS: Record<ReportKind, string> = {
-  reports: 'Monthly figures',
+  reports: 'Period figures',
   stations: 'Station register',
   events: 'Events and KPIs',
   branches: 'Branches and zones',
+  event: 'Event report',
 };
 
 const money = (n: number) =>
@@ -51,7 +70,7 @@ const EMPTY: BuiltReport = {
 };
 
 export async function buildReport(req: ReportRequest): Promise<BuiltReport> {
-  const kind = (['reports', 'stations', 'events', 'branches'] as const)
+  const kind = (['reports', 'stations', 'events', 'branches', 'event'] as const)
     .find((k) => k === req.kind) ?? 'reports';
 
   const supabase = await getServerClient();
@@ -136,9 +155,62 @@ export async function buildReport(req: ReportRequest): Promise<BuiltReport> {
     };
   }
 
+  if (kind === 'event' && req.eventId) {
+    const [eventRes, imageRes] = await Promise.all([
+      supabase.from('tracked_events' as never)
+        .select('id, name, event_date, end_date, venue, address, branch_id, zone_code, participants, budget_tzs, actual_spend_tzs, accounts_opened, simbanking_activated, cards_issued, lipa_hapa_registered, deposits_tzs, album_url, notes')
+        .eq('id', req.eventId)
+        .maybeSingle(),
+      supabase.from('tracked_event_images' as never)
+        .select('id, external_url, caption')
+        .eq('event_id', req.eventId)
+        .order('created_at', { ascending: true }),
+    ]);
+
+    const e = eventRes.data as unknown as Record<string, unknown> | null;
+    if (!e) return { ...EMPTY, kind, title: KINDS[kind], scope: 'Not found' };
+
+    const n = (k: string) => Number(e[k] ?? 0);
+    const say = (k: string, fallback = '—') =>
+      e[k] === null || e[k] === undefined || e[k] === '' ? fallback : String(e[k]);
+
+    const facts = [
+      { label: 'Participants', value: n('participants').toLocaleString() },
+      { label: 'Accounts opened', value: n('accounts_opened').toLocaleString() },
+      { label: 'SimBanking activated', value: n('simbanking_activated').toLocaleString() },
+      { label: 'Cards issued', value: n('cards_issued').toLocaleString() },
+      { label: 'Lipa Hapa registered', value: n('lipa_hapa_registered').toLocaleString() },
+      { label: 'Budget', value: money(n('budget_tzs')) },
+      { label: 'Actually spent', value: money(n('actual_spend_tzs')) },
+      { label: 'Deposits raised', value: money(n('deposits_tzs')) },
+    ];
+
+    return {
+      kind, title: `${say('name')} — event report`,
+      scope: [say('venue'), say('address', ''), say('event_date')].filter(Boolean).join(' · '),
+      headers: ['Measure', 'Value'],
+      rows: facts.map((f) => [f.label, f.value]),
+      summary: facts.slice(0, 4),
+      dossier: {
+        name: say('name'),
+        date: say('event_date'),
+        venue: say('venue'),
+        address: (e.address as string) ?? null,
+        branch: branchName.get(e.branch_id as string) ?? '—',
+        zone: (e.zone_code as string) ?? null,
+        notes: (e.notes as string) ?? null,
+        albumUrl: (e.album_url as string) ?? null,
+        images: ((imageRes.data as unknown as
+          { id: string; external_url: string | null; caption: string | null }[]) ?? [])
+          .map((i) => ({ id: i.id, url: i.external_url, caption: i.caption })),
+        facts,
+      },
+    };
+  }
+
   if (kind === 'events') {
     const { data } = await supabase.from('tracked_events' as never)
-      .select('name, event_date, venue, address, branch_id, zone_code, participants, budget_tzs, actual_spend_tzs, accounts_opened, deposits_tzs')
+      .select('id, name, event_date, venue, address, branch_id, zone_code, participants, budget_tzs, actual_spend_tzs, accounts_opened, simbanking_activated, cards_issued, lipa_hapa_registered, deposits_tzs')
       .order('event_date', { ascending: false })
       .limit(10000);
 
@@ -155,27 +227,29 @@ export async function buildReport(req: ReportRequest): Promise<BuiltReport> {
     return {
       kind, title: KINDS[kind], scope,
       headers: ['Event', 'Date', 'Past or upcoming', 'Venue', 'Branch', 'Zone',
-        'Participants', 'Budget TZS', 'Spent TZS', 'Accounts', 'Cost per account', 'Deposits TZS'],
-      rows: events.map((e) => {
-        const s = Number(e.actual_spend_tzs ?? 0);
-        const o = Number(e.accounts_opened ?? 0);
-        return [
-          String(e.name), String(e.event_date),
-          new Date(String(e.event_date)) < new Date() ? 'Past' : 'Upcoming',
-          (e.venue as string) ?? '', branchName.get(e.branch_id as string) ?? '',
-          (e.zone_code as string) ?? '', (e.participants as number) ?? null,
-          (e.budget_tzs as number) ?? null, (e.actual_spend_tzs as number) ?? null,
-          o || null, o > 0 && s > 0 ? Math.round(s / o) : null,
-          (e.deposits_tzs as number) ?? null,
-        ];
-      }),
+        'Participants', 'Budget TZS', 'Spent TZS', 'Accounts', 'SimBanking',
+        'Cards', 'Lipa Hapa', 'Deposits TZS'],
+      rows: events.map((e) => [
+        String(e.name), String(e.event_date),
+        new Date(String(e.event_date)) < new Date() ? 'Past' : 'Upcoming',
+        (e.venue as string) ?? '', branchName.get(e.branch_id as string) ?? '',
+        (e.zone_code as string) ?? '', (e.participants as number) ?? null,
+        (e.budget_tzs as number) ?? null, (e.actual_spend_tzs as number) ?? null,
+        (e.accounts_opened as number) ?? null,
+        (e.simbanking_activated as number) ?? null,
+        (e.cards_issued as number) ?? null,
+        (e.lipa_hapa_registered as number) ?? null,
+        (e.deposits_tzs as number) ?? null,
+      ]),
       summary: [
         { label: 'Events', value: events.length.toLocaleString() },
         { label: 'People reached', value: people.toLocaleString() },
         { label: 'Accounts opened', value: opened.toLocaleString() },
         {
-          label: 'Cost per account',
-          value: opened > 0 && spend > 0 ? money(spend / opened) : '—',
+          label: 'SimBanking activated',
+          value: events
+            .reduce((a, e) => a + Number(e.simbanking_activated ?? 0), 0)
+            .toLocaleString(),
         },
       ],
     };
@@ -184,7 +258,7 @@ export async function buildReport(req: ReportRequest): Promise<BuiltReport> {
   // Monthly figures.
   const ids = stations.map((s) => s.id as string);
   let query = supabase.from('station_reports' as never)
-    .select('station_id, period_month, period_kind, portfolio, accounts_opened, active_accounts, dormant_accounts, deposits_tzs, loans_count, loans_value_tzs, note')
+    .select('station_id, period_month, period_kind, portfolio, accounts_opened, active_accounts, dormant_accounts, simbanking_activated, cards_issued, lipa_hapa_registered, deposits_tzs, loans_count, loans_value_tzs, note')
     .order('period_month', { ascending: false })
     .limit(50000);
 
@@ -202,8 +276,8 @@ export async function buildReport(req: ReportRequest): Promise<BuiltReport> {
   return {
     kind, title: KINDS[kind], scope,
     headers: ['Period', 'Covers', 'Station', 'Category', 'Branch', 'Zone', 'People',
-      'Accounts opened', 'Active', 'Dormant', 'Coverage %', 'Deposits TZS',
-      'Loans', 'Loan value TZS', 'Note'],
+      'Accounts opened', 'Active', 'Dormant', 'Coverage %', 'SimBanking',
+      'Cards', 'Lipa Hapa', 'Deposits TZS', 'Loans', 'Loan value TZS', 'Note'],
     rows: reports.map((r) => {
       const s = byId.get(r.station_id as string) ?? {};
       const people = Number(r.portfolio ?? 0);
@@ -215,6 +289,9 @@ export async function buildReport(req: ReportRequest): Promise<BuiltReport> {
         people, o, (r.active_accounts as number) ?? null,
         (r.dormant_accounts as number) ?? null,
         people > 0 ? Math.round((o / people) * 1000) / 10 : null,
+        (r.simbanking_activated as number) ?? null,
+        (r.cards_issued as number) ?? null,
+        (r.lipa_hapa_registered as number) ?? null,
         (r.deposits_tzs as number) ?? null, (r.loans_count as number) ?? null,
         (r.loans_value_tzs as number) ?? null, (r.note as string) ?? '',
       ];

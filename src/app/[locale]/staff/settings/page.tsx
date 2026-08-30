@@ -61,13 +61,13 @@ export default async function StaffSettings({
     );
   }
 
-  const [accountsRes, loansRes, branchesRes, sampleRes] = await Promise.all([
+  const [accountsRes, loansRes, branchesRes, sampleRes, catRes] = await Promise.all([
     supabase.from('account_products' as never)
-      .select('code, label_en, label_sw, is_active')
+      .select('code, label_en, label_sw, is_active, category_id')
       .order('is_active', { ascending: false })
       .order('display_order', { ascending: true }),
     supabase.from('loan_products' as never)
-      .select('code, label_en, label_sw, is_active')
+      .select('code, label_en, label_sw, is_active, category_id')
       .order('is_active', { ascending: false })
       .order('display_order', { ascending: true }),
     supabase.from('branches' as never)
@@ -78,9 +78,15 @@ export default async function StaffSettings({
     supabase.from('station_reports' as never)
       .select('id', { count: 'exact', head: true })
       .like('note', 'Sample figure%'),
+    supabase.from('tracker_categories' as never)
+      .select('id, name_en').eq('is_active', true)
+      .order('display_order', { ascending: true }).limit(100),
   ]);
 
   const sampleReports = sampleRes.count ?? 0;
+  const categoryOptions = ((catRes.data as unknown as
+    { id: string; name_en: string }[]) ?? [])
+    .map((c) => ({ id: c.id, name: c.name_en }));
 
   const accounts = (accountsRes.data as unknown as ProductItem[]) ?? [];
   const loans = (loansRes.data as unknown as ProductItem[]) ?? [];
@@ -135,7 +141,7 @@ export default async function StaffSettings({
         {accounts.length === 0 ? (
           <PanelEmpty>No account types yet.</PanelEmpty>
         ) : (
-          <ProductTable kind="account" items={accounts} locale={locale} />
+          <ProductTable kind="account" items={accounts} locale={locale} categories={categoryOptions} />
         )}
       </Panel>
 
@@ -150,7 +156,7 @@ export default async function StaffSettings({
         {loans.length === 0 ? (
           <PanelEmpty>No loan types yet.</PanelEmpty>
         ) : (
-          <ProductTable kind="loan" items={loans} locale={locale} />
+          <ProductTable kind="loan" items={loans} locale={locale} categories={categoryOptions} />
         )}
       </Panel>
 

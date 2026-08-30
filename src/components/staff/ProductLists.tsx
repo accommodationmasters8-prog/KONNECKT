@@ -2,7 +2,8 @@
 
 import { useActionState } from 'react';
 import {
-  addProduct, setProductActive, type ActionResult,
+  addProduct, setProductActive, setProductCategory, deleteProduct,
+  type ActionResult,
 } from '@/app/[locale]/staff/settings/actions';
 import styles from './AdminForm.module.css';
 import list from './ProductLists.module.css';
@@ -16,7 +17,10 @@ export interface ProductItem {
   label_en: string;
   label_sw: string;
   is_active: boolean;
+  category_id: string | null;
 }
+
+export interface CategoryOption { id: string; name: string }
 
 export function AddProduct({ kind, noun }: { kind: ProductKind; noun: string }) {
   const [state, formAction, pending] = useActionState(addProduct, INITIAL);
@@ -78,14 +82,65 @@ export function ToggleProduct({
   );
 }
 
+/** Which category a type belongs to, or everywhere. Saves on change. */
+function CategoryPicker({
+  kind,
+  code,
+  categoryId,
+  categories,
+}: {
+  kind: ProductKind;
+  code: string;
+  categoryId: string | null;
+  categories: CategoryOption[];
+}) {
+  const [state, formAction, pending] = useActionState(setProductCategory, INITIAL);
+  return (
+    <form action={formAction} className={styles.inlineForm}>
+      <input type="hidden" name="kind" value={kind} />
+      <input type="hidden" name="code" value={code} />
+      <select className={styles.select} name="category_id" defaultValue={categoryId ?? ''}
+        aria-label={`Category for ${code}`}>
+        <option value="">Everywhere</option>
+        {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+      </select>
+      <button type="submit" className="btn btn--quiet btn--sm" disabled={pending}>
+        {pending ? '…' : 'Set'}
+      </button>
+      {state.message && !state.ok ? (
+        <span className={styles.error}>{state.message}</span>
+      ) : null}
+    </form>
+  );
+}
+
+/** Delete outright. Refused by the database once anything references it. */
+function DeleteProduct({ kind, code }: { kind: ProductKind; code: string }) {
+  const [state, formAction, pending] = useActionState(deleteProduct, INITIAL);
+  return (
+    <form action={formAction} className={styles.inlineForm}>
+      <input type="hidden" name="kind" value={kind} />
+      <input type="hidden" name="code" value={code} />
+      <button type="submit" className="btn btn--quiet btn--sm" disabled={pending}>
+        {pending ? '…' : 'Delete'}
+      </button>
+      {state.message && !state.ok ? (
+        <span className={styles.error}>{state.message}</span>
+      ) : null}
+    </form>
+  );
+}
+
 export function ProductTable({
   kind,
   items,
   locale,
+  categories,
 }: {
   kind: ProductKind;
   items: ProductItem[];
   locale: string;
+  categories: CategoryOption[];
 }) {
   return (
     <div className={list.wrap}>
@@ -94,6 +149,7 @@ export function ProductTable({
           <tr>
             <th scope="col">Name</th>
             <th scope="col">Code</th>
+            <th scope="col">Appears in</th>
             <th scope="col">In use</th>
             <th scope="col"><span className="visually-hidden">Actions</span></th>
           </tr>
@@ -103,9 +159,18 @@ export function ProductTable({
             <tr key={item.code} className={item.is_active ? undefined : list.retired}>
               <th scope="row">{locale === 'sw' ? item.label_sw : item.label_en}</th>
               <td><code className={list.code}>{item.code}</code></td>
-              <td>{item.is_active ? 'Yes' : 'Retired'}</td>
               <td>
+                <CategoryPicker
+                  kind={kind}
+                  code={item.code}
+                  categoryId={item.category_id}
+                  categories={categories}
+                />
+              </td>
+              <td>{item.is_active ? 'Yes' : 'Retired'}</td>
+              <td className={list.actions}>
                 <ToggleProduct kind={kind} code={item.code} active={item.is_active} />
+                <DeleteProduct kind={kind} code={item.code} />
               </td>
             </tr>
           ))}

@@ -4,6 +4,7 @@ import { StaffShell } from '@/components/staff/StaffShell';
 import { MetricCard } from '@/components/staff/MetricCard';
 import { BarChart, BarTable, PieChart } from '@/components/staff/Charts';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
+import { FilingBar } from '@/components/staff/FilingBar';
 import {
   AccountsIcon, CategoriesIcon, EventsIcon, StationsIcon,
 } from '@/components/staff/StaffIcons';
@@ -86,6 +87,16 @@ export default async function TrackerOverview({
         </Panel>
       ) : (
         <>
+          {/* The job before the summary. A branch officer opens this screen to
+              file, not to read four totals about the filing they have not
+              done — so the outstanding stations come first, named and linked. */}
+          <FilingBar
+            locale={locale}
+            due={data.due}
+            period={formatPeriod(new Date().toISOString(), locale)}
+            total={data.activeStations}
+          />
+
           <div className={styles.metrics}>
             <MetricCard
               tone="teal"
@@ -97,6 +108,8 @@ export default async function TrackerOverview({
                   : `across ${count(data.activeStations, locale)} active stations`
               }
               icon={<StationsIcon />}
+              href={`/${locale}/staff/stations`}
+              hint="Every station"
             />
             <MetricCard
               tone="green"
@@ -108,6 +121,8 @@ export default async function TrackerOverview({
                   : `${data.coveragePct}% of the portfolio reached`
               }
               icon={<AccountsIcon />}
+              href={`/${locale}/staff/categories`}
+              hint="By category"
             />
             <MetricCard
               tone="gold"
@@ -119,6 +134,8 @@ export default async function TrackerOverview({
                   : 'No loans reported yet'
               }
               icon={<CategoriesIcon />}
+              href={`/${locale}/staff/network`}
+              hint="Who is producing it"
             />
             <MetricCard
               tone="ink"
@@ -130,26 +147,11 @@ export default async function TrackerOverview({
                   : `${data.events.past} past · ${data.events.upcoming} upcoming`
               }
               icon={<EventsIcon />}
+              href={`/${locale}/staff/events`}
+              hint="Every event"
             />
           </div>
 
-          {/* The reporting gap, stated before any chart. A dashboard that
-              charts three branches out of forty and does not say so is worse
-              than one that shows nothing. */}
-          <div className={styles.reportingBar}>
-            <span className={styles.reportingCount}>
-              {data.reportedThisMonth} of {data.activeStations}
-            </span>
-            <span className={styles.reportingLabel}>
-              active stations have reported {formatPeriod(new Date().toISOString(), locale)}
-              {data.awaitingReport > 0
-                ? ` — ${data.awaitingReport} still to come in`
-                : ' — all in'}
-            </span>
-            <Link href={`/${locale}/staff/stations`} className={styles.reportingLink}>
-              Update a station →
-            </Link>
-          </div>
 
           <div className={styles.split}>
             <Panel

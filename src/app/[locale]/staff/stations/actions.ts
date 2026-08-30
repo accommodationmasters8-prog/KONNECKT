@@ -217,8 +217,12 @@ export async function saveReport(_prev: ActionResult, form: FormData): Promise<A
   const deposits = num('deposits_tzs');
   const loansCount = num('loans_count');
   const loansValue = num('loans_value_tzs');
+  const simbanking = num('simbanking_activated');
+  const cards = num('cards_issued');
+  const lipaHapa = num('lipa_hapa_registered');
 
-  if ([portfolio, opened, active, dormant, deposits, loansCount, loansValue].some(Number.isNaN)) {
+  if ([portfolio, opened, active, dormant, deposits, loansCount, loansValue,
+       simbanking, cards, lipaHapa].some(Number.isNaN)) {
     return { ok: false, message: 'Every figure has to be a number.' };
   }
   if (portfolio < 0) return { ok: false, message: 'The number of people cannot be negative.' };
@@ -242,6 +246,9 @@ export async function saveReport(_prev: ActionResult, form: FormData): Promise<A
       deposits_tzs: deposits,
       loans_count: Math.round(loansCount),
       loans_value_tzs: loansValue,
+      simbanking_activated: Math.round(simbanking),
+      cards_issued: Math.round(cards),
+      lipa_hapa_registered: Math.round(lipaHapa),
       note: String(form.get('note') ?? '').trim() || null,
       submitted_by: gate.session.staffId,
       submitted_at: new Date().toISOString(),

@@ -114,3 +114,25 @@
   font-size: var(--size-nano);
   font-family: var(--font-mono, ui-monospace, monospace);
 }
+
+/* A card that navigates says so. Colour alone would not: these cards are
+   already coloured, so the cue has to be a word. */
+.cardLink {
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.cardLink:hover { transform: translateY(-2px); }
+.cardLink:focus-visible { outline: 3px solid var(--konekt-yellow); outline-offset: 3px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cardLink:hover { transform: none; }
+}
+
+.hint {
+  margin-block-start: 6px;
+  font-size: var(--size-nano);
+  font-weight: var(--weight-semibold);
+  opacity: 0.9;
+}

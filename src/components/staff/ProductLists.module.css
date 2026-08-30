@@ -33,3 +33,5 @@
   font-size: var(--size-nano);
   color: var(--text-body);
 }
+
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-xs); }

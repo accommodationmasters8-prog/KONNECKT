@@ -64,7 +64,7 @@ export default async function StationPage({
       .eq('id', id)
       .maybeSingle(),
     supabase.from('station_reports' as never)
-      .select('id, station_id, period_month, portfolio, accounts_opened, active_accounts, dormant_accounts, deposits_tzs, loans_count, loans_value_tzs, note, submitted_at')
+      .select('id, station_id, period_month, period_kind, portfolio, accounts_opened, active_accounts, dormant_accounts, deposits_tzs, loans_count, loans_value_tzs, simbanking_activated, cards_issued, lipa_hapa_registered, note, submitted_at')
       .eq('station_id', id)
       .order('period_month', { ascending: false })
       .limit(60),
@@ -241,6 +241,9 @@ export default async function StationPage({
                   deposits_tzs: Number(newest.deposits_tzs),
                   loans_count: newest.loans_count,
                   loans_value_tzs: Number(newest.loans_value_tzs),
+                  simbanking_activated: newest.simbanking_activated,
+                  cards_issued: newest.cards_issued,
+                  lipa_hapa_registered: newest.lipa_hapa_registered,
                 }
               : station.portfolio !== null
                 ? { portfolio: station.portfolio }

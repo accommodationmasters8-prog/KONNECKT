@@ -51,7 +51,10 @@ export default async function ReportPrintPage({
     zone: q.zone,
     branch: q.branch,
     category: q.category,
+    eventId: q.event,
   });
+
+  const dossier = report.dossier;
 
   const printed = new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', {
     dateStyle: 'long', timeStyle: 'short',
@@ -89,6 +92,56 @@ export default async function ReportPrintPage({
               <span className={styles.totalLabel}>{item.label}</span>
             </div>
           ))}
+        </section>
+      ) : null}
+
+      {dossier ? (
+        <section className={styles.dossier}>
+          <dl className={styles.meta}>
+            <div><dt>Venue</dt><dd>{dossier.venue}</dd></div>
+            <div><dt>Where</dt><dd>{dossier.address ?? '—'}</dd></div>
+            <div><dt>Branch</dt><dd>{dossier.branch}</dd></div>
+            <div><dt>Zone</dt><dd>{dossier.zone ?? '—'}</dd></div>
+          </dl>
+
+          {dossier.notes ? (
+            <p className={styles.dossierNotes}>{dossier.notes}</p>
+          ) : null}
+
+          {dossier.images.length > 0 ? (
+            <>
+              <h2 className={styles.sectionTitle}>
+                Pictures ({dossier.images.length})
+              </h2>
+              <div className={styles.plates}>
+                {dossier.images.map((image) => (
+                  <figure key={image.id} className={styles.plate}>
+                    {image.url ? (
+                      /* eslint-disable-next-line @next/next/no-img-element --
+                         the host is whatever the branch pasted, so it cannot
+                         be in next.config's allowlist. */
+                      <img src={image.url} alt={image.caption ?? dossier.name}
+                        className={styles.plateImage} />
+                    ) : (
+                      <div className={styles.plateMissing}>No link</div>
+                    )}
+                    {image.caption ? (
+                      <figcaption className={styles.plateCaption}>{image.caption}</figcaption>
+                    ) : null}
+                  </figure>
+                ))}
+              </div>
+            </>
+          ) : (
+            <p className={styles.empty}>
+              No pictures attached to this event. They can be added on the
+              event&rsquo;s own page and this report will carry them.
+            </p>
+          )}
+
+          {dossier.albumUrl ? (
+            <p className={styles.foot}>Full album: {dossier.albumUrl}</p>
+          ) : null}
         </section>
       ) : null}
 

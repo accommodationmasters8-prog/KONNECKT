@@ -85,6 +85,11 @@ export interface StationReport extends StationLatest {
   id: string;
   note: string | null;
   submitted_at: string;
+  /** What turned the accounts into customers. Zero, never null: a period
+   *  that reported nothing on a channel reported nothing, which is a fact. */
+  simbanking_activated: number;
+  cards_issued: number;
+  lipa_hapa_registered: number;
 }
 
 export interface TrackedEvent {
@@ -102,6 +107,9 @@ export interface TrackedEvent {
   budget_tzs: number | null;
   actual_spend_tzs: number | null;
   accounts_opened: number | null;
+  simbanking_activated: number | null;
+  cards_issued: number | null;
+  lipa_hapa_registered: number | null;
   deposits_tzs: number | null;
   album_url: string | null;
   notes: string | null;
@@ -127,6 +135,8 @@ export interface TrackerOverview {
   trend: { month: string; deposits: number; accounts: number; stations: number }[];
   reportedThisMonth: number;
   awaitingReport: number;
+  /** Named, not counted: a count is a status, a name is the next click. */
+  due: { id: string; name: string; lastReport: string | null }[];
   events: { total: number; past: number; upcoming: number; participants: number; budget: number };
   /** The next few and the last few, for the overview's own panel. */
   eventList: OverviewEvent[];
@@ -157,7 +167,7 @@ const EMPTY: TrackerOverview = {
   accountsOpened: 0, activeAccounts: 0, dormantAccounts: 0,
   deposits: 0, loansValue: 0, loansCount: 0,
   coveragePct: null, dormancyPct: null,
-  categories: [], trend: [], reportedThisMonth: 0, awaitingReport: 0,
+  categories: [], trend: [], reportedThisMonth: 0, awaitingReport: 0, due: [],
   events: { total: 0, past: 0, upcoming: 0, participants: 0, budget: 0 },
   eventList: [],
   recent: [],
@@ -294,6 +304,28 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
   const today = new Date().toISOString().slice(0, 10);
   const stationName = new Map(stations.map((s) => [s.id, s.name]));
 
+  // Active stations with nothing filed for the current period. Named rather
+  // than counted, because the next thing anybody does with this list is open
+  // one of them.
+  const filedThisPeriod = new Set(
+    latest.filter((r) => r.period_month === period).map((r) => r.station_id),
+  );
+  const lastReportOf = new Map(latest.map((r) => [r.station_id, r.period_month]));
+
+  const due = stations
+    .filter((s) => s.status === 'active' && !filedThisPeriod.has(s.id))
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      lastReport: lastReportOf.get(s.id) ?? null,
+    }))
+    // Never-filed first: those are the ones nobody is watching.
+    .sort((a, b) => {
+      if (!a.lastReport && b.lastReport) return -1;
+      if (a.lastReport && !b.lastReport) return 1;
+      return (a.lastReport ?? '').localeCompare(b.lastReport ?? '');
+    });
+
   const recent: ActivityItem[] = [
     ...stations
       .slice()
@@ -344,6 +376,7 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
     categories,
     trend,
     reportedThisMonth,
+    due,
     awaitingReport: Math.max(stations.filter((s) => s.status === 'active').length - reportedThisMonth, 0),
     // The three closest on each side of today: what just happened and what is
     // about to. A list ordered purely by date puts next year's event above

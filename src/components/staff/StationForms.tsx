@@ -190,6 +190,9 @@ export interface ReportFields {
   deposits_tzs?: number;
   loans_count?: number;
   loans_value_tzs?: number;
+  simbanking_activated?: number;
+  cards_issued?: number;
+  lipa_hapa_registered?: number;
   note?: string | null;
 }
 
@@ -308,6 +311,28 @@ export function ReportForm({
           <span className={styles.label}>Loans — value (TZS)</span>
           <input className={styles.input} type="number" min="0" step="1000" name="loans_value_tzs"
             defaultValue={defaults?.loans_value_tzs ?? ''} />
+        </label>
+
+        {/* What turns an opened account into a customer. Grouped after the
+            account figures because they are all shares of accounts opened —
+            an activation cannot exist without an account. */}
+        <label className={styles.field}>
+          <span className={styles.label}>SimBanking activated</span>
+          <input className={styles.input} type="number" min="0" name="simbanking_activated"
+            defaultValue={defaults?.simbanking_activated ?? ''} />
+          <span className={styles.help}>Of the accounts here, how many switched it on.</span>
+        </label>
+
+        <label className={styles.field}>
+          <span className={styles.label}>Cards issued</span>
+          <input className={styles.input} type="number" min="0" name="cards_issued"
+            defaultValue={defaults?.cards_issued ?? ''} />
+        </label>
+
+        <label className={styles.field}>
+          <span className={styles.label}>Lipa Hapa registered</span>
+          <input className={styles.input} type="number" min="0" name="lipa_hapa_registered"
+            defaultValue={defaults?.lipa_hapa_registered ?? ''} />
         </label>
 
         <label className={`${styles.field} ${styles.gridWide}`}>

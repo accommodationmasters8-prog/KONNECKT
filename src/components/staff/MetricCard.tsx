@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import styles from './MetricCard.module.css';
 
 export type MetricTone = 'teal' | 'green' | 'gold' | 'pink' | 'ink';
@@ -16,6 +17,11 @@ export type MetricTone = 'teal' | 'green' | 'gold' | 'pink' | 'ink';
  * came from, because the first question an analyst asks about a figure is
  * which table produced it. A figure with no live table behind it says so in
  * `note` instead of quietly showing a zero as though it were measured.
+ *
+ * Given an `href` the whole card becomes one link, with a visible cue rather
+ * than a hover state — the second question after "what is this number" is
+ * always "show me what is behind it", and on a touchscreen nobody discovers a
+ * hover.
  */
 export function MetricCard({
   label,
@@ -25,6 +31,8 @@ export function MetricCard({
   note,
   tone = 'teal',
   icon,
+  href,
+  hint = 'Open',
 }: {
   label: string;
   value: string;
@@ -33,9 +41,12 @@ export function MetricCard({
   note?: string;
   tone?: MetricTone;
   icon?: ReactNode;
+  /** Makes the whole card a link to the screen behind the figure. */
+  href?: string;
+  hint?: string;
 }) {
-  return (
-    <article className={`${styles.card} ${styles[tone]}`}>
+  const body = (
+    <>
       <div className={styles.head}>
         <span className={styles.label}>{label}</span>
         {icon ? <span className={styles.icon} aria-hidden="true">{icon}</span> : null}
@@ -48,6 +59,17 @@ export function MetricCard({
 
       {note ? <p className={styles.note}>{note}</p> : null}
       {source ? <p className={styles.source}>{source}</p> : null}
-    </article>
+      {href ? <span className={styles.hint}>{hint} &rarr;</span> : null}
+    </>
   );
+
+  if (href) {
+    return (
+      <Link href={href} className={`${styles.card} ${styles.cardLink} ${styles[tone]}`}>
+        {body}
+      </Link>
+    );
+  }
+
+  return <article className={`${styles.card} ${styles[tone]}`}>{body}</article>;
 }

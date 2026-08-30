@@ -222,10 +222,24 @@ export default async function CategoryPage({
           note={totals.loans > 0 ? `${money(totals.loans, locale, true)} in loans` : 'No loans reported'}
         />
         <MetricCard
+          tone="pink"
+          label="Active accounts"
+          value={count(totals.active, locale)}
+          note={
+            totals.accounts > 0
+              ? `${Math.round((totals.active / totals.accounts) * 1000) / 10}% of what was opened`
+              : 'Nothing opened yet'
+          }
+        />
+        <MetricCard
           tone="ink"
-          label="Still to reach"
-          value={count(Math.max(totals.portfolio - totals.accounts, 0), locale)}
-          note={`${noun} without an account`}
+          label="Dormant accounts"
+          value={count(totals.dormant, locale)}
+          note={
+            totals.accounts > 0
+              ? `${Math.round((totals.dormant / totals.accounts) * 1000) / 10}% gone quiet — the number to attack`
+              : 'Nothing opened yet'
+          }
         />
       </div>
 

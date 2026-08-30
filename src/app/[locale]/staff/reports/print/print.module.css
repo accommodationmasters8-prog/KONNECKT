@@ -146,3 +146,63 @@
   size: A4 landscape;
   margin: 12mm;
 }
+
+/* --- Single-event dossier ------------------------------------------------ */
+
+.dossier { margin-block-end: var(--space-lg); }
+
+.dossierNotes {
+  margin-block-end: var(--space-md);
+  padding: var(--space-md);
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+  font-size: var(--size-caption);
+}
+
+.sectionTitle {
+  font-family: var(--font-display);
+  font-size: var(--size-h3);
+  font-weight: var(--weight-bold);
+  margin-block: var(--space-lg) var(--space-sm);
+  color: var(--text-strong);
+}
+
+.plates {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: var(--space-md);
+}
+
+.plate { margin: 0; }
+
+.plateImage {
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-app);
+}
+
+.plateMissing {
+  inline-size: 100%;
+  aspect-ratio: 4 / 3;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  color: var(--text-body);
+  font-size: var(--size-nano);
+}
+
+.plateCaption {
+  font-size: var(--size-nano);
+  color: var(--text-body);
+  margin-block-start: 4px;
+}
+
+@media print {
+  /* A picture split across a page break is a picture nobody can read. */
+  .plate { break-inside: avoid; }
+  .plates { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  @page { size: A4 portrait; }
+}

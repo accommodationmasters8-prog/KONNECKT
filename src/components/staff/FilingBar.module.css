@@ -1,0 +1,115 @@
+/* The one panel in the console that is not a card. It sits above the metrics
+   and reads as an instruction rather than as information, which is the whole
+   point of it being here. */
+.bar {
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  border: 1px solid var(--konekt-teal);
+  border-inline-start: 4px solid var(--konekt-teal);
+  margin-block-end: var(--space-lg);
+}
+
+.barDone {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  border-radius: var(--radius-lg);
+  background: var(--surface-tint);
+  border: 1px solid var(--line-app);
+  color: var(--text-strong);
+  font-size: var(--size-caption);
+  margin-block-end: var(--space-lg);
+}
+
+.tick {
+  display: grid;
+  place-items: center;
+  inline-size: 20px;
+  block-size: 20px;
+  border-radius: 50%;
+  background: var(--konekt-teal-deep);
+  color: var(--konekt-paper);
+  font-size: var(--size-nano);
+  flex: none;
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-md);
+  margin-block-end: var(--space-md);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--size-h3);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  font-size: var(--size-nano);
+  color: var(--text-body);
+  white-space: nowrap;
+}
+
+.track {
+  inline-size: 88px;
+  block-size: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.fill {
+  display: block;
+  block-size: 100%;
+  background: var(--konekt-teal-deep);
+}
+
+.list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+/* Each outstanding station is a link straight to its form. A count would be a
+   status; these are the work. */
+.chip,
+.chipMore {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line-app);
+  color: var(--text-strong);
+  font-size: var(--size-caption);
+  font-weight: var(--weight-medium);
+  text-decoration: none;
+}
+
+.chip:hover,
+.chipMore:hover { border-color: var(--konekt-teal); }
+
+.chipMeta {
+  font-size: var(--size-nano);
+  font-weight: var(--weight-regular);
+  color: var(--text-body);
+}
+
+.chipMore {
+  justify-content: center;
+  color: var(--text-accent);
+}

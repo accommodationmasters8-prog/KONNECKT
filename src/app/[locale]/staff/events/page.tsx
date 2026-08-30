@@ -51,7 +51,7 @@ export default async function EventsPage({
   if (supabase && session.signedIn) {
     const [eventRes, branchRes] = await Promise.all([
       supabase.from('tracked_events' as never)
-        .select('id, name, event_date, end_date, branch_id, zone_code, station_id, category_id, venue, address, participants, budget_tzs, actual_spend_tzs, accounts_opened, deposits_tzs, album_url, notes, created_at')
+        .select('id, name, event_date, end_date, branch_id, zone_code, station_id, category_id, venue, address, participants, budget_tzs, actual_spend_tzs, accounts_opened, simbanking_activated, cards_issued, lipa_hapa_registered, deposits_tzs, album_url, notes, created_at')
         .order('event_date', { ascending: false })
         .limit(500),
       session.role === 'branch'
@@ -87,7 +87,9 @@ export default async function EventsPage({
   const participants = past.reduce((n, e) => n + Number(e.participants ?? 0), 0);
   const spend = past.reduce((n, e) => n + Number(e.actual_spend_tzs ?? e.budget_tzs ?? 0), 0);
   const accounts = past.reduce((n, e) => n + Number(e.accounts_opened ?? 0), 0);
-  const costPerAccount = accounts > 0 ? spend / accounts : null;
+  const simbanking = events.reduce((a, e) => a + Number(e.simbanking_activated ?? 0), 0);
+  const cards = events.reduce((a, e) => a + Number(e.cards_issued ?? 0), 0);
+  const lipaHapa = events.reduce((a, e) => a + Number(e.lipa_hapa_registered ?? 0), 0);
 
   const when = new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', { dateStyle: 'medium' });
 
@@ -114,9 +116,13 @@ export default async function EventsPage({
               note="Across every event held" />
             <MetricCard tone="gold" label="Spent" value={money(spend, locale, true)}
               note="Actual where recorded, budget where not" />
-            <MetricCard tone="ink" label="Cost per account"
-              value={costPerAccount === null ? '—' : money(costPerAccount, locale)}
-              note={accounts > 0 ? `${count(accounts, locale)} accounts opened` : 'No accounts recorded yet'} />
+            <MetricCard tone="ink" label="Accounts opened"
+              value={accounts > 0 ? count(accounts, locale) : '—'}
+              note={
+                accounts > 0
+                  ? `${count(simbanking, locale)} SimBanking · ${count(cards, locale)} cards · ${count(lipaHapa, locale)} Lipa Hapa`
+                  : 'Nothing recorded yet'
+              } />
           </div>
 
             {/* Links, not a dropdown: the choice ends up in the URL, so a zone

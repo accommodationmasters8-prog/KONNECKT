@@ -21,6 +21,9 @@ export interface EventFields {
   budget_tzs?: number | null;
   actual_spend_tzs?: number | null;
   accounts_opened?: number | null;
+  simbanking_activated?: number | null;
+  cards_issued?: number | null;
+  lipa_hapa_registered?: number | null;
   deposits_tzs?: number | null;
   album_url?: string | null;
   notes?: string | null;
@@ -138,7 +141,25 @@ export function EventForm({
           <span className={styles.label}>Accounts opened</span>
           <input className={styles.input} type="number" min="0" name="accounts_opened"
             defaultValue={event?.accounts_opened ?? ''} />
-          <span className={styles.help}>What the event produced. Cost per account comes from this.</span>
+          <span className={styles.help}>What the event produced.</span>
+        </label>
+
+        <label className={styles.field}>
+          <span className={styles.label}>SimBanking activated</span>
+          <input className={styles.input} type="number" min="0" name="simbanking_activated"
+            defaultValue={event?.simbanking_activated ?? ''} />
+        </label>
+
+        <label className={styles.field}>
+          <span className={styles.label}>Cards issued</span>
+          <input className={styles.input} type="number" min="0" name="cards_issued"
+            defaultValue={event?.cards_issued ?? ''} />
+        </label>
+
+        <label className={styles.field}>
+          <span className={styles.label}>Lipa Hapa registered</span>
+          <input className={styles.input} type="number" min="0" name="lipa_hapa_registered"
+            defaultValue={event?.lipa_hapa_registered ?? ''} />
         </label>
 
         <label className={styles.field}>

@@ -49,6 +49,7 @@ export async function GET(
     zone: q.get('zone') ?? undefined,
     branch: q.get('branch') ?? undefined,
     category: q.get('category') ?? undefined,
+    eventId: q.get('event') ?? undefined,
   });
 
   const stamp = new Date().toISOString().slice(0, 10);

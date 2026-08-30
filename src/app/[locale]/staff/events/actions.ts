@@ -47,6 +47,9 @@ function readFields(form: FormData): ParsedEvent {
   const budget = num('budget_tzs');
   const spend = num('actual_spend_tzs');
   const accounts = num('accounts_opened');
+  const simbanking = num('simbanking_activated');
+  const cards = num('cards_issued');
+  const lipaHapa = num('lipa_hapa_registered');
   const deposits = num('deposits_tzs');
 
   if ([participants, budget, spend, accounts, deposits].some((v) => v !== null && Number.isNaN(v))) {
@@ -76,6 +79,9 @@ function readFields(form: FormData): ParsedEvent {
       budget_tzs: budget,
       actual_spend_tzs: spend,
       accounts_opened: accounts === null ? null : Math.round(accounts),
+      simbanking_activated: simbanking === null ? null : Math.round(simbanking),
+      cards_issued: cards === null ? null : Math.round(cards),
+      lipa_hapa_registered: lipaHapa === null ? null : Math.round(lipaHapa),
       deposits_tzs: deposits,
       album_url: url || null,
       notes: String(form.get('notes') ?? '').trim() || null,
