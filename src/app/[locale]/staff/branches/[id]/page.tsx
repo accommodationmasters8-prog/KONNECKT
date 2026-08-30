@@ -7,6 +7,7 @@ import { MetricCard } from '@/components/staff/MetricCard';
 import { PieChart } from '@/components/staff/Charts';
 import { StationForm } from '@/components/staff/StationForms';
 import { BranchForm } from '@/components/staff/BranchForms';
+import { FilingBar } from '@/components/staff/FilingBar';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
@@ -87,6 +88,25 @@ export default async function BranchPage({
     ? Math.round((totals.accounts / totals.portfolio) * 1000) / 10
     : null;
 
+  // What is still to file, at this branch, this period.
+  //
+  // A branch officer opening their own branch is here to record, not to read
+  // four totals about the recording they have not done — so the outstanding
+  // stations come first and are named, because a count is a status and a name
+  // is the next click.
+  const period = (() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+  })();
+
+  const due = stations
+    .filter((s) => !s.lastReport || !s.lastReport.startsWith(period))
+    .map((s) => ({
+      id: s.id,
+      name: s.name,
+      lastReport: s.lastReport ? formatPeriod(s.lastReport, locale) : null,
+    }));
+
   // HQ edits any branch; a zone manager edits the ones in their own zone.
   // Row level security says the same thing underneath — this decides whether
   // the form is worth rendering, not whether the write is allowed.
@@ -122,6 +142,13 @@ export default async function BranchPage({
         </>
       }
     >
+      <FilingBar
+        locale={locale}
+        due={due}
+        period={formatPeriod(new Date().toISOString(), locale)}
+        total={stations.length}
+      />
+
       <div className={styles.metrics}>
         <MetricCard tone="teal" label="Stations" value={count(stations.length, locale)}
           note={`${count(totals.reporting, locale)} have reported at least once`} />

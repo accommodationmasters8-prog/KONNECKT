@@ -428,3 +428,25 @@ export function regionCentre(
   const titled = raw.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
   return REGION_CENTRES[titled] ?? REGION_CENTRES[raw] ?? null;
 }
+
+/**
+ * The map's own name for whatever the register called a region.
+ *
+ * The register mixes regions with towns — MUSOMA is in Mara, SUMBAWANGA is in
+ * Rukwa — and shouts all of them. A map that keys on the raw string draws a
+ * pin in Mara while leaving Mara unclickable, because the two strings never
+ * meet. Everything the aliases and title-casing cannot resolve comes back
+ * null and is counted apart rather than placed somewhere plausible.
+ */
+export function mapRegionName(
+  regionName: string | null | undefined,
+): string | null {
+  if (!regionName) return null;
+  const raw = regionName.trim();
+  const mapped = REGION_ALIASES[raw.toUpperCase()];
+  if (mapped && REGION_CENTRES[mapped]) return mapped;
+
+  const titled = raw.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase());
+  if (REGION_CENTRES[titled]) return titled;
+  return REGION_CENTRES[raw] ? raw : null;
+}

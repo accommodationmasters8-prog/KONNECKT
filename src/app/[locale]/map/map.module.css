@@ -119,3 +119,144 @@
 }
 
 .pinNote .tri { margin-block-start: 0.35em; flex: none; }
+
+/* --- Zone filter ---------------------------------------------------------
+   Links, not a control: the choice is in the URL, so it survives a refresh
+   and can be sent to somebody else. */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-xs);
+  justify-content: center;
+  margin-block: var(--space-lg) 0;
+}
+
+.chip,
+.chipOn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: var(--size-micro);
+  line-height: 1;
+  text-decoration: none;
+  border: 1px solid var(--line-on-inverse);
+  transition: background var(--dur-base) var(--ease-out),
+              color var(--dur-base) var(--ease-out);
+}
+
+.chip {
+  color: var(--text-muted-on-inverse);
+  background: transparent;
+}
+
+.chipOn {
+  color: var(--konekt-ink);
+  background: var(--konekt-teal-light);
+  border-color: var(--konekt-teal-light);
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .chip:hover { color: var(--text-on-inverse); background: var(--line-on-inverse); }
+}
+
+.chipCount {
+  font-family: var(--font-data);
+  opacity: 0.7;
+}
+
+/* --- The region panel ----------------------------------------------------
+   What makes the map a dashboard rather than a picture: the shape you clicked
+   opens something. */
+.panel {
+  background: var(--surface-raised);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  padding: var(--space-lg);
+  margin-block-end: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  align-items: flex-start;
+}
+
+.panelHead {
+  display: flex;
+  inline-size: 100%;
+  gap: var(--space-md);
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.panelEyebrow {
+  margin: 0;
+  font-size: var(--size-micro);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--konekt-pink);
+}
+
+.panelSub {
+  margin: 0;
+  font-size: var(--size-micro);
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.panelClose {
+  font-size: var(--size-micro);
+  color: var(--text-muted);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.panelStats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--space-md);
+  margin: 0;
+  inline-size: 100%;
+  padding-block: var(--space-md);
+  border-block: 1px solid var(--line-app);
+}
+
+.panelStat { display: flex; flex-direction: column; gap: 2px; }
+.panelStat dd { margin: 0; font-size: var(--size-h4); color: var(--text-strong); }
+.panelStat dt { font-size: var(--size-micro); color: var(--text-muted); }
+
+/* --- Table rows that open ------------------------------------------------ */
+
+.rowLink {
+  color: var(--text-strong);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+@media (hover: hover) {
+  .rowLink:hover { color: var(--konekt-teal); text-decoration: underline; }
+}
+
+.rowHint {
+  display: block;
+  font-size: var(--size-micro);
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+/* --- The one call to action --------------------------------------------- */
+
+.cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-sm);
+  padding: var(--space-lg);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  margin-block-end: var(--space-xl);
+}
+
+.cta p { margin: 0; max-inline-size: 60ch; }

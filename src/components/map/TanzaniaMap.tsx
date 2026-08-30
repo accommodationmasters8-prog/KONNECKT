@@ -38,6 +38,10 @@ export interface MapPin {
   label: string;
   /** How many things are at this pin. Drawn on the pin when above one. */
   count?: number;
+  /** Where clicking it goes. A pin without one stays a mark on a picture. */
+  href?: string;
+  /** The one currently being read, drawn larger and in the active colour. */
+  selected?: boolean;
 }
 
 export function TanzaniaMap({
@@ -48,6 +52,8 @@ export function TanzaniaMap({
   labels = false,
   pins,
   className,
+  regionHref,
+  selectedRegion,
 }: {
   data: ZoneDatum[];
   /** Accessible name for the figure. */
@@ -60,6 +66,12 @@ export function TanzaniaMap({
   /** Places to mark. Drawn above every region, in the brand's place colour. */
   pins?: MapPin[];
   className?: string;
+  /** Makes each region a link. Given a region name, return where clicking it
+   *  goes, or null to leave that region inert — a region with nothing in it
+   *  should not offer a click that lands on an empty panel. */
+  regionHref?: (region: string) => string | null;
+  /** The region being read right now, drawn in the active colour. */
+  selectedRegion?: string | null;
 }) {
   const byZone = new Map(data.map((d) => [d.zone, d]));
   const peak = Math.max(1, ...data.map((d) => d.campuses));
@@ -93,14 +105,19 @@ export function TanzaniaMap({
           const weight = variant === 'flat' ? 0.6 : 0.14 + Math.sqrt(share) * 0.86;
           const isActive = activeZone === region.zone;
 
-          return (
+          const isSelected = selectedRegion === region.name;
+          const href = regionHref?.(region.name) ?? null;
+
+          const shape = (
             <path
               key={region.name}
               d={region.d}
               className={[
                 styles.region,
                 isActive ? styles.regionActive : '',
+                isSelected ? styles.regionSelected : '',
                 activeZone && !isActive ? styles.regionDimmed : '',
+                href ? styles.regionLink : '',
               ]
                 .filter(Boolean)
                 .join(' ')}
@@ -111,6 +128,24 @@ export function TanzaniaMap({
               }
               data-zone={region.zone}
             />
+          );
+
+          // An <a> around the path rather than an onClick, so the region works
+          // with a keyboard, opens in a new tab on a middle click, and needs
+          // no JavaScript at all. `aria-label` carries the name because the
+          // path itself has no text and a <title> inside it would be hoisted
+          // to the document head by React 19 and break hydration.
+          if (!href) return shape;
+          return (
+            <a
+              key={region.name}
+              href={href}
+              className={styles.regionAnchor}
+              aria-label={region.name}
+              aria-current={isSelected ? 'true' : undefined}
+            >
+              {shape}
+            </a>
           );
         })}
 
@@ -151,17 +186,36 @@ export function TanzaniaMap({
             filled dot with a white ring, which is what keeps it visible over
             both the palest zone and the darkest one. */}
         {pins?.length
-          ? pins.map((pin) => (
-              <g key={pin.id} className={styles.pin}>
-                <circle cx={pin.x} cy={pin.y} r="13" className={styles.pinHalo} />
-                <circle cx={pin.x} cy={pin.y} r="7" className={styles.pinDot} />
-                {pin.count && pin.count > 1 ? (
-                  <text x={pin.x} y={pin.y + 28} className={styles.pinCount}>
-                    {pin.count}
-                  </text>
-                ) : null}
-              </g>
-            ))
+          ? pins.map((pin) => {
+              const dot = (
+                <g
+                  className={[styles.pin, pin.href ? styles.pinClickable : '']
+                    .filter(Boolean).join(' ')}
+                >
+                  <circle cx={pin.x} cy={pin.y} r="13"
+                    className={pin.selected ? styles.pinHaloOn : styles.pinHalo} />
+                  <circle cx={pin.x} cy={pin.y} r={pin.selected ? 9 : 7}
+                    className={pin.selected ? styles.pinDotOn : styles.pinDot} />
+                  {pin.count && pin.count > 1 ? (
+                    <text x={pin.x} y={pin.y + 28} className={styles.pinCount}>
+                      {pin.count}
+                    </text>
+                  ) : null}
+                </g>
+              );
+
+              if (!pin.href) return <g key={pin.id}>{dot}</g>;
+              return (
+                <a
+                  key={pin.id}
+                  href={pin.href}
+                  aria-label={`${pin.label}${pin.count ? `, ${pin.count} stations` : ''}`}
+                  aria-current={pin.selected ? 'true' : undefined}
+                >
+                  {dot}
+                </a>
+              );
+            })
           : null}
       </svg>
     </figure>

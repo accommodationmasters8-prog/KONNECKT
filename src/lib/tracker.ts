@@ -1,4 +1,5 @@
 import { getPublicClient, getServerClient } from '@/lib/supabase/server';
+import { mapRegionName } from '@/lib/tanzania-map';
 
 /**
  * The tracker's read layer.
@@ -459,31 +460,209 @@ export function count(value: number, locale: string) {
 
 export interface StationPin {
   id: string;
-  name: string;
-  category_slug: string;
-  category_name: string;
   region_name: string | null;
+  district_name: string | null;
+  zone_code: string | null;
+}
+
+export interface MapRegionRow {
+  /** The map's own name for the region, so a row and a shape are the same
+   *  thing. The register's spellings live in `sources`. */
+  region: string;
+  stations: number;
+  districts: string[];
+  zone: string | null;
+  /** What the register called it, where that differs from the map. */
+  sources: string[];
+  /** False when nothing on the map matches, so the row is listed but not
+   *  drawn rather than pinned somewhere plausible. */
+  onMap: boolean;
+}
+
+export interface MapZoneRow {
+  zone: string;
+  stations: number;
+  regions: number;
+}
+
+export interface PublicMapData {
+  stations: number;
+  regions: MapRegionRow[];
+  zones: MapZoneRow[];
+  districts: number;
 }
 
 /**
- * The pins for the public map.
+ * The public map, which is geography and nothing else.
  *
- * Read through `konekt.public_station_pins`, a deliberately narrow view: four
- * columns, active stations only. The station table itself is closed to anon,
- * so this cannot widen by accident — adding a column to the map means adding
- * it to the view, in a migration somebody has to write on purpose.
+ * Presence is worth publishing: the country CRDB reaches is a fact about
+ * CRDB, and a staff member should be able to open it on a phone with no
+ * password. Identity is not. The view this reads carries no station name and
+ * no category — those two columns together are the target list, and it was
+ * being served to anonymous callers until this release.
  *
- * Uses the anon client rather than the cookie one so the landing page stays
- * prerendered; a cookie read here would make the whole page dynamic.
+ * Read with the publishable key rather than the request's session, so the
+ * page stays prerenderable: a cookie read here would make it dynamic for
+ * every visitor.
  */
-export async function getPublicStationPins(): Promise<StationPin[]> {
+export async function getPublicMapData(): Promise<PublicMapData> {
   const supabase = getPublicClient();
-  if (!supabase) return [];
+  if (!supabase) return { stations: 0, regions: [], zones: [], districts: 0 };
 
   const { data } = await supabase
     .from('public_station_pins' as never)
-    .select('id, name, category_slug, category_name, region_name')
-    .limit(2000);
+    .select('id, region_name, district_name, zone_code')
+    .limit(5000);
 
-  return (data as unknown as StationPin[]) ?? [];
+  const pins = (data as unknown as StationPin[]) ?? [];
+
+  const byRegion = new Map<string, MapRegionRow>();
+  const byZone = new Map<string, { stations: number; regions: Set<string> }>();
+  const districts = new Set<string>();
+
+  for (const pin of pins) {
+    const raw = pin.region_name?.trim() ?? '';
+    const canonical = mapRegionName(raw);
+    const region = canonical
+      ?? (raw ? raw.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : 'Unrecorded');
+
+    if (!byRegion.has(region)) {
+      byRegion.set(region, {
+        region, stations: 0, districts: [], zone: pin.zone_code,
+        sources: [], onMap: canonical !== null,
+      });
+    }
+    const row = byRegion.get(region)!;
+    row.stations += 1;
+    if (raw && raw !== region && !row.sources.includes(raw)) row.sources.push(raw);
+    if (pin.district_name && !row.districts.includes(pin.district_name)) {
+      row.districts.push(pin.district_name);
+    }
+    // A region's zone is whatever its first station's branch says. They agree
+    // in practice — a region sits in one zone — and where they would not, the
+    // first answer is as good as an argument the map cannot settle.
+    if (!row.zone) row.zone = pin.zone_code;
+
+    if (pin.district_name) districts.add(pin.district_name);
+
+    const zoneKey = pin.zone_code ?? 'UNASSIGNED';
+    if (!byZone.has(zoneKey)) byZone.set(zoneKey, { stations: 0, regions: new Set() });
+    const zone = byZone.get(zoneKey)!;
+    zone.stations += 1;
+    zone.regions.add(region);
+  }
+
+  for (const row of byRegion.values()) {
+    row.districts.sort();
+    row.sources.sort();
+  }
+
+  return {
+    stations: pins.length,
+    districts: districts.size,
+    regions: [...byRegion.values()]
+      .sort((a, b) => b.stations - a.stations || a.region.localeCompare(b.region)),
+    zones: [...byZone.entries()]
+      .map(([zone, z]) => ({ zone, stations: z.stations, regions: z.regions.size }))
+      .sort((a, b) => b.stations - a.stations),
+  };
+}
+
+export interface StaffMapRegion {
+  region: string;
+  stations: number;
+  districts: string[];
+  categories: { name: string; stations: number }[];
+  accountsOpened: number;
+  deposits: number;
+  reporting: number;
+}
+
+/**
+ * The same map, for somebody who has signed in.
+ *
+ * One page, two depths. The public tier answers "where is CRDB" and stops;
+ * this adds the three things that make it a working screen — what kind of
+ * place, how much has been opened there, and how many of those stations have
+ * actually filed. Splitting them into two pages would guarantee that one of
+ * them eventually shows a different national total from the other.
+ *
+ * Read through the request's own session, so row level security decides the
+ * scope: HQ gets the country, a zone manager gets their zone, a branch
+ * officer gets their branch. There is no zone filter in this function and
+ * there must never be one.
+ */
+export async function getStaffMapRegions(): Promise<StaffMapRegion[]> {
+  const supabase = await getServerClient();
+  if (!supabase) return [];
+
+  const [stationRes, catRes] = await Promise.all([
+    supabase.from('stations' as never)
+      .select('id, region_name, district_name, category_id, status')
+      .eq('status', 'active')
+      .limit(5000),
+    supabase.from('tracker_categories' as never).select('id, name_en').limit(200),
+  ]);
+
+  const stations = (stationRes.data as unknown as {
+    id: string; region_name: string | null; district_name: string | null;
+    category_id: string;
+  }[]) ?? [];
+  if (stations.length === 0) return [];
+
+  const catName = new Map(
+    ((catRes.data as unknown as { id: string; name_en: string }[]) ?? [])
+      .map((c) => [c.id, c.name_en]),
+  );
+
+  const { data: latestData } = await supabase
+    .from('station_latest' as never)
+    .select('station_id, accounts_opened, deposits_tzs')
+    .in('station_id', stations.map((s) => s.id));
+
+  const latest = new Map(
+    ((latestData as unknown as
+      { station_id: string; accounts_opened: number; deposits_tzs: number }[]) ?? [])
+      .map((r) => [r.station_id, r]),
+  );
+
+  const byRegion = new Map<string, StaffMapRegion & { cats: Map<string, number> }>();
+
+  for (const station of stations) {
+    const raw = station.region_name?.trim() ?? '';
+    const region = mapRegionName(raw)
+      ?? (raw ? raw.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : 'Unrecorded');
+    if (!byRegion.has(region)) {
+      byRegion.set(region, {
+        region, stations: 0, districts: [], categories: [],
+        accountsOpened: 0, deposits: 0, reporting: 0,
+        cats: new Map(),
+      });
+    }
+    const row = byRegion.get(region)!;
+    row.stations += 1;
+    if (station.district_name && !row.districts.includes(station.district_name)) {
+      row.districts.push(station.district_name);
+    }
+
+    const name = catName.get(station.category_id) ?? 'Uncategorised';
+    row.cats.set(name, (row.cats.get(name) ?? 0) + 1);
+
+    const l = latest.get(station.id);
+    if (l) {
+      row.reporting += 1;
+      row.accountsOpened += Number(l.accounts_opened ?? 0);
+      row.deposits += Number(l.deposits_tzs ?? 0);
+    }
+  }
+
+  return [...byRegion.values()]
+    .map(({ cats, ...row }) => ({
+      ...row,
+      districts: row.districts.sort(),
+      categories: [...cats.entries()]
+        .map(([name, n]) => ({ name, stations: n }))
+        .sort((a, b) => b.stations - a.stations),
+    }))
+    .sort((a, b) => b.stations - a.stations || a.region.localeCompare(b.region));
 }

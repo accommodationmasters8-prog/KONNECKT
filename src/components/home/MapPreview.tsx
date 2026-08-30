@@ -3,7 +3,7 @@ import { TanzaniaMap } from '../map/TanzaniaMap';
 import { SectionHead } from './SectionHead';
 import { zoneFigures } from '@/lib/zone-data';
 import { regionCentre } from '@/lib/tanzania-map';
-import { getPublicStationPins } from '@/lib/tracker';
+import { getPublicMapData } from '@/lib/tracker';
 import { nationalStats } from '@/lib/seed';
 import { plural } from '@/i18n';
 import type { Dictionary, Locale } from '@/i18n';
@@ -30,28 +30,34 @@ export async function MapPreview({ locale, t }: { locale: Locale; t: Dictionary 
   // in. Several stations in one region collapse to one pin carrying the count,
   // which is the honest drawing: the register has no street coordinates, so
   // eight pins scattered around Dodoma would be eight fictions.
-  const stations = await getPublicStationPins();
-  const byRegion = new Map<string, { x: number; y: number; count: number }>();
-  for (const station of stations) {
-    const centre = regionCentre(station.region_name);
-    if (!centre) continue;
-    const key = `${centre.x.toFixed(1)},${centre.y.toFixed(1)}`;
-    const seen = byRegion.get(key);
-    if (seen) seen.count += 1;
-    else byRegion.set(key, { ...centre, count: 1 });
-  }
+  //
+  // Counts and regions only. No station is named here or on the map page —
+  // the view this reads does not carry the column, because a named list of
+  // the places CRDB is working is its plan for the segment.
+  const map = await getPublicMapData();
 
-  const pins = [...byRegion.entries()].map(([key, pin]) => ({
-    id: key,
-    x: pin.x,
-    y: pin.y,
-    label: `${pin.count} tracked`,
-    count: pin.count,
-  }));
+  const pins = map.regions
+    .filter((row) => row.onMap)
+    .map((row) => {
+      const centre = regionCentre(row.region);
+      if (!centre) return null;
+      return {
+        id: row.region,
+        x: centre.x,
+        y: centre.y,
+        label: `${row.region}, ${row.stations} tracked`,
+        count: row.stations,
+        href: `/${locale}/map?region=${encodeURIComponent(row.region)}`,
+      };
+    })
+    .filter((p): p is NonNullable<typeof p> => p !== null);
 
+  // Live where there is a database, the committed register where there is
+  // not: a zero here would read as a measurement rather than as an absent
+  // connection.
   const totals = [
     { value: nationalStats.branches, label: t.map.totalBranches },
-    { value: nationalStats.stations, label: t.map.totalStations },
+    { value: map.stations || nationalStats.stations, label: t.map.totalStations },
     { value: nationalStats.zones, label: t.map.totalZones },
   ];
 

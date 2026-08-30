@@ -34,6 +34,28 @@
   stroke: var(--konekt-ink);
 }
 
+/* The region being read. Distinct from .regionActive, which marks a whole
+   zone: this marks one region inside it, so the two have to be separable at
+   a glance when both are on screen. */
+.regionSelected {
+  fill: var(--konekt-pink);
+  stroke: var(--surface-raised);
+  stroke-width: 2.5;
+}
+
+/* A region you can open. The cursor is the only always-on cue — a border or
+   a tint here would fight the density ramp the shading exists to show. */
+.regionLink { cursor: pointer; }
+
+.regionAnchor:focus-visible {
+  outline: none;
+}
+
+.regionAnchor:focus-visible .region {
+  stroke: var(--konekt-yellow);
+  stroke-width: 4;
+}
+
 .regionDimmed { opacity: 0.42; }
 
 /* On the paper canvas the same map inverts its ground. */
@@ -46,6 +68,15 @@
 @media (hover: hover) {
   .region:hover {
     fill: var(--konekt-green);
+  }
+
+  /* Hovering the link has to beat hovering the bare region, and the selected
+     region has to beat both — otherwise moving the mouse across the map
+     makes the current selection disappear under the hover colour. */
+  .regionSelected,
+  .regionSelected:hover,
+  .regionAnchor:hover .regionSelected {
+    fill: var(--konekt-pink);
   }
 }
 
@@ -116,4 +147,25 @@
   stroke: var(--surface-raised);
   stroke-width: 4px;
   stroke-linejoin: round;
+}
+
+
+/* --- Clickable pins ------------------------------------------------------ */
+
+.pinClickable { pointer-events: auto; cursor: pointer; }
+
+.pinHaloOn {
+  fill: var(--konekt-yellow);
+  opacity: 1;
+}
+
+.pinDotOn {
+  fill: var(--konekt-ink);
+  stroke: var(--konekt-yellow);
+  stroke-width: 2.5;
+}
+
+@media (hover: hover) {
+  .pinClickable:hover .pinDot { fill: var(--konekt-ink); }
+  .pinClickable:hover .pinHalo { opacity: 1; }
 }
