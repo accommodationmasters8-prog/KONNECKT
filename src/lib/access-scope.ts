@@ -49,7 +49,12 @@ export const LEVEL_WORDING: Record<AccessLevel, string> = {
   hq: 'HQ — every zone',
   zone: 'Zone — the branches under it',
   branch: 'Branch — its own stations',
-  field_agent: 'Field agent — one branch, read mostly',
+  // Not "read mostly", which is what this said. `staff_can_reach` treats
+  // 'branch' and 'field_agent' identically, so a field agent can file, edit
+  // and delete exactly what a branch manager can, at the same one branch. A
+  // label that promises less access than the database grants is the kind of
+  // thing an audit finds.
+  field_agent: 'Field agent — one branch, same rights as its manager',
 };
 
 export interface BranchOption {
