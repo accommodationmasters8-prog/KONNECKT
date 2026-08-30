@@ -191,6 +191,15 @@ export default async function NetworkPage({
                 ? 'Ranked by deposits. Click a zone to open the branches inside it.'
                 : 'Ranked by deposits. Coverage is what is left to win.'
             }
+            /* Performance ranks; the tree changes. Missing a zone or a branch
+               here means it does not exist yet, and this is the one click to
+               where it is created — rather than a second create form sitting
+               inside a comparison, disagreeing with the first. */
+            action={
+              <Link href={`/${locale}/staff/branches`} className={styles.panelLink}>
+                {isZoneTable ? 'Add a zone or branch →' : 'Add a branch →'}
+              </Link>
+            }
           >
             <div className={styles.tableWrap}>
               <table className={styles.table}>

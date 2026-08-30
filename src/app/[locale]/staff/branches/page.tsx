@@ -3,9 +3,11 @@ import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
+import { AddBranchToZone, AddZone } from '@/components/staff/ZoneForms';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getBranchTree } from '@/lib/network';
+import { getZones } from '@/lib/zones';
 import { count, money } from '@/lib/tracker';
 import { localeParams, resolveLocale } from '@/lib/page';
 import styles from '../staff.module.css';
@@ -56,7 +58,31 @@ export default async function BranchesPage({
     );
   }
 
-  const zones = await getBranchTree();
+  const [tree, allZones] = await Promise.all([getBranchTree(), getZones()]);
+
+  // A zone with nothing in it yet still belongs on this screen. It is the one
+  // a branch has to be added to, and a tree that only shows zones that already
+  // have branches hides exactly the row somebody came here to fill.
+  const seen = new Set(tree.map((z) => z.zone));
+  const zones = [
+    ...tree,
+    ...allZones
+      .filter((z) => !seen.has(z.code))
+      .map((z) => ({
+        zone: z.code, label: z.label, branches: [], stations: 0, deposits: 0,
+      })),
+  ].sort((a, b) => {
+    if (a.zone === 'UNASSIGNED') return 1;
+    if (b.zone === 'UNASSIGNED') return -1;
+    return b.deposits - a.deposits || a.label.localeCompare(b.label);
+  });
+
+  // HQ maintains every zone; a zone manager maintains the branches inside
+  // their own and nothing else. Row level security enforces both — this only
+  // decides which forms are worth rendering.
+  const canAddZone = session.role === 'hq';
+  const canAddBranchIn = (zone: string) =>
+    session.role === 'hq' ? zone !== 'UNASSIGNED' : session.role === 'zone' && session.zone === zone;
 
   const totalBranches = zones.reduce((a, z) => a + z.branches.length, 0);
   const totalStations = zones.reduce((a, z) => a + z.stations, 0);
@@ -124,6 +150,12 @@ export default async function BranchesPage({
               )
             }
           >
+            {zone.branches.length === 0 ? (
+              <PanelEmpty>
+                No branches in this zone yet. Add the first one below — every
+                station it reports on will belong to it, and to this zone.
+              </PanelEmpty>
+            ) : (
             <div className={styles.tableWrap}>
               <table className={styles.table}>
                 <thead>
@@ -173,9 +205,23 @@ export default async function BranchesPage({
                 </tbody>
               </table>
             </div>
+            )}
+
+            {canAddBranchIn(zone.zone) ? (
+              <AddBranchToZone zone={zone.zone} zoneLabel={zone.label} />
+            ) : null}
           </Panel>
         ))
       )}
+
+      {canAddZone ? (
+        <Panel
+          title="Add a zone"
+          description="A zone is the top of the tree: it owns branches, and branches own stations. Adding one here makes it available to every branch form, every access code and every report from the moment it is saved."
+        >
+          <AddZone />
+        </Panel>
+      ) : null}
     </StaffShell>
   );
 }

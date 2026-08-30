@@ -13,6 +13,13 @@ export interface StaffSession {
   signedIn: boolean;
   /** konekt.staff_users.id, for writes that record an actor. */
   staffId: string | null;
+  /** The zone this account owns, if it owns one. Never a filter — row level
+   *  security already decided what can be read. It is here so a screen can
+   *  put a zone manager straight into their own zone instead of asking them
+   *  which one they are. */
+  zone: string | null;
+  /** Likewise the branch, for an account scoped to one. */
+  branchId: string | null;
 }
 
 const NOT_SIGNED_IN: StaffSession = {
@@ -21,6 +28,8 @@ const NOT_SIGNED_IN: StaffSession = {
   scopeLabel: 'Not signed in — showing register figures only',
   signedIn: false,
   staffId: null,
+  zone: null,
+  branchId: null,
 };
 
 /**
@@ -59,6 +68,7 @@ export async function getStaffSession(): Promise<StaffSession> {
     full_name: string | null;
     email: string | null;
     zone_code: string | null;
+    branch_id: string | null;
   } | null;
 
   if (!staff) {
@@ -74,6 +84,8 @@ export async function getStaffSession(): Promise<StaffSession> {
     role: staff.role,
     staffId: staff.id,
     signedIn: true,
+    zone: staff.zone_code ?? null,
+    branchId: staff.branch_id ?? null,
     user: {
       name: staff.full_name || staff.email || auth.user.email || 'Staff user',
       email: staff.email ?? auth.user.email ?? undefined,

@@ -71,8 +71,18 @@ export default async function TrackerOverview({
       user={session.user}
       actions={
         session.signedIn ? (
-          <Link href={`/${locale}/staff/branches`} className="btn btn--primary btn--sm">
-            Add a station
+          /* A branch officer owns exactly one branch, so sending them to a
+             tree of eight zones to find it is three clicks of a question they
+             already know the answer to. Everyone above them needs the tree. */
+          <Link
+            href={
+              session.role === 'branch' && session.branchId
+                ? `/${locale}/staff/branches/${session.branchId}`
+                : `/${locale}/staff/branches`
+            }
+            className="btn btn--primary btn--sm"
+          >
+            {session.role === 'branch' ? 'My branch' : 'Zones and branches'}
           </Link>
         ) : null
       }

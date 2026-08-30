@@ -33,6 +33,26 @@ async function hqOnly() {
 }
 
 /**
+ * HQ, or a zone manager acting inside their own zone.
+ *
+ * A branch is the one structural thing a zone owns outright, so requiring HQ
+ * to create one turned "we opened a branch in Geita" into a ticket. Row level
+ * security enforces the same rule underneath — this only decides what the
+ * screen offers, and a mismatch between the two shows up as a refused write
+ * rather than an unauthorised one.
+ */
+async function hqOrZone() {
+  const supabase = await getServerClient();
+  if (!supabase) return { ok: false as const, message: 'No database is attached.' };
+  const session = await getStaffSession();
+  if (!session.signedIn) return { ok: false as const, message: 'Sign in first.' };
+  if (session.role !== 'hq' && session.role !== 'zone') {
+    return { ok: false as const, message: 'Branches are maintained by HQ and zone managers.' };
+  }
+  return { ok: true as const, supabase, session };
+}
+
+/**
  * Add an account type or a loan type.
  *
  * The code is derived from the name rather than asked for. It is what every
@@ -228,7 +248,7 @@ export async function setBranchZone(
  * by somebody, and this is where.
  */
 export async function saveBranch(_prev: ActionResult, form: FormData): Promise<ActionResult> {
-  const gate = await hqOnly();
+  const gate = await hqOrZone();
   if (!gate.ok) return gate;
 
   const id = String(form.get('branch_id') ?? '').trim();
@@ -245,7 +265,16 @@ export async function saveBranch(_prev: ActionResult, form: FormData): Promise<A
       ? Math.round(n) : null;
   };
 
-  const zone = String(form.get('zone_code') ?? '').trim();
+  // A zone manager files into their own zone and nowhere else. The form does
+  // not offer them the choice; this is what happens if the field is forged.
+  const zone = gate.session.role === 'zone'
+    ? (gate.session.zone ?? '')
+    : String(form.get('zone_code') ?? '').trim();
+
+  if (gate.session.role === 'zone' && zone === '') {
+    return { ok: false, message: 'Your account has no zone, so it cannot own a branch.' };
+  }
+
   const payload = {
     name,
     zone_code: zone === '' ? null : zone,
@@ -314,4 +343,74 @@ export async function clearDemoData(_prev: ActionResult): Promise<ActionResult> 
     ok: true,
     message: `Cleared ${reports ?? 0} sample reports, ${stations ?? 0} sample stations and ${events ?? 0} sample events. Stations loaded from the register are still here, with nothing filed against them.`,
   };
+}
+
+/**
+ * Add a zone.
+ *
+ * `zone_code` is an enum twelve tables depend on, so this is the one place in
+ * the console where a form causes DDL. It cannot be done in a single
+ * statement: Postgres refuses to *use* an enum value in the transaction that
+ * added it, so the value is added by one function and the row naming it is
+ * written by a second. Both check the HQ role in their own body — the guard
+ * is not this file's to keep.
+ *
+ * The code is derived from the name, never asked for. Every branch, station
+ * and grant already filed is keyed on it, so it must not be something a
+ * person can retype differently next month.
+ */
+export async function addZone(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  const gate = await hqOnly();
+  if (!gate.ok) return gate;
+
+  const nameEn = String(form.get('name_en') ?? '').trim();
+  const nameSw = String(form.get('name_sw') ?? '').trim() || nameEn;
+  if (nameEn.length < 2) return { ok: false, message: 'Give the zone a name.' };
+
+  const code = slug(nameEn).toUpperCase();
+  if (code.length < 2) return { ok: false, message: 'That name has no letters or digits in it.' };
+
+  const { error: addError } = await gate.supabase.rpc('zone_add_value' as never, {
+    p_code: code,
+  } as never);
+  if (addError) return { ok: false, message: addError.message };
+
+  const { error: registerError } = await gate.supabase.rpc('zone_register' as never, {
+    p_code: code,
+    p_name_en: nameEn,
+    p_name_sw: nameSw,
+  } as never);
+  if (registerError) return { ok: false, message: registerError.message };
+
+  revalidatePath('/', 'layout');
+  return {
+    ok: true,
+    message: `${nameEn} added. Put branches in it below — a zone with no branches shows nothing.`,
+  };
+}
+
+/**
+ * Rename a zone.
+ *
+ * The code never changes — everything filed references it. Only the words
+ * people read do.
+ */
+export async function renameZone(_prev: ActionResult, form: FormData): Promise<ActionResult> {
+  const gate = await hqOnly();
+  if (!gate.ok) return gate;
+
+  const code = String(form.get('code') ?? '').trim();
+  const nameEn = String(form.get('name_en') ?? '').trim();
+  if (!code) return { ok: false, message: 'Which zone?' };
+  if (nameEn.length < 2) return { ok: false, message: 'Give the zone a name.' };
+
+  const { error } = await gate.supabase
+    .from('zones' as never)
+    .update({ name_en: nameEn, name_sw: String(form.get('name_sw') ?? '').trim() || nameEn } as never)
+    .eq('code', code);
+
+  if (error) return { ok: false, message: error.message };
+
+  revalidatePath('/', 'layout');
+  return { ok: true, message: 'Renamed.' };
 }

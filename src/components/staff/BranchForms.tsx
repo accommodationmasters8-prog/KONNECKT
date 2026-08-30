@@ -7,6 +7,15 @@ import {
 import { ZONE_CODES, zoneWording } from '@/lib/access-scope';
 import styles from './AdminForm.module.css';
 
+export interface ZoneChoice {
+  code: string;
+  label: string;
+}
+
+const FALLBACK_ZONES: ZoneChoice[] = ZONE_CODES.map((code) => ({
+  code, label: zoneWording(code),
+}));
+
 const INITIAL: ActionResult = { ok: false, message: '' };
 
 export interface BranchFields {
@@ -26,9 +35,27 @@ export interface BranchFields {
  * most and the one it never carried: without it a branch is invisible to its
  * zone manager, and so is every station reporting through it.
  */
-export function BranchForm({ branch }: { branch?: BranchFields }) {
+export function BranchForm({
+  branch,
+  zones,
+  lockedZone,
+}: {
+  branch?: BranchFields;
+  /** The zones as they stand in the database. Falls back to the built-in
+   *  eight only when the caller has none — a form with an empty select is
+   *  worse than a form with a stale one. */
+  zones?: ZoneChoice[];
+  /** A zone manager owns one zone and files into it. Showing them a picker of
+   *  eight is offering seven wrong answers, and the server overrides the
+   *  field anyway. */
+  lockedZone?: string | null;
+}) {
   const [state, formAction, pending] = useActionState(saveBranch, INITIAL);
   const editing = Boolean(branch?.id);
+  const choices = zones && zones.length > 0 ? zones : FALLBACK_ZONES;
+  const locked = lockedZone
+    ? (choices.find((z) => z.code === lockedZone) ?? { code: lockedZone, label: zoneWording(lockedZone) })
+    : null;
 
   return (
     <form action={formAction} className={styles.form}>
@@ -41,20 +68,32 @@ export function BranchForm({ branch }: { branch?: BranchFields }) {
             defaultValue={branch?.name ?? ''} />
         </label>
 
-        <label className={styles.field}>
-          <span className={styles.label}>Zone</span>
-          <select className={styles.select} name="zone_code"
-            defaultValue={branch?.zone_code ?? ''}>
-            <option value="">Not assigned</option>
-            {ZONE_CODES.map((z) => (
-              <option key={z} value={z}>{zoneWording(z)}</option>
-            ))}
-          </select>
-          <span className={styles.help}>
-            Unassigned means no zone manager can see it, or anything reporting
-            through it.
-          </span>
-        </label>
+        {locked ? (
+          <label className={styles.field}>
+            <span className={styles.label}>Zone</span>
+            <input className={styles.input} value={locked.label} readOnly disabled />
+            <input type="hidden" name="zone_code" value={locked.code} />
+            <span className={styles.help}>
+              Your zone. A branch you add belongs to it and cannot be moved out
+              of it from here.
+            </span>
+          </label>
+        ) : (
+          <label className={styles.field}>
+            <span className={styles.label}>Zone</span>
+            <select className={styles.select} name="zone_code"
+              defaultValue={branch?.zone_code ?? ''}>
+              <option value="">Not assigned</option>
+              {choices.map((z) => (
+                <option key={z.code} value={z.code}>{z.label}</option>
+              ))}
+            </select>
+            <span className={styles.help}>
+              Unassigned means no zone manager can see it, or anything reporting
+              through it.
+            </span>
+          </label>
+        )}
 
         <label className={styles.field}>
           <span className={styles.label}>Year established</span>

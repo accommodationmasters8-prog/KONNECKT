@@ -29,6 +29,8 @@ const MEASURES = {
   deposits: { label: 'Deposits mobilised', kind: 'money' as const },
   loans: { label: 'Loan value', kind: 'money' as const },
   coverage: { label: 'Coverage', kind: 'percent' as const },
+  simbanking: { label: 'SimBanking activated', kind: 'count' as const },
+  lipahapa: { label: 'Lipa Hapa registered', kind: 'count' as const },
 };
 
 type MeasureKey = keyof typeof MEASURES;
@@ -94,7 +96,7 @@ export default async function CategoryPage({
       : Promise.resolve({ data: [] }),
     ids.length
       ? supabase.from('station_reports' as never)
-          .select('period_month, deposits_tzs, accounts_opened, portfolio, station_id')
+          .select('period_month, deposits_tzs, accounts_opened, portfolio, station_id, simbanking_activated, cards_issued, lipa_hapa_registered')
           .in('station_id', ids)
           .gte('period_month', from)
           .limit(5000)
@@ -139,8 +141,17 @@ export default async function CategoryPage({
       deposits: acc.deposits + Number(r.deposits_tzs ?? 0),
       loans: acc.loans + Number(r.loans_value_tzs ?? 0),
       loanCount: acc.loanCount + Number(r.loans_count ?? 0),
+      simbanking: acc.simbanking + Number(
+        (r as unknown as { simbanking_activated?: number }).simbanking_activated ?? 0),
+      cards: acc.cards + Number(
+        (r as unknown as { cards_issued?: number }).cards_issued ?? 0),
+      lipaHapa: acc.lipaHapa + Number(
+        (r as unknown as { lipa_hapa_registered?: number }).lipa_hapa_registered ?? 0),
     }),
-    { portfolio: 0, accounts: 0, active: 0, dormant: 0, deposits: 0, loans: 0, loanCount: 0 },
+    {
+      portfolio: 0, accounts: 0, active: 0, dormant: 0, deposits: 0, loans: 0,
+      loanCount: 0, simbanking: 0, cards: 0, lipaHapa: 0,
+    },
   );
 
   const coverage = totals.portfolio > 0
@@ -152,9 +163,12 @@ export default async function CategoryPage({
   for (const row of (trendRes.data as unknown as
     { period_month: string; deposits_tzs: number; accounts_opened: number; portfolio: number }[]) ?? []) {
     const key = row.period_month.slice(0, 7);
+    const r = row as unknown as Record<string, number | undefined>;
     const value = measure === 'deposits' ? Number(row.deposits_tzs)
       : measure === 'people' ? Number(row.portfolio)
-        : Number(row.accounts_opened);
+        : measure === 'simbanking' ? Number(r.simbanking_activated ?? 0)
+          : measure === 'lipahapa' ? Number(r.lipa_hapa_registered ?? 0)
+            : Number(row.accounts_opened);
     byMonth.set(key, (byMonth.get(key) ?? 0) + value);
   }
 
@@ -173,6 +187,10 @@ export default async function CategoryPage({
       case 'deposits': return Number(l.deposits_tzs);
       case 'loans': return Number(l.loans_value_tzs);
       case 'coverage': return Number(l.coverage_pct ?? 0);
+      case 'simbanking':
+        return Number((l as unknown as { simbanking_activated?: number }).simbanking_activated ?? 0);
+      case 'lipahapa':
+        return Number((l as unknown as { lipa_hapa_registered?: number }).lipa_hapa_registered ?? 0);
       default: return Number(l.accounts_opened);
     }
   };
@@ -240,6 +258,59 @@ export default async function CategoryPage({
               ? `${Math.round((totals.dormant / totals.accounts) * 1000) / 10}% gone quiet — the number to attack`
               : 'Nothing opened yet'
           }
+        />
+      </div>
+
+      {/* The three channels, for this category alone. An account opened at a
+          bodaboda stand and never activated on SimBanking is a number on a
+          form, not a customer — and until these were carried per category
+          there was no way to tell which kind of place that happens in. */}
+      <div className={styles.metrics}>
+        <MetricCard
+          tone="teal"
+          label="SimBanking activated"
+          value={count(totals.simbanking, locale)}
+          note={
+            totals.accounts > 0
+              ? `${Math.round((totals.simbanking / totals.accounts) * 1000) / 10}% of the accounts opened here`
+              : 'Nothing opened yet'
+          }
+          href={`/${locale}/staff/categories/${category.slug}?by=simbanking`}
+          hint="Rank stations by it"
+        />
+        <MetricCard
+          tone="green"
+          label="Lipa Hapa registered"
+          value={count(totals.lipaHapa, locale)}
+          note={
+            totals.accounts > 0
+              ? `${Math.round((totals.lipaHapa / totals.accounts) * 1000) / 10}% of the accounts opened here`
+              : 'Nothing opened yet'
+          }
+          href={`/${locale}/staff/categories/${category.slug}?by=lipahapa`}
+          hint="Rank stations by it"
+        />
+        <MetricCard
+          tone="gold"
+          label="Cards issued"
+          value={count(totals.cards, locale)}
+          note={
+            totals.accounts > 0
+              ? `${Math.round((totals.cards / totals.accounts) * 1000) / 10}% of the accounts opened here`
+              : 'Nothing opened yet'
+          }
+        />
+        <MetricCard
+          tone="pink"
+          label="Loans given"
+          value={count(totals.loanCount, locale)}
+          note={
+            totals.loans > 0
+              ? `${money(totals.loans, locale, true)} lent`
+              : 'No loans reported in this category'
+          }
+          href={`/${locale}/staff/categories/${category.slug}?by=loans`}
+          hint="Rank stations by value"
         />
       </div>
 

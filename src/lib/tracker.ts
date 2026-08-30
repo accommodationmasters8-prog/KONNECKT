@@ -44,6 +44,13 @@ export interface CategoryTotals {
   loans_count: number;
   loans_value_tzs: number;
   coverage_pct: number | null;
+  /** The three channels the bank is actually judged on, per category. They
+   *  were already on every report and already summed per zone and branch;
+   *  this is the level at which "which kind of place activates SimBanking"
+   *  becomes answerable. */
+  simbanking_activated: number;
+  cards_issued: number;
+  lipa_hapa_registered: number;
 }
 
 export interface StationRow {

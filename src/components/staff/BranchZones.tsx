@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { setBranchZone, type ActionResult } from '@/app/[locale]/staff/settings/actions';
 import { ZONE_CODES, zoneWording } from '@/lib/access-scope';
+import type { ZoneChoice } from './BranchForms';
 import styles from './AdminForm.module.css';
 import list from './ProductLists.module.css';
 
@@ -14,8 +15,12 @@ export interface BranchRow {
   zone_code: string | null;
 }
 
+const FALLBACK_ZONES: ZoneChoice[] = ZONE_CODES.map((code) => ({
+  code, label: zoneWording(code),
+}));
+
 /** One branch's zone. Saves on change — there is only one field. */
-function ZonePicker({ branch }: { branch: BranchRow }) {
+function ZonePicker({ branch, zones }: { branch: BranchRow; zones: ZoneChoice[] }) {
   const [state, formAction, pending] = useActionState(setBranchZone, INITIAL);
 
   return (
@@ -28,8 +33,8 @@ function ZonePicker({ branch }: { branch: BranchRow }) {
         aria-label={`Zone for ${branch.name}`}
       >
         <option value="">Not assigned</option>
-        {ZONE_CODES.map((z) => (
-          <option key={z} value={z}>{zoneWording(z)}</option>
+        {zones.map((z) => (
+          <option key={z.code} value={z.code}>{z.label}</option>
         ))}
       </select>
       <button type="submit" className="btn btn--quiet btn--sm" disabled={pending}>
@@ -50,7 +55,14 @@ function ZonePicker({ branch }: { branch: BranchRow }) {
  * through it. The filter is client-side over a list of 252 — small enough that
  * a round trip per keystroke would be the slower design.
  */
-export function BranchZones({ branches }: { branches: BranchRow[] }) {
+export function BranchZones({
+  branches,
+  zones,
+}: {
+  branches: BranchRow[];
+  zones?: ZoneChoice[];
+}) {
+  const choices = zones && zones.length > 0 ? zones : FALLBACK_ZONES;
   const [query, setQuery] = useState('');
   const [onlyUnzoned, setOnlyUnzoned] = useState(true);
 
@@ -101,7 +113,7 @@ export function BranchZones({ branches }: { branches: BranchRow[] }) {
             {shown.slice(0, 60).map((branch) => (
               <tr key={branch.id}>
                 <th scope="row">{branch.name}</th>
-                <td><ZonePicker branch={branch} /></td>
+                <td><ZonePicker branch={branch} zones={choices} /></td>
               </tr>
             ))}
           </tbody>

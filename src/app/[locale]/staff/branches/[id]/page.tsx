@@ -6,10 +6,12 @@ import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
 import { PieChart } from '@/components/staff/Charts';
 import { StationForm } from '@/components/staff/StationForms';
+import { BranchForm } from '@/components/staff/BranchForms';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
 import { getBranchStations, getCategoryBreakdown, zoneWording } from '@/lib/network';
+import { getZones } from '@/lib/zones';
 import { count, formatPeriod, getCategories, money } from '@/lib/tracker';
 import { resolveLocale } from '@/lib/page';
 import styles from '../../staff.module.css';
@@ -52,20 +54,21 @@ export default async function BranchPage({
     );
   }
 
-  const [branchRes, stations, byCategory, categories] = await Promise.all([
+  const [branchRes, stations, byCategory, categories, zones] = await Promise.all([
     supabase.from('branches' as never)
-      .select('id, name, zone_code, year_established, year_refurbished, is_active')
+      .select('id, name, zone_code, year_established, year_refurbished, is_active, notes')
       .eq('id', id)
       .maybeSingle(),
     getBranchStations(id),
     getCategoryBreakdown({ branchId: id }),
     getCategories(),
+    getZones(),
   ]);
 
   const branch = branchRes.data as unknown as {
     id: string; name: string; zone_code: string | null;
     year_established: number | null; year_refurbished: number | null;
-    is_active: boolean;
+    is_active: boolean; notes: string | null;
   } | null;
 
   if (!branch) notFound();
@@ -83,6 +86,12 @@ export default async function BranchPage({
   const coverage = totals.portfolio > 0
     ? Math.round((totals.accounts / totals.portfolio) * 1000) / 10
     : null;
+
+  // HQ edits any branch; a zone manager edits the ones in their own zone.
+  // Row level security says the same thing underneath — this decides whether
+  // the form is worth rendering, not whether the write is allowed.
+  const canEdit = session.role === 'hq'
+    || (session.role === 'zone' && session.zone !== null && session.zone === branch.zone_code);
 
   return (
     <StaffShell
@@ -192,6 +201,27 @@ export default async function BranchPage({
               value: c.deposits,
               tone: (['teal', 'green', 'gold', 'pink', 'slate'] as const)[i],
             }))}
+          />
+        </Panel>
+      ) : null}
+
+      {canEdit ? (
+        <Panel
+          title={`Edit ${branch.name}`}
+          description="The branch's own details. Its zone is the field that matters most: a branch with no zone is invisible to every zone manager, and so is every station reporting through it."
+        >
+          <BranchForm
+            branch={{
+              id: branch.id,
+              name: branch.name,
+              zone_code: branch.zone_code,
+              year_established: branch.year_established,
+              year_refurbished: branch.year_refurbished,
+              is_active: branch.is_active,
+              notes: branch.notes,
+            }}
+            zones={zones}
+            lockedZone={session.role === 'zone' ? session.zone : null}
           />
         </Panel>
       ) : null}

@@ -9,6 +9,7 @@ import { BranchForm, ClearDemoData } from '@/components/staff/BranchForms';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
+import { getZones } from '@/lib/zones';
 import { localeParams, resolveLocale } from '@/lib/page';
 
 export function generateStaticParams() {
@@ -61,7 +62,7 @@ export default async function StaffSettings({
     );
   }
 
-  const [accountsRes, loansRes, branchesRes, sampleRes, catRes] = await Promise.all([
+  const [accountsRes, loansRes, branchesRes, sampleRes, catRes, zones] = await Promise.all([
     supabase.from('account_products' as never)
       .select('code, label_en, label_sw, is_active, category_id')
       .order('is_active', { ascending: false })
@@ -81,6 +82,7 @@ export default async function StaffSettings({
     supabase.from('tracker_categories' as never)
       .select('id, name_en').eq('is_active', true)
       .order('display_order', { ascending: true }).limit(100),
+    getZones(),
   ]);
 
   const sampleReports = sampleRes.count ?? 0;
@@ -130,7 +132,7 @@ export default async function StaffSettings({
         {branches.length === 0 ? (
           <PanelEmpty>No branches loaded.</PanelEmpty>
         ) : (
-          <BranchZones branches={branches} />
+          <BranchZones branches={branches} zones={zones} />
         )}
       </Panel>
 
@@ -168,7 +170,7 @@ export default async function StaffSettings({
         title="Add a branch"
         description="For a branch the register does not carry. Editing an existing one is done from its row above."
       >
-        <BranchForm />
+        <BranchForm zones={zones} />
       </Panel>
     </StaffShell>
   );

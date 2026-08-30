@@ -81,6 +81,11 @@ export default async function CategoriesPage({
                       ? `${count(t.stations, locale)} stations · ${count(t.accounts_opened, locale)} accounts · ${money(Number(t.deposits_tzs), locale, true)}`
                       : 'Nothing reported yet'}
                   </span>
+                  <span className={styles.categoryMeta}>
+                    {t
+                      ? `${count(t.simbanking_activated, locale)} SimBanking · ${count(t.lipa_hapa_registered, locale)} Lipa Hapa · ${count(t.loans_count, locale)} loans`
+                      : 'No channels recorded yet'}
+                  </span>
                   <span className={styles.categoryNoun}>
                     counted in {category.member_noun_en}
                   </span>
@@ -110,6 +115,67 @@ export default async function CategoriesPage({
               />
             )}
           </Panel>
+          <Panel
+            title="Channels by category"
+            description="SimBanking, Lipa Hapa, cards and loans, from the newest report each station filed. An account opened and never activated is not a customer — this is the column that says which."
+          >
+            {totals.length === 0 ? (
+              <PanelEmpty>No categories yet.</PanelEmpty>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th scope="col">Category</th>
+                      <th scope="col" className={styles.num}>Accounts</th>
+                      <th scope="col" className={styles.num}>SimBanking</th>
+                      <th scope="col" className={styles.num}>Cards</th>
+                      <th scope="col" className={styles.num}>Lipa Hapa</th>
+                      <th scope="col" className={styles.num}>Loans</th>
+                      <th scope="col" className={styles.num}>Loan value</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {totals.map((t) => {
+                      const share = (n: number) => t.accounts_opened > 0
+                        ? `${Math.round((n / t.accounts_opened) * 1000) / 10}%`
+                        : null;
+                      return (
+                        <tr key={t.category_id}>
+                          <th scope="row">
+                            <Link
+                              href={`/${locale}/staff/categories/${t.slug}`}
+                              className={styles.link}
+                            >
+                              {t.name_en}
+                            </Link>
+                            <span className={styles.sub}>click to open</span>
+                          </th>
+                          <td className={styles.num}>{count(t.accounts_opened, locale)}</td>
+                          <td className={styles.num}>
+                            {count(t.simbanking_activated, locale)}
+                            {share(t.simbanking_activated)
+                              ? <span className={styles.sub}>{share(t.simbanking_activated)} of accounts</span>
+                              : null}
+                          </td>
+                          <td className={styles.num}>{count(t.cards_issued, locale)}</td>
+                          <td className={styles.num}>
+                            {count(t.lipa_hapa_registered, locale)}
+                            {share(t.lipa_hapa_registered)
+                              ? <span className={styles.sub}>{share(t.lipa_hapa_registered)} of accounts</span>
+                              : null}
+                          </td>
+                          <td className={styles.num}>{count(t.loans_count, locale)}</td>
+                          <td className={styles.num}>{money(Number(t.loans_value_tzs), locale, true)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Panel>
+
           {session.role === 'hq' ? (
             <Panel
               title="Add a category"
