@@ -9,7 +9,7 @@
 .barTable th,
 .barTable td {
   text-align: start;
-  padding: var(--space-xs) var(--space-sm);
+  padding: 0;
   vertical-align: middle;
 }
 
@@ -23,8 +23,8 @@
   padding-block-end: var(--space-sm);
 }
 
-.barTable tbody tr + tr th,
-.barTable tbody tr + tr td { border-block-start: 1px solid var(--line-app); }
+/* No rules between rows. The bars are already separated by the gap between
+   them, and a line under each one turns a chart back into a table. */
 
 .barTable tbody th {
   font-weight: var(--weight-semibold);
@@ -39,408 +39,117 @@
   color: var(--text-body);
 }
 
-/* The bar column carries the chart. Hidden on a phone, where 90px of track
-   says nothing the number beside it does not already say. */
-.barCol { inline-size: 55%; }
-.barCell { inline-size: 55%; }
+/* The bar column carries the chart, and keeps it on a phone: the value now
+   rides on the end of its own bar, so hiding the track would hide the number
+   with it. */
+.barCol { inline-size: 78%; }
 
-@media (max-width: 40rem) {
-  .barCol, .barCell { display: none; }
-}
+/* --- Horizontal bars ----------------------------------------------------
+   Thick, rounded at the data end, one hue running light to deep along the
+   length. This is the form the reference asked for and it is the right one
+   for ranked names: a horizontal bar gives the label a whole line to be read
+   on, where a vertical column gives it a column's width and a rotation. */
 
-/* Thin. A ranked bar is read by comparing lengths, and a fat bar spends
-   height saying nothing the length has not already said. */
-.barTrack {
-  display: block;
-  block-size: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--chart-grid);
-  overflow: hidden;
-}
+.hbars { display: grid; gap: var(--space-xs); }
 
-.barFill {
-  display: block;
-  block-size: 100%;
-  /* Rounded at the data end only; the other end is anchored to zero, and a
-     bar rounded there floats off the axis it is measured against. */
-  border-radius: 0 4px 4px 0;
-  background: var(--series-1);
-}
-
-.numCol {
-  text-align: end;
-  font-variant-numeric: tabular-nums;
-  font-weight: var(--weight-semibold);
-  color: var(--text-strong);
-}
-
-/* --- Donut -------------------------------------------------------------- */
-
-.donutWrap {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--space-lg);
-}
-
-.donut {
-  inline-size: 160px;
-  block-size: 160px;
-  flex: none;
-  transform: rotate(-90deg);
-}
-
-.donutTrack {
-  fill: none;
-  stroke: var(--surface-sunken);
-  stroke-width: 18;
-}
-
-.donutSlice {
-  fill: none;
-  stroke-width: 18;
-  stroke: var(--slice-colour);
-  stroke-linecap: butt;
-}
-
-/* Counter-rotated so the figures sit upright inside the rotated chart. */
-.donutValue,
-.donutLabel {
-  transform: rotate(90deg);
-  transform-origin: 80px 80px;
-  fill: var(--text-strong);
-  font-family: var(--font-display);
-}
-
-.donutValue { font-size: 30px; font-weight: var(--weight-black); }
-.donutLabel { font-size: 11px; fill: var(--text-body); }
-
-/* A row per slice, each on its own line with the figure right-aligned, so the
-   numbers form a column the eye can run down. That column is the reason this
-   is a legend and not a tooltip. */
-.legend {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  min-inline-size: 12rem;
-  flex: 1;
-  font-size: var(--size-caption);
-}
-
-.legendItem {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  font-size: var(--size-caption);
-}
-
-.swatch {
-  inline-size: 12px;
-  block-size: 12px;
-  flex: none;
-  border-radius: 4px;
-  background: var(--slice-colour);
-}
-
-.legendLabel {
-  color: var(--text-strong);
-  overflow: hidden;
-  text-overflow: ellipsis;
+.barLabelCell {
+  padding-block: 7px;
+  padding-inline-end: var(--space-md);
+  vertical-align: middle;
+  inline-size: 1%;
   white-space: nowrap;
 }
 
-.legendValue {
-  margin-inline-start: auto;
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  font-weight: var(--weight-semibold);
-  font-variant-numeric: tabular-nums;
-  color: var(--text-strong);
-  white-space: nowrap;
-}
-
-/* Slice colours. The deep variants, because these sit on white and the pure
-   brand values do not clear AA there — a legend swatch is decoration but the
-   donut is the figure, so it holds to the same bar. */
-/* The series palette, in fixed order.
-
-   The names are the brand's; the values are the validated categorical steps.
-   `slate` is not a series — it is the neutral "everything else" slot, and it
-   is only ever used for a residual that carries its own label. */
-.teal   { --slice-colour: var(--series-1); }
-.indigo { --slice-colour: var(--series-2); }
-.pink   { --slice-colour: var(--series-3); }
-.gold   { --slice-colour: var(--series-4); }
-.green  { --slice-colour: var(--series-5); }
-.slate  { --slice-colour: var(--konekt-slate); }
-
-/* --- Trend -------------------------------------------------------------- */
-
-.trend { display: flex; flex-direction: column; gap: var(--space-sm); margin: 0; }
-
-.trendHead { display: flex; flex-direction: column; gap: 2px; }
-
-.trendValue {
-  font-family: var(--font-display);
-  font-size: var(--size-h3);
-  font-weight: var(--weight-black);
-  color: var(--text-strong);
-  font-variant-numeric: tabular-nums;
-}
-
-.trendMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-sm);
+.barName {
+  display: block;
   font-size: var(--size-micro);
-  color: var(--text-body);
+  font-weight: 600;
+  color: var(--text-strong);
 }
 
-.trendUp { color: var(--konekt-green-deep); font-weight: var(--weight-semibold); }
-.trendDown { color: var(--metric-pink-from); font-weight: var(--weight-semibold); }
+.barCell { padding-block: 7px; vertical-align: middle; inline-size: 99%; }
 
-.trendSvg {
-  inline-size: 100%;
-  block-size: 200px;
+.barTrack {
+  position: relative;
+  display: flex;
+  align-items: center;
+  block-size: 26px;
+  background: var(--chart-grid);
+  border-radius: 0 6px 6px 0;
   overflow: visible;
 }
 
-.trendGuide { stroke: var(--line-app); stroke-width: 1; vector-effect: non-scaling-stroke; }
-
-.trendArea { fill: var(--trend-fill); stroke: none; }
-
-.trendLine {
-  fill: none;
-  stroke: var(--trend-stroke);
-  stroke-width: 2.5;
-  stroke-linejoin: round;
-  stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-}
-
-.trendDot { fill: var(--surface-raised); stroke: var(--trend-stroke); stroke-width: 2; vector-effect: non-scaling-stroke; }
-
-.trend.teal  { --trend-stroke: var(--metric-teal-to);  --trend-fill: color-mix(in srgb, var(--metric-teal-to) 12%, transparent); }
-.trend.green { --trend-stroke: var(--metric-green-to); --trend-fill: color-mix(in srgb, var(--metric-green-to) 12%, transparent); }
-.trend.gold  { --trend-stroke: var(--metric-gold-from);--trend-fill: color-mix(in srgb, var(--metric-gold-from) 16%, transparent); }
-.trend.pink  { --trend-stroke: var(--metric-pink-to);  --trend-fill: color-mix(in srgb, var(--metric-pink-to) 12%, transparent); }
-
-.trendAxis {
-  display: flex;
-  justify-content: space-between;
-  font-size: var(--size-nano);
-  color: var(--text-body);
-  text-transform: uppercase;
-  letter-spacing: var(--tracking-wide);
-}
-
-.trendEmpty {
-  padding: var(--space-xl);
-  text-align: center;
-  font-size: var(--size-caption);
-  color: var(--text-body);
-  background: var(--surface-sunken);
-  border-radius: var(--radius-md);
-}
-
-/* --- Pie ----------------------------------------------------------------
-   Real wedges. A stroked ring cannot draw a slice under about two degrees
-   without the caps eating it, and a category with one type at 0.4% is exactly
-   the case worth being able to see. */
-.pie {
-  inline-size: 148px;
-  block-size: 148px;
-  flex: none;
-}
-
-/* A 2px gap between wedges rather than a hairline. At this size the join is
-   the only thing separating two adjacent teals, and a 1px stroke reads as an
-   artefact where 2px reads as a decision. */
-.pieWedge {
-  fill: var(--slice-colour);
-  stroke: var(--surface-raised);
-  stroke-width: 2;
-  stroke-linejoin: round;
-}
-
-.legendShare {
-  color: var(--text-body);
-  font-weight: var(--weight-regular);
-  font-size: var(--size-nano);
-}
-
-/* --- Vertical bars ------------------------------------------------------
-   For the same measure across a run of months, where the shape of the run is
-   the point and the label is only a month. */
-.bars { margin: 0; }
-
-.barRow {
-  display: flex;
-  align-items: flex-end;
-  /* 2px of surface between neighbouring marks, per the mark spec: a gap the
-     ground shows through, never a stroke. */
-  gap: 2px;
-  padding-block-start: var(--space-md);
-}
-
-.barItem {
-  flex: 1 1 0;
-  min-inline-size: 0;
-  block-size: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-  gap: 4px;
-}
-
-.barValue {
-  font-size: var(--size-nano);
-  font-variant-numeric: tabular-nums;
-  color: var(--text-body);
-  white-space: nowrap;
-}
-
-/* flex: none is the whole reason these bars have different heights.
-   Without it the column is a flex child that shrinks to fit, so a row of
-   bars whose percentages add up past the container all get squeezed to
-   roughly the same size — the chart draws, and lies.
-
-   Thinner than the slot they sit in, and centred: a bar filling its whole
-   column reads as a stacked area, not as a bar. */
-.barColumn {
-  /* Without `flex: none` these are flex children that shrink to equal widths,
-     which silently equalised every bar's height too — the chart rendered and
-     misrepresented the data. */
-  flex: none;
-  inline-size: min(100%, 26px);
-  margin-inline: auto;
-  background: var(--slice-colour);
-  /* Rounded at the data end only. A bar rounded at the baseline floats off
-     the axis it is measured against. */
-  border-radius: 4px 4px 0 0;
-  min-block-size: 2px;
-}
-
-.barLabel {
-  font-size: var(--size-nano);
-  color: var(--text-body);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-inline-size: 100%;
-}
-
-
-/* --- The ring ------------------------------------------------------------
-   A donut rather than a pie: the hole holds the total, which is the number
-   everybody reads first and which a solid pie makes you sum the legend to
-   find. Wedges are separated by the surface itself rather than by a stroke,
-   so a slice never borrows a neighbour's edge as its own. */
-
-.pieWedge {
-  fill: var(--slice-colour);
-  stroke: var(--chart-gap);
-  stroke-width: 1.5;
-  stroke-linejoin: round;
-}
-
-.wedgeLabel {
-  fill: var(--surface-raised);
-  font-family: var(--font-data);
-  font-size: 13px;
-  font-weight: 700;
-  paint-order: stroke;
-  stroke: color-mix(in srgb, var(--konekt-ink) 45%, transparent);
-  stroke-width: 2.5px;
-  stroke-linejoin: round;
-}
-
-.holeValue {
-  fill: var(--text-strong);
-  font-family: var(--font-data);
-  font-size: 26px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.holeLabel {
-  fill: var(--text-muted);
-  font-size: 11px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-/* --- Bar chart furniture -------------------------------------------------
-   What turns a row of blocks into a measurement: a line they stand on, two
-   gridlines to read a height against, and the scale said once. */
-
-.barPlot {
-  position: relative;
-  block-size: 9.5rem;
-  /* Room above the plot for the tallest bar's value label, which sits outside
-     the 0–100% height the bars are measured in. */
-  margin-block-start: 1.25rem;
-}
-
-.gridline {
+/* Behind the bar, so a height read against them is read against the same
+   lines on every row. */
+.hgrid {
   position: absolute;
-  inset-inline: 0;
-  block-size: 1px;
-  background: var(--chart-grid);
-}
-
-/* The scale, on the line it describes. */
-.gridValue {
-  position: absolute;
-  inset-block-end: 2px;
-  inset-inline-start: 0;
-  font-family: var(--font-data);
-  font-size: var(--size-nano);
-  color: var(--text-muted);
+  inset-block: -3px;
+  inline-size: 1px;
   background: var(--surface-raised);
-  padding-inline-end: 4px;
+  opacity: 0.9;
 }
 
-.baseline {
-  position: absolute;
-  inset-inline: 0;
-  inset-block-end: 0;
-  block-size: 1px;
-  background: var(--line-strong);
+.barFill {
+  position: relative;
+  block-size: 100%;
+  min-inline-size: 3px;
+  border-radius: 0 6px 6px 0;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--series-1) 62%, white) 0%,
+    var(--series-1) 100%
+  );
 }
 
-.barPlot .barRow {
-  position: absolute;
-  inset: 0;
-  align-items: flex-end;
-}
-
-.barItem { position: relative; }
-
+/* The number rides just past the end of its own bar, so the eye reads length
+   and value in one movement instead of jumping to a column on the right. */
 .barValue {
-  position: absolute;
-  inset-inline-start: 50%;
-  transform: translateX(-50%);
+  position: relative;
+  padding-inline-start: var(--space-xs);
   font-family: var(--font-data);
   font-size: var(--size-micro);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
   color: var(--text-strong);
   white-space: nowrap;
 }
 
-/* An edge bar's label anchors to that edge. Centred, half of it renders
-   outside the plot — which is what the first render of this chart did. */
-.barValueStart { inset-inline-start: 0; transform: none; }
-.barValueEnd { inset-inline-start: auto; inset-inline-end: 0; transform: none; }
-
-/* The newest period, called out. Everything before it is history; this one
-   is the number somebody is about to be asked about. */
-.barColumnNow {
-  outline: 2px solid var(--chart-gap);
-  outline-offset: -1px;
+/* The scale, said once under the plot. */
+.axis {
+  display: flex;
+  justify-content: space-between;
+  padding-block-start: 4px;
+  border-block-start: 1px solid var(--line-app);
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  color: var(--text-muted);
 }
 
-/* The top of a ranking, marked. In a list sorted by size the leader is the
-   answer to the question the ranking was opened to ask. */
-.barFillLead { background: var(--konekt-ink); }
+.tick { font-variant-numeric: tabular-nums; }
+
+/* The value, carried inside a bar too long to sit beside one. White on the
+   deep end of the gradient, which is where it lands by construction. */
+.barValueIn {
+  position: absolute;
+  inset-inline-end: var(--space-sm);
+  inset-block: 0;
+  display: flex;
+  align-items: center;
+  font-family: var(--font-data);
+  font-size: var(--size-micro);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--surface-raised);
+  white-space: nowrap;
+}
+
+
+/* The hole. A ring drawn straight onto the panel leaves a hole the same colour
+   as everything else, so the centre reads as absence; an explicit disc with a
+   hairline edge makes it a plate the total sits on, which is the form the
+   reference uses. */
+.pieHole {
+  fill: var(--surface-raised);
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+}

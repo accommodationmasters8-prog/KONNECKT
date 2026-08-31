@@ -44,41 +44,81 @@ export function BarTable({
   rowLabel?: string;
   format?: (value: number) => string;
 }) {
-  const max = Math.max(1, ...rows.map((r) => r.value));
   const show = format ?? ((v: number) => v.toLocaleString());
+  const peak = Math.max(1, ...rows.map((r) => r.value));
+
+  // A round ceiling above the tallest bar, so the axis ticks are numbers a
+  // person would say out loud rather than whatever the maximum happened to be.
+  const magnitude = 10 ** Math.floor(Math.log10(peak));
+  const ceiling = Math.ceil(peak / (magnitude / 2)) * (magnitude / 2) || 1;
+  const ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => t * ceiling);
+
+  /** True once the bar is long enough that its value will not fit beside it. */
+  const inside = (value: number) => value / ceiling > 0.72;
 
   return (
-    <table className={styles.barTable}>
-      <caption className="visually-hidden">{caption}</caption>
-      <thead>
-        <tr>
-          <th scope="col">{rowLabel}</th>
-          <th scope="col" className={styles.barCol}>{unitLabel}</th>
-          <th scope="col" className={styles.numCol}>{unitLabel}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {rows.map((row, i) => (
-          <tr key={row.label}>
-            <th scope="row">
-              {row.label}
-              {row.secondary ? <span className={styles.secondary}>{row.secondary}</span> : null}
-            </th>
-            <td className={styles.barCell}>
-              {/* aria-hidden: the number in the next cell is the accessible
-                  value, and a bar announced as well would read it twice. */}
-              <span className={styles.barTrack} aria-hidden="true">
-                <span
-                  className={`${styles.barFill} ${i === 0 ? styles.barFillLead : ''}`}
-                  style={{ inlineSize: `${Math.max(1.5, (row.value / max) * 100).toFixed(1)}%` }}
-                />
-              </span>
-            </td>
-            <td className={styles.numCol}>{show(row.value)}</td>
+    <div className={styles.hbars}>
+      <table className={styles.barTable}>
+        <caption className="visually-hidden">{caption}</caption>
+        <thead>
+          <tr>
+            <th scope="col">{rowLabel}</th>
+            <th scope="col" className={styles.barCol}>{unitLabel}</th>
           </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.label}>
+              <th scope="row" className={styles.barLabelCell}>
+                <span className={styles.barName}>{row.label}</span>
+                {row.secondary ? (
+                  <span className={styles.secondary}>{row.secondary}</span>
+                ) : null}
+              </th>
+              <td className={styles.barCell}>
+                {/* The gridlines sit behind every bar rather than under the
+                    plot as a whole, which is what keeps them aligned when a
+                    label wraps and changes the row's height. */}
+                <span className={styles.barTrack}>
+                  {ticks.slice(1, -1).map((t) => (
+                    <span
+                      key={t}
+                      className={styles.hgrid}
+                      style={{ insetInlineStart: `${(t / ceiling) * 100}%` }}
+                      aria-hidden="true"
+                    />
+                  ))}
+                  <span
+                    className={styles.barFill}
+                    style={{ inlineSize: `${Math.max(1.5, (row.value / ceiling) * 100).toFixed(1)}%` }}
+                    aria-hidden="true"
+                  >
+                    {/* Past about three quarters of the track there is no room
+                        left outside the bar, and the value rendered off the
+                        right edge of the chart — which is what the first
+                        render of this actually did. Long bars carry their own
+                        number instead. */}
+                    {inside(row.value) ? (
+                      <span className={styles.barValueIn}>{show(row.value)}</span>
+                    ) : null}
+                  </span>
+                  {inside(row.value) ? null : (
+                    <span className={styles.barValue}>{show(row.value)}</span>
+                  )}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      {/* The scale, once, under the plot — not a number on every bar. */}
+      <div className={styles.axis} aria-hidden="true">
+        {ticks.map((t) => (
+          <span key={t} className={styles.tick}>{show(t)}</span>
         ))}
-      </tbody>
-    </table>
+      </div>
+    </div>
   );
 }
 
@@ -293,9 +333,9 @@ export function PieChart({
   // A ring, not a disc. The hole carries the total, which is the number
   // everybody reads first and which a pie makes you sum the legend to find.
   const C = 100;
-  const R_OUT = 92;
-  const R_IN = 58;
-  const GAP = 0.022; // radians trimmed from each end — the 2px surface gap
+  const R_OUT = 94;
+  const R_IN = 56;
+  const GAP = 0.03; // radians trimmed from each end — the surface gap
 
   const live = slices.filter((s) => s.value > 0);
   let angle = -Math.PI / 2; // twelve o'clock
@@ -348,6 +388,9 @@ export function PieChart({
             className={`${styles.pieWedge} ${styles[w.slice.tone]}`}
           />
         ))}
+
+        {/* Drawn after the wedges so their stroke cannot bleed across it. */}
+        <circle cx={C} cy={C} r={R_IN - 3} className={styles.pieHole} />
 
         {wedges.map((w) =>
           w.showLabel ? (

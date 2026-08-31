@@ -1,0 +1,61 @@
+/* The skeleton.
+
+   Same grid and same spacing as the real screens, so nothing shifts when the
+   content lands — a placeholder that is a different shape from what replaces
+   it causes the jump it was meant to prevent. */
+
+.wrap { display: grid; gap: var(--space-lg); }
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+  gap: var(--space-md);
+}
+
+.card,
+.panel {
+  background: var(--surface-raised);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  display: grid;
+  gap: var(--space-sm);
+  align-content: start;
+}
+
+.panel { padding: var(--space-lg); }
+
+.line,
+.row {
+  display: block;
+  block-size: 10px;
+  border-radius: var(--radius-pill);
+  /* A sweep rather than a pulse. Opacity blinking draws the eye and holds it;
+     a slow pass reads as work happening and lets it move on. */
+  background:
+    linear-gradient(
+      90deg,
+      var(--chart-grid) 0%,
+      var(--surface-canvas) 40%,
+      var(--chart-grid) 80%
+    );
+  background-size: 300% 100%;
+  animation: sweep 1.4s linear infinite;
+}
+
+.short { inline-size: 45%; }
+.medium { inline-size: 70%; }
+.big { block-size: 26px; inline-size: 55%; }
+.title { block-size: 16px; inline-size: 32%; }
+
+.rows { display: grid; gap: var(--space-sm); margin-block-start: var(--space-xs); }
+.row { block-size: 22px; }
+
+@keyframes sweep {
+  from { background-position: 150% 0; }
+  to { background-position: -150% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line, .row { animation: none; background: var(--chart-grid); }
+}

@@ -168,9 +168,18 @@
 .chapter[open] .chevron { rotate: 180deg; }
 
 .chapterBody {
-  padding-block-end: var(--space-lg);
+  padding-block-end: var(--space-xl);
   padding-inline-start: calc(2rem + var(--space-sm));
+  /* One rhythm for every block a chapter can contain, instead of each kind
+     bringing its own margins and stacking them unevenly. */
+  display: grid;
+  gap: var(--space-md);
+  align-content: start;
 }
+
+/* The blocks lay themselves out with the grid gap above, so their own bottom
+   margins would double it. */
+.chapterBody > * { margin-block-end: 0; }
 
 @media (max-width: 40rem) {
   .chapterBody { padding-inline-start: 0; }
@@ -221,37 +230,96 @@
 
 /* --- steps -------------------------------------------------------------- */
 
+/* A sequence, drawn as one.
+
+   These were a bare number, a hairline rule and cramped padding — four
+   paragraphs that happened to be numbered rather than four steps in an order.
+   Now the number is a badge on a rail that runs between them, so the shape of
+   the list says "do these in order" before a word is read. */
+
 .steps {
   list-style: none;
   counter-reset: step;
-  margin: var(--space-md) 0 0;
+  margin: var(--space-lg) 0 0;
   padding: 0;
+  display: grid;
+  gap: 0;
 }
 
 .steps li {
   counter-increment: step;
+  position: relative;
   display: grid;
-  grid-template-columns: 28px 1fr;
-  gap: var(--space-md);
-  padding-block: var(--space-sm);
-  border-block-start: 1px solid var(--line-app);
+  grid-template-columns: 30px 1fr;
+  /* Column gap sets the badge off from the text; the row gap has to stay near
+     zero or the title floats away from its own paragraph. One `gap` set both. */
+  column-gap: var(--space-md);
+  row-gap: 0;
+  padding-block-end: var(--space-lg);
 }
+
+.steps li:last-child { padding-block-end: 0; }
+
+/* The rail. It joins one badge to the next and stops at the last, so the
+   sequence has a visible end rather than trailing into the margin. */
+.steps li::after {
+  content: '';
+  position: absolute;
+  inset-block: 30px 0;
+  inset-inline-start: 14px;
+  inline-size: 2px;
+  background: var(--line-app);
+}
+
+.steps li:last-child::after { display: none; }
 
 .steps li::before {
   content: counter(step);
+  display: grid;
+  place-items: center;
+  inline-size: 30px;
+  block-size: 30px;
+  border-radius: 50%;
+  background: var(--konekt-mist);
+  color: var(--konekt-teal-deep);
   font-family: var(--font-data);
   font-size: var(--size-micro);
-  color: var(--konekt-teal-deep);
-  padding-block-start: 3px;
+  font-weight: 700;
+  position: relative;
+  z-index: 1;
 }
 
-.stepWhat { margin: 0 0 2px; font-weight: 600; }
+/* Both paragraphs belong in the second column.
+   
+   This is the whole reason chapters 3, 5 and 7 read as broken: `::before` takes
+   column one and row one, the title follows it into column two, and the body —
+   as the third grid item — wrapped onto row two back in column one, which is
+   30px wide. Every sentence in every numbered step was being set one word per
+   line. Placing both explicitly is what fixes it, and it cannot drift again
+   the way an implicit flow can. */
+.stepWhat,
+.stepHow { grid-column: 2; }
+
+.stepWhat {
+  margin: 0 0 var(--space-2xs);
+  padding-block-start: 5px;
+  font-size: var(--size-caption);
+  font-weight: 600;
+  color: var(--text-strong);
+  line-height: 1.35;
+}
 
 .stepHow {
   margin: 0;
   max-inline-size: 62ch;
   color: var(--text-muted);
-  line-height: 1.6;
+  line-height: 1.65;
+}
+
+@media (max-width: 34rem) {
+  .steps li { grid-template-columns: 24px 1fr; column-gap: var(--space-sm); }
+  .steps li::before { inline-size: 24px; block-size: 24px; font-size: var(--size-nano); }
+  .steps li::after { inset-inline-start: 11px; inset-block-start: 24px; }
 }
 
 /* --- tables ------------------------------------------------------------- */

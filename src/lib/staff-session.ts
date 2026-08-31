@@ -80,6 +80,17 @@ export async function getStaffSession(): Promise<StaffSession> {
     };
   }
 
+  // Stamp when this account was last using the console.
+  //
+  // Not awaited: the answer is never read on this request, and making every
+  // page render wait on a write nobody is looking at is the wrong trade. The
+  // function throttles itself to one write per fifteen minutes in the
+  // statement, so a burst of navigation is a single update.
+  void supabase.rpc('touch_last_seen' as never).then(
+    () => undefined,
+    () => undefined,
+  );
+
   return {
     role: staff.role,
     staffId: staff.id,

@@ -18,7 +18,7 @@ export const STAFF_LABELS = {
   reports: 'Reports',
   access: 'Access',
   settings: 'Settings',
-  audit: 'Audit log',
+  audit: 'Activity',
   manual: 'Manual',
   import: 'Import',
 };

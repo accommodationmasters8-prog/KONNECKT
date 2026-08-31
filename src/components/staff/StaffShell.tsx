@@ -152,7 +152,12 @@ export function StaffShell({
               <Link
                 key={item.key}
                 href={item.href}
-                prefetch={false}
+                /* Prefetched, deliberately. These ten links are the console's
+                   whole navigation and every one of them renders on the
+                   server, so with prefetch off each click paid for a cold
+                   round trip before anything moved. There are ten of them and
+                   they are all in the viewport, which is exactly the case
+                   prefetching is for. */
                 className={styles.navLink}
                 aria-current={active === item.key ? 'page' : undefined}
               >

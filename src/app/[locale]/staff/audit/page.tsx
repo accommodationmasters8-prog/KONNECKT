@@ -1,9 +1,11 @@
 import type { Metadata } from 'next';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
+import { ActivityList } from '@/components/staff/ActivityList';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
+import { ago, getActivity, getRecentlySeen } from '@/lib/activity';
 import { localeParams, resolveLocale } from '@/lib/page';
 import styles from './audit.module.css';
 
@@ -12,34 +14,28 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  title: 'Audit log — CRDB Konekt',
+  title: 'Activity — CRDB Konekt',
   robots: { index: false, follow: false },
 };
 
-interface AuditRow {
-  id: number;
-  occurred_at: string;
-  actor_kind: string;
-  action: string;
-  table_name: string;
-  record_id: string | null;
-  staff_users: { full_name: string | null; email: string | null } | null;
-}
-
 /**
- * The audit log.
+ * What has happened lately.
  *
- * Append-only by construction: `audit_log_immutable` refuses an UPDATE or a
- * DELETE on this table, and `write_audit` fires after every insert, update and
- * delete on every table a staff user can write. So this page is not a summary
- * of what happened — it is what happened, and nobody, including HQ, can edit
- * it after the fact.
+ * This was the audit log rendered as it is stored: `INSERT`, `station_reports`,
+ * a UUID, a timestamp. That is the right thing to keep and the wrong thing to
+ * show — the people who open this run a bank, and nobody has ever looked up a
+ * record by its UUID.
  *
- * HQ only. An audit log that the people it audits can read selectively is not
- * much of an audit log, and scoping it by zone would let a zone manager see
- * exactly which of their own actions were recorded.
+ * Same rows, said in words: who did it, what they did, and how long ago. Five
+ * at a time, because five is what fits in the glance this screen is opened for.
+ *
+ * The underlying table is unchanged and still append-only — `audit_log` refuses
+ * an UPDATE or a DELETE, so nobody, including HQ, can edit it after the fact.
+ * Nothing here summarises anything away: every row becomes exactly one line,
+ * and a table this page has no wording for names itself rather than being
+ * quietly dropped.
  */
-export default async function StaffAudit({
+export default async function StaffActivity({
   params,
 }: {
   params: Promise<{ locale: string }>;
@@ -48,24 +44,13 @@ export default async function StaffAudit({
   const session = await getStaffSession();
   const supabase = await getServerClient();
 
-  let rows: AuditRow[] = [];
-  let error: string | null = null;
+  const [activity, staff] = session.signedIn && supabase
+    ? await Promise.all([getActivity(60), getRecentlySeen()])
+    : [[], []];
 
-  if (supabase && session.signedIn) {
-    const { data, error: queryError } = await supabase
-      .from('audit_log' as never)
-      .select('id, occurred_at, actor_kind, action, table_name, record_id, staff_users(full_name, email)')
-      .order('occurred_at', { ascending: false })
-      .limit(100);
-
-    rows = (data as unknown as AuditRow[]) ?? [];
-    error = queryError?.message ?? null;
-  }
-
-  const stamp = new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  });
+  const seenToday = staff.filter(
+    (s) => s.lastSeen && Date.now() - new Date(s.lastSeen).getTime() < 86_400_000,
+  ).length;
 
   return (
     <StaffShell
@@ -73,69 +58,76 @@ export default async function StaffAudit({
       role={session.role}
       active="audit"
       nav={staffNav(locale, STAFF_LABELS)}
-      title={STAFF_LABELS.audit}
-      scopeLabel="Append-only. Every staff write, with actor, table and time"
+      title="Activity"
+      scopeLabel={
+        session.signedIn
+          ? `${staff.length} accounts · ${seenToday} in today`
+          : session.scopeLabel
+      }
       user={session.user}
     >
-      <Panel
-        title="The last 100 writes"
-        description="Recorded by a database trigger on every table a staff user can write, including the before and after state of the row. The table itself cannot be updated or deleted — the database refuses it."
-      >
-        {!supabase ? (
+      {!supabase ? (
+        <Panel title="Activity">
+          <PanelEmpty>No database is attached, so there is nothing to report.</PanelEmpty>
+        </Panel>
+      ) : !session.signedIn ? (
+        <Panel title="Activity">
           <PanelEmpty>
-            No database is attached to this deployment, so nothing has been
-            written and nothing has been logged. The trigger that fills this
-            table is created in migration 0003 and attached in 0005, 0007 and
-            0008.
+            Sign in as HQ to see this. It shows who did what across the whole
+            country, so it is not scoped to a zone.
           </PanelEmpty>
-        ) : !session.signedIn ? (
-          <PanelEmpty>
-            Sign in to read the audit log. It is HQ-only: an audit trail that
-            the people it audits can read selectively is not an audit trail.
-          </PanelEmpty>
-        ) : error ? (
-          <PanelEmpty>
-            The database declined to return the audit log for this account.
-            That is the row level security policy doing its job — only HQ can
-            read it.
-          </PanelEmpty>
-        ) : rows.length === 0 ? (
-          <PanelEmpty>
-            Nothing written yet. The first staff action — adding a partner,
-            saving a setting, recording an account — appears here immediately
-            after it commits.
-          </PanelEmpty>
-        ) : (
-          <div className={styles.tableWrap}>
-            <table className={styles.table}>
-              <thead>
-                <tr>
-                  <th scope="col">When</th>
-                  <th scope="col">Who</th>
-                  <th scope="col">Action</th>
-                  <th scope="col">Table</th>
-                  <th scope="col">Record</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.id}>
-                    <td className={styles.when}>{stamp.format(new Date(row.occurred_at))}</td>
-                    <td>
-                      {row.staff_users?.full_name
-                        ?? row.staff_users?.email
-                        ?? <span className={styles.system}>{row.actor_kind}</span>}
-                    </td>
-                    <td><span className={styles.action}>{row.action}</span></td>
-                    <td className={styles.mono}>{row.table_name}</td>
-                    <td className={styles.mono}>{row.record_id ?? '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Panel>
+        </Panel>
+      ) : (
+        <>
+          <Panel
+            title="What&rsquo;s new"
+            description="Every change anyone has made, newest first. Adding, updating and removing are marked, and nothing can be edited out of this list afterwards."
+          >
+            {activity.length === 0 ? (
+              <PanelEmpty>
+                Nothing yet. The first thing anybody adds or files appears here
+                straight away.
+              </PanelEmpty>
+            ) : (
+              <ActivityList items={activity} />
+            )}
+          </Panel>
+
+          <Panel
+            title="Who has been in"
+            description="Every account, and when it last had the console open. An account that has never been in is one somebody was given a code for and never used."
+          >
+            {staff.length === 0 ? (
+              <PanelEmpty>No accounts yet.</PanelEmpty>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th scope="col">Name</th>
+                      <th scope="col">Level</th>
+                      <th scope="col">Can see</th>
+                      <th scope="col">Last in</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {staff.map((person) => (
+                      <tr key={person.id}>
+                        <th scope="row">{person.name}</th>
+                        <td>{person.role}</td>
+                        <td>{person.scope}</td>
+                        <td className={person.lastSeen ? undefined : styles.never}>
+                          {ago(person.lastSeen)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Panel>
+        </>
+      )}
     </StaffShell>
   );
 }
