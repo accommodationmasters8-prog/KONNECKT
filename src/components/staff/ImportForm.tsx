@@ -34,9 +34,17 @@ const TEMPLATES: Record<ImportKind, { headers: string; example: string; note: st
  * The preview names every row it will skip and why, because "182 rows failed"
  * is a status and "line 47, Geita, no zone called GIETA" is a fix.
  */
-export function ImportForm({ canChooseZone }: { canChooseZone: boolean }) {
+export function ImportForm({
+  canChooseZone,
+  initialKind = 'branches',
+}: {
+  canChooseZone: boolean;
+  /** Preselected when arriving from a link that already knows the answer —
+   *  "Import stations" on the branches screen should not then ask which. */
+  initialKind?: ImportKind;
+}) {
   const [state, formAction, pending] = useActionState(importCsv, INITIAL);
-  const [kind, setKind] = useState<ImportKind>('branches');
+  const [kind, setKind] = useState<ImportKind>(initialKind);
   const [fileName, setFileName] = useState('');
 
   const template = TEMPLATES[kind];
@@ -73,7 +81,8 @@ export function ImportForm({ canChooseZone }: { canChooseZone: boolean }) {
         <p className={styles.templateNote}>
           {template.note} Column names are matched loosely, so
           {' '}<code>Branch Name</code>, <code>branch_name</code> and{' '}
-          <code>branch</code> are all the same column.
+          <code>branch</code> are all the same column, and any other columns in
+          your sheet are left alone.
         </p>
         {canChooseZone ? null : (
           <p className={styles.templateNote}>
@@ -83,17 +92,19 @@ export function ImportForm({ canChooseZone }: { canChooseZone: boolean }) {
       </div>
 
       <label className={admin.field}>
-        <span className={admin.label}>Upload a CSV</span>
+        <span className={admin.label}>Upload a spreadsheet</span>
         <input
           type="file"
           name="file"
-          accept=".csv,text/csv,.xlsx,.xls"
+          accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           className={styles.file}
           onChange={(e) => setFileName(e.target.files?.[0]?.name ?? '')}
         />
         <span className={admin.help}>
           {fileName ? `Selected: ${fileName}. ` : ''}
-          Working in Excel? File → Save As → <strong>CSV UTF-8</strong>, then upload that.
+          Excel (<strong>.xlsx</strong>) or CSV, whichever you already have.
+          Upload your working sheet as it is — columns it does not recognise
+          are ignored, so there is no template to fill in first.
         </span>
       </label>
 

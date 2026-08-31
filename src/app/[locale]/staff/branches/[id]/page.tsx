@@ -158,6 +158,11 @@ export default async function BranchPage({
               Compare in zone
             </Link>
           ) : null}
+          {session.role === 'hq' || session.role === 'zone' ? (
+            <Link href={`/${locale}/staff/import?kind=stations`} className={styles.link}>
+              Import stations
+            </Link>
+          ) : null}
           <Link href={`/${locale}/staff/branches`} className={styles.link}>
             ← All branches
           </Link>

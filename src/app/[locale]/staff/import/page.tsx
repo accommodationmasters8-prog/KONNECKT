@@ -5,12 +5,8 @@ import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { ImportForm } from '@/components/staff/ImportForm';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
-import { localeParams, resolveLocale } from '@/lib/page';
+import { resolveLocale } from '@/lib/page';
 import styles from '../staff.module.css';
-
-export function generateStaticParams() {
-  return localeParams();
-}
 
 export const metadata: Metadata = {
   title: 'Import — Konekt tracker',
@@ -31,10 +27,13 @@ export const metadata: Metadata = {
  */
 export default async function ImportPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ kind?: string }>;
 }) {
   const { locale } = await resolveLocale(params);
+  const { kind } = await searchParams;
   const session = await getStaffSession();
   const nav = staffNav(locale, STAFF_LABELS);
 
@@ -76,7 +75,10 @@ export default async function ImportPage({
         title="Upload branches or stations"
         description="Check the file first — you get a line-by-line list of what will be added, what will be updated and what will be skipped, before anything is written."
       >
-        <ImportForm canChooseZone={session.role === 'hq'} />
+        <ImportForm
+          canChooseZone={session.role === 'hq'}
+          initialKind={kind === 'stations' ? 'stations' : 'branches'}
+        />
       </Panel>
 
       <Panel

@@ -74,9 +74,16 @@ export default async function StationsPage({
       scopeLabel={session.scopeLabel}
       user={session.user}
       actions={
-        <Link href={`/${locale}/staff/branches`} className={styles.link}>
-          ← The tree: zones, branches, stations
-        </Link>
+        <>
+          {session.role === 'hq' || session.role === 'zone' ? (
+            <Link href={`/${locale}/staff/import?kind=stations`} className={styles.link}>
+              Import a list
+            </Link>
+          ) : null}
+          <Link href={`/${locale}/staff/branches`} className={styles.link}>
+            ← The tree: zones, branches, stations
+          </Link>
+        </>
       }
     >
       {!session.signedIn ? (

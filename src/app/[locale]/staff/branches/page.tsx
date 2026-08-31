@@ -100,9 +100,16 @@ export default async function BranchesPage({
       scopeLabel={`${count(zones.length, locale)} zones · ${count(totalBranches, locale)} branches · ${count(totalStations, locale)} stations`}
       user={session.user}
       actions={
-        <Link href={`/${locale}/staff/stations`} className={styles.link}>
-          Find a station →
-        </Link>
+        <>
+          {session.role === 'hq' || session.role === 'zone' ? (
+            <Link href={`/${locale}/staff/import?kind=branches`} className={styles.link}>
+              Import a list
+            </Link>
+          ) : null}
+          <Link href={`/${locale}/staff/stations`} className={styles.link}>
+            Find a station →
+          </Link>
+        </>
       }
     >
       <div className={styles.metrics}>

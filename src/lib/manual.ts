@@ -163,9 +163,63 @@ export const MANUAL: ManualSection[] = [
             ['Account & loan types', 'Settings', 'Add; scope to a category; retire; delete one added by mistake'],
             ['Figures', 'Any station', 'File, correct or delete any period, anywhere in the country'],
             ['Access', 'Access', 'Issue a code at any level with an expiry; revoke any code'],
+            ['Bulk import', 'Import', 'Upload an Excel or CSV list of branches or stations; preview before anything is written'],
             ['Housekeeping', 'Settings · Audit', 'Clear the sample data; read who changed what'],
           ],
         },
+      },
+    ],
+  },
+
+  {
+    id: 'import',
+    title: 'Bringing a spreadsheet in',
+    roles: ['hq', 'zone'],
+    lead: 'The lists already exist — the branch register, a zone\u2019s own working sheet, a campus list somebody keeps in Excel. Import is the door for those, so nobody types 252 branches into a form one at a time.',
+    blocks: [
+      {
+        kind: 'steps',
+        steps: [
+          {
+            what: 'Upload the sheet you already have',
+            how: 'Excel (.xlsx) or CSV, whichever it is. Upload it as it stands \u2014 columns the importer does not recognise are ignored, so there is no template to fill in first and no need to delete anything.',
+          },
+          {
+            what: 'Press Check the file',
+            how: 'Nothing is written. You get a line-by-line list: what will be added, what already exists and will be updated, and every row that will be skipped with the reason next to it.',
+          },
+          {
+            what: 'Fix what it named, if anything',
+            how: 'Skipped rows are named by line number, so they can be corrected in the spreadsheet and the file uploaded again. Everything else still imports \u2014 one bad row never blocks the rest.',
+          },
+          {
+            what: 'Press Import',
+            how: 'Only now is anything written. The count of what was added and updated comes back.',
+          },
+        ],
+      },
+      {
+        kind: 'table',
+        table: {
+          head: ['Situation', 'What happens'],
+          rows: [
+            ['The name is not in the system', 'A new record is created.'],
+            ['The name is already there', 'It is updated with the columns your sheet carries. Nothing filed against it is touched.'],
+            ['The same name twice in one file', 'The first is used; the rest are skipped by line number.'],
+            ['A station names a branch that does not exist', 'Skipped, naming the branch it looked for. Import branches first, then stations.'],
+            ['A row is outside your zone', 'Refused by the database and reported by name. Your own rows still import.'],
+          ],
+        },
+      },
+      {
+        kind: 'note',
+        heading: 'Order matters once',
+        text: 'A station has to name a branch that already exists, and a category from the official eight. Import branches first and stations second, and nothing is skipped for a reason you then have to go and fix.',
+      },
+      {
+        kind: 'warn',
+        heading: 'What import is not for',
+        text: 'Figures. Import creates and corrects the places \u2014 branches and stations \u2014 and never the monthly numbers. Those are filed against a station so the period, the rhythm and who filed it are all recorded, which a spreadsheet paste cannot carry.',
       },
     ],
   },
@@ -186,6 +240,7 @@ export const MANUAL: ManualSection[] = [
             ['Delete a station', 'Country', 'Own zone', 'Own branch'],
             ['Record an event, with pictures', 'Country', 'Own zone', 'Own branch'],
             ['Download reports and exports', 'Country', 'Own zone', 'Own branch'],
+            ['Import a spreadsheet', 'Any zone', 'Own zone', '—'],
             ['Add a branch', 'Any zone', 'Own zone', '—'],
             ['Edit a branch', 'Any', 'Own zone', '—'],
             ['Move a branch to another zone', 'Yes', '—', '—'],

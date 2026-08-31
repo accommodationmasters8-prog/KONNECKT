@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { getServerClient } from '@/lib/supabase/server';
 import { getStaffSession } from '@/lib/staff-session';
-import { parseCsvRows, pick, num, type CsvRow } from '@/lib/csv';
+import { parseCsvRows, pick, num, normaliseHeader, type CsvRow } from '@/lib/csv';
+import { readXlsx } from '@/lib/xlsx';
 
 export type ImportKind = 'branches' | 'stations';
 
@@ -64,27 +65,49 @@ export async function importCsv(
   // fallback — it is how somebody with the spreadsheet open on the same screen
   // actually moves twenty rows across.
   const file = form.get('file');
-  let text = String(form.get('pasted') ?? '');
+  let rows: CsvRow[] = [];
+
   if (file instanceof File && file.size > 0) {
-    if (file.size > 4_000_000) {
-      return { ...EMPTY, ran: true, message: 'That file is over 4MB. Split it, or paste the rows instead.' };
+    if (file.size > 8_000_000) {
+      return { ...EMPTY, ran: true, message: 'That file is over 8MB. Split it, or paste the rows instead.' };
     }
-    if (/\.xlsx?$/i.test(file.name)) {
+
+    const buffer = Buffer.from(await file.arrayBuffer());
+
+    // An .xlsx is a ZIP, and every ZIP starts "PK". Sniffing the bytes rather
+    // than trusting the extension is what catches a workbook somebody renamed
+    // to .csv, which is a thing people do.
+    const isWorkbook = buffer.length > 2 && buffer[0] === 0x50 && buffer[1] === 0x4b;
+
+    if (isWorkbook) {
+      try {
+        rows = fromGrid(readXlsx(buffer));
+      } catch (error) {
+        return {
+          ...EMPTY, ran: true,
+          message: `That workbook could not be read (${
+            error instanceof Error ? error.message : 'unknown format'
+          }). If it is an old .xls, open it in Excel and save it as .xlsx or CSV.`,
+        };
+      }
+    } else if (/\.xls$/i.test(file.name)) {
       return {
         ...EMPTY, ran: true,
-        message: `${file.name} is an Excel workbook, which this cannot read directly. In Excel: File → Save As → CSV UTF-8, then upload that. Nothing else changes.`,
+        message: `${file.name} is the old Excel format. Open it and use File → Save As → Excel Workbook (.xlsx), or CSV.`,
       };
+    } else {
+      rows = parseCsvRows(buffer.toString('utf8')).rows;
     }
-    text = await file.text();
+  } else {
+    const pasted = String(form.get('pasted') ?? '');
+    if (pasted.trim() === '') {
+      return { ...EMPTY, ran: true, message: 'Upload a spreadsheet or paste the rows.' };
+    }
+    rows = parseCsvRows(pasted).rows;
   }
 
-  if (text.trim() === '') {
-    return { ...EMPTY, ran: true, message: 'Upload a CSV or paste the rows.' };
-  }
-
-  const { rows } = parseCsvRows(text);
   if (rows.length === 0) {
-    return { ...EMPTY, ran: true, message: 'That file has a header and no rows.' };
+    return { ...EMPTY, ran: true, message: 'That file has a header row and nothing under it.' };
   }
   if (rows.length > 2000) {
     return { ...EMPTY, ran: true, message: `${rows.length} rows is more than one import should carry. Split it into files of 2000 or fewer.` };
@@ -96,6 +119,34 @@ export async function importCsv(
 }
 
 type Client = NonNullable<Awaited<ReturnType<typeof getServerClient>>>;
+
+/**
+ * A sheet of cells, keyed by its header row.
+ *
+ * The same shape `parseCsvRows` produces, so a workbook and a CSV take
+ * identical paths from here on. Headers are normalised the same way, and
+ * columns the importer does not recognise are simply never asked for — which
+ * is what lets somebody upload their own working spreadsheet, thirty columns
+ * wide, instead of building a file to a template first.
+ */
+function fromGrid(grid: string[][]): CsvRow[] {
+  if (grid.length === 0) return [];
+
+  // The header is the first row with at least two filled cells. Exports often
+  // open with a title row and a blank one before the real headings.
+  let headerAt = grid.findIndex((r) => r.filter((c) => c.trim() !== '').length >= 2);
+  if (headerAt < 0) headerAt = 0;
+
+  const keys = grid[headerAt].map(normaliseHeader);
+
+  return grid.slice(headerAt + 1).map((cells) => {
+    const row: CsvRow = {};
+    keys.forEach((key, i) => {
+      if (key) row[key] = (cells[i] ?? '').trim();
+    });
+    return row;
+  }).filter((row) => Object.values(row).some((v) => v !== ''));
+}
 
 /** Names compare loosely: case and inner spacing are not identity. */
 function key(name: string): string {
