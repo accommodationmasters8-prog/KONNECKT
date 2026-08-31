@@ -33,3 +33,83 @@
   background: var(--surface-sunken);
   border-radius: var(--radius-md);
 }
+
+/* --- a panel that starts shut --------------------------------------------
+   Same surface as a panel, but the bar is the whole control and the body only
+   exists once somebody asks for it. */
+
+.fold {
+  background: var(--surface-raised);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+}
+
+.foldHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-lg);
+  cursor: pointer;
+  list-style: none;
+}
+
+.foldHead::-webkit-details-marker { display: none; }
+
+.foldHead:focus-visible {
+  outline: 2px solid var(--konekt-teal);
+  outline-offset: -2px;
+  border-radius: var(--radius-md);
+}
+
+.foldTitle {
+  font-family: var(--font-display);
+  font-size: var(--size-caption);
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+
+.foldCount {
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  font-weight: 700;
+  color: var(--konekt-teal-deep);
+  background: var(--konekt-mist);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+
+.foldNote {
+  font-size: var(--size-micro);
+  color: var(--text-muted);
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.foldChevron {
+  margin-inline-start: auto;
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+  transition: rotate var(--dur-base) var(--ease-out);
+}
+
+.fold[open] .foldChevron { rotate: 180deg; }
+
+.fold[open] .foldHead { border-block-end: 1px solid var(--line-app); }
+
+.foldBody { padding: var(--space-lg); }
+
+@media (hover: hover) {
+  .foldHead:hover .foldTitle { color: var(--konekt-teal-deep); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .foldChevron { transition: none; }
+}
+
+@media print {
+  .foldBody { display: block !important; }
+  .foldChevron { display: none; }
+}

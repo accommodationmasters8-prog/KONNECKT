@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { StaffShell } from '@/components/staff/StaffShell';
-import { Panel, PanelEmpty } from '@/components/staff/Panel';
+import { FoldPanel, Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
-import { BarChart, BarTable, PieChart } from '@/components/staff/Charts';
+import { BarTable } from '@/components/staff/Charts';
 import { AddCategoryLoanType, DeleteCategory } from '@/components/staff/CategoryForms';
 import { StationForm } from '@/components/staff/StationForms';
 import { ImportForm } from '@/components/staff/ImportForm';
@@ -77,10 +77,6 @@ export default async function CategoryPage({
     );
   }
 
-  const since = new Date();
-  since.setMonth(since.getMonth() - 11);
-  const from = `${since.getFullYear()}-${String(since.getMonth() + 1).padStart(2, '0')}-01`;
-
   const { data: stationRows } = await supabase
     .from('stations' as never)
     .select('id, name, short_name, category_id, branch_id, zone_code, address, district_name, status, portfolio, last_report_month, contact_name, contact_phone, contact_email, contact_role, notes, created_at')
@@ -91,29 +87,15 @@ export default async function CategoryPage({
   const stations = (stationRows as unknown as StationRow[]) ?? [];
   const ids = stations.map((s) => s.id);
 
-  const [latestRes, trendRes, loanTypesRes, splitRes] = await Promise.all([
+  const [latestRes, loanTypesRes] = await Promise.all([
     ids.length
       ? supabase.from('station_latest' as never).select('*').in('station_id', ids)
-      : Promise.resolve({ data: [] }),
-    ids.length
-      ? supabase.from('station_reports' as never)
-          .select('period_month, deposits_tzs, accounts_opened, portfolio, station_id, simbanking_activated, cards_issued, lipa_hapa_registered')
-          .in('station_id', ids)
-          .gte('period_month', from)
-          .limit(5000)
       : Promise.resolve({ data: [] }),
     supabase.from('loan_products' as never)
       .select('code, label_en, label_sw, category_id, is_active')
       .or(`category_id.eq.${category.id},category_id.is.null`)
       .eq('is_active', true)
       .order('display_order', { ascending: true }),
-    // The account-type split across this category's newest reports, which is
-    // the pie: what kind of account the category's book is actually made of.
-    ids.length
-      ? supabase.from('station_report_accounts' as never)
-          .select('product_code, opened, deposits_tzs, report_id')
-          .limit(20000)
-      : Promise.resolve({ data: [] }),
   ]);
 
   const { data: branchData } = await supabase
@@ -158,27 +140,6 @@ export default async function CategoryPage({
   const coverage = totals.portfolio > 0
     ? Math.round((totals.accounts / totals.portfolio) * 1000) / 10
     : null;
-
-  // The trend, by the chosen measure.
-  const byMonth = new Map<string, number>();
-  for (const row of (trendRes.data as unknown as
-    { period_month: string; deposits_tzs: number; accounts_opened: number; portfolio: number }[]) ?? []) {
-    const key = row.period_month.slice(0, 7);
-    const r = row as unknown as Record<string, number | undefined>;
-    const value = measure === 'deposits' ? Number(row.deposits_tzs)
-      : measure === 'people' ? Number(row.portfolio)
-        : measure === 'simbanking' ? Number(r.simbanking_activated ?? 0)
-          : measure === 'lipahapa' ? Number(r.lipa_hapa_registered ?? 0)
-            : Number(row.accounts_opened);
-    byMonth.set(key, (byMonth.get(key) ?? 0) + value);
-  }
-
-  const trend = [...byMonth.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, value]) => ({
-      label: formatPeriod(`${month}-01`, locale).replace(/\s\d{4}$/, ''),
-      value,
-    }));
 
   const valueOf = (station: StationRow) => {
     const l = latest.get(station.id);
@@ -315,6 +276,11 @@ export default async function CategoryPage({
         />
       </div>
 
+      <FoldPanel
+        title={`Stations ranked by ${MEASURES[measure].label.toLowerCase()}`}
+        count={ranked.length}
+        note="Top 20 on their newest report"
+      >
       {/* The measure switch. Links, not a dropdown: the choice is in the URL,
           so it can be sent to somebody else. */}
       <nav className={styles.measureBar} aria-label="Analyse by">
@@ -331,49 +297,9 @@ export default async function CategoryPage({
         ))}
       </nav>
 
-      <div className={styles.split}>
-        <Panel
-          title={`${MEASURES[measure].label} over time`}
-          description="The sum across every station in this category that reported that month."
-        >
-          <BarChart
-            points={trend}
-            title={`${MEASURES[measure].label} for ${category.name_en}`}
-            format={format}
-            tone={category.colour === 'ink' ? 'teal' : category.colour}
-          />
-        </Panel>
-
-        <Panel
-          title="How much of it is reached"
-          description="Everyone in these stations, split by whether they hold an account."
-        >
-          {totals.portfolio === 0 ? (
-            <PanelEmpty>No headcount reported yet, so there is no share to show.</PanelEmpty>
-          ) : (
-            <PieChart
-              title="Coverage of the category"
-              format={(v) => count(v, locale)}
-              slices={[
-                { label: 'With an account', value: totals.accounts, tone: 'teal' },
-                {
-                  label: `${noun} without one`,
-                  value: Math.max(totals.portfolio - totals.accounts, 0),
-                  tone: 'slate',
-                },
-              ]}
-            />
-          )}
-        </Panel>
-      </div>
-
-      <Panel
-        title={`Stations by ${MEASURES[measure].label.toLowerCase()}`}
-        description="Ranked on the newest report from each. Click a station to see its full history or file a month."
-      >
         {ranked.length === 0 ? (
           <PanelEmpty>
-            No stations in this category yet. Add one from the stations screen.
+            No stations in this category yet. Add one below.
           </PanelEmpty>
         ) : (
           <BarTable
@@ -391,11 +317,12 @@ export default async function CategoryPage({
             })}
           />
         )}
-      </Panel>
+      </FoldPanel>
 
-      <Panel
-        title="Loan types in this category"
-        description="What a station here can record its loans against. Types with no category are CRDB products offered everywhere; the rest belong to this category alone."
+      <FoldPanel
+        title="Loan types here"
+        count={loanTypes.length}
+        note="What a station here files loans against"
       >
         <div className={styles.tableWrap}>
           <table className={styles.table}>
@@ -425,7 +352,7 @@ export default async function CategoryPage({
             <AddCategoryLoanType categoryId={category.id} />
           </div>
         ) : null}
-      </Panel>
+      </FoldPanel>
 
       <Panel
         title={`Add a station to ${category.name_en}`}
@@ -456,9 +383,10 @@ export default async function CategoryPage({
         </Panel>
       ) : null}
 
-      <Panel
+      <FoldPanel
         title="Every station in this category"
-        description="Including the ones that have never reported — those are the gap. Click a station to open it, file a month or correct one."
+        count={stations.length}
+        note="Including the ones that have never reported"
       >
         <div className={styles.tableWrap}>
           <table className={styles.table}>
@@ -498,7 +426,7 @@ export default async function CategoryPage({
             </tbody>
           </table>
         </div>
-      </Panel>
+      </FoldPanel>
       {session.role === 'hq' ? (
         <Panel
           title="Remove this category"
