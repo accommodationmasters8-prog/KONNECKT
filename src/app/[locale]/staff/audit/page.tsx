@@ -46,7 +46,7 @@ export default async function StaffActivity({
 
   const [activity, staff] = session.signedIn && supabase
     ? await Promise.all([getActivity(60), getRecentlySeen()])
-    : [[], []];
+    : [{ items: [], automated: 0 }, []];
 
   const seenToday = staff.filter(
     (s) => s.lastSeen && Date.now() - new Date(s.lastSeen).getTime() < 86_400_000,
@@ -81,16 +81,27 @@ export default async function StaffActivity({
         <>
           <Panel
             title="What&rsquo;s new"
-            description="Every change anyone has made, newest first. Adding, updating and removing are marked, and nothing can be edited out of this list afterwards."
+            description="Every change a person has made, newest first. Adding, updating and removing are marked, and nothing can be edited out of this list afterwards."
           >
-            {activity.length === 0 ? (
+            {activity.items.length === 0 ? (
               <PanelEmpty>
                 Nothing yet. The first thing anybody adds or files appears here
                 straight away.
               </PanelEmpty>
             ) : (
-              <ActivityList items={activity} />
+              <ActivityList items={activity.items} />
             )}
+            {/* A register load writes one row per institution. Saying how many
+                there are beats listing 252 identical lines, and beats leaving
+                them out without a word. */}
+            {activity.automated > 0 ? (
+              <p className={styles.automated}>
+                {new Intl.NumberFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ')
+                  .format(activity.automated)}{' '}
+                more records come from bulk loads and imports rather than from a
+                person. They stay in the log and are not listed here.
+              </p>
+            ) : null}
           </Panel>
 
           <Panel

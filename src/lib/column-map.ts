@@ -32,15 +32,33 @@ interface Rule {
 
 const RULES: Record<Field, Rule> = {
   name: {
-    exact: ['name', 'station', 'institution', 'title'],
-    has: ['name', 'institution', 'university', 'college', 'school', 'hospital',
-          'station', 'barrack', 'camp', 'stand', 'saloon', 'salon'],
-    // "branch name" and "ward name" are not the station's name.
-    not: ['branch', 'ward', 'district', 'region', 'zone', 'contact', 'street', 'file'],
+    exact: [
+      'name', 'station', 'institution', 'title', 'facility', 'centre', 'center',
+      'organisation', 'organization', 'entity', 'site', 'premises',
+    ],
+    // Every word a Tanzanian register has used for "the place this row is
+    // about". Hospitals arrive as FACILITY NAME, schools as NAME OF SCHOOL,
+    // dispensaries as HEALTH FACILITY — all the same column, and a register
+    // that names it a fourth way should still land rather than be rejected.
+    has: [
+      'name', 'institution', 'facility', 'centre', 'center', 'organisation',
+      'organization', 'university', 'college', 'school', 'hospital', 'clinic',
+      'dispensary', 'health', 'station', 'barrack', 'camp', 'stand', 'salon',
+      'saloon', 'kinyozi', 'shule', 'jina', 'chuo', 'hospitali', 'kituo',
+      'company', 'entity', 'site', 'premises', 'branchname',
+    ],
+    // A header carrying one of these is describing something else about the
+    // row, not naming it. "Branch name" and "ward name" are the trap: both
+    // contain "name" and neither is the station's.
+    not: [
+      'branch', 'ward', 'district', 'region', 'zone', 'contact', 'street',
+      'file', 'council', 'owner', 'manager', 'officer', 'person', 'type',
+      'category', 'status', 'code', 'number',
+    ],
   },
   branch: {
-    exact: ['branch', 'crdb_branch'],
-    has: ['branch'],
+    exact: ['branch', 'crdb_branch', 'tawi'],
+    has: ['branch', 'tawi'],
     not: [],
   },
   category: {
@@ -48,12 +66,21 @@ const RULES: Record<Field, Rule> = {
     has: ['category', 'segment'],
     not: [],
   },
-  region: { exact: ['region', 'region_name'], has: ['region'], not: [] },
-  district: { exact: ['district', 'district_name', 'council'], has: ['district'], not: [] },
-  address: {
-    exact: ['address', 'location', 'street', 'physical_address'],
-    has: ['address', 'street', 'location', 'ward'],
+  // Swahili alongside English throughout: half these registers are kept in
+  // Swahili and a column headed MKOA is a region however the importer feels
+  // about it.
+  region: { exact: ['region', 'region_name', 'mkoa'], has: ['region', 'mkoa'], not: [] },
+  district: {
+    exact: ['district', 'district_name', 'council', 'wilaya', 'halmashauri'],
+    has: ['district', 'wilaya', 'halmashauri', 'council'],
     not: [],
+  },
+  address: {
+    exact: ['address', 'location', 'street', 'physical_address', 'ward', 'village'],
+    has: ['address', 'street', 'location', 'ward', 'village'],
+    // "Health centre" is a name, not a location, and it contains neither of
+    // those words by accident.
+    not: ['name', 'facility', 'centre', 'center'],
   },
   contact: {
     exact: ['contact', 'contact_name', 'contact_person', 'focal_person'],
@@ -61,8 +88,8 @@ const RULES: Record<Field, Rule> = {
     not: ['phone', 'number', 'email'],
   },
   phone: {
-    exact: ['phone', 'mobile', 'telephone', 'contact_phone', 'msisdn'],
-    has: ['phone', 'mobile', 'tel', 'msisdn'],
+    exact: ['phone', 'mobile', 'telephone', 'contact_phone', 'msisdn', 'simu'],
+    has: ['phone', 'mobile', 'tel', 'msisdn', 'simu'],
     not: [],
   },
   portfolio: {
@@ -76,7 +103,7 @@ const RULES: Record<Field, Rule> = {
     has: ['year', 'yoe', 'establish', 'founded'],
     not: [],
   },
-  zone: { exact: ['zone', 'zone_code'], has: ['zone'], not: [] },
+  zone: { exact: ['zone', 'zone_code', 'kanda'], has: ['zone', 'kanda'], not: [] },
   notes: { exact: ['notes', 'note', 'remarks', 'comment'], has: ['remark', 'comment'], not: [] },
 };
 

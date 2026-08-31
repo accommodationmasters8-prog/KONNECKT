@@ -47,3 +47,13 @@
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide);
 }
+
+/* The count of machine-written rows, sitting under the list it explains. */
+.automated {
+  margin: var(--space-md) 0 0;
+  padding-block-start: var(--space-md);
+  border-block-start: 1px solid var(--line-app);
+  color: var(--text-body);
+  font-size: var(--size-caption);
+  line-height: 1.6;
+}

@@ -46,6 +46,13 @@ export default async function TrackerOverview({
 
   const nothingYet = data.stations === 0;
 
+  /* Stations on the map and nothing filed against them is the ordinary state
+     on a first day, and it is not the same as an empty database. A zero here
+     would read as a measurement — "no people, no deposits" — when the truth is
+     that nobody has reported yet. Every card says which of the two it is. */
+  const nothingReported =
+    data.portfolio === 0 && data.accountsOpened === 0 && data.deposits === 0;
+
   return (
     <StaffShell
       locale={locale}
@@ -101,11 +108,13 @@ export default async function TrackerOverview({
             <MetricCard
               tone="teal"
               label="People in the portfolio"
-              value={nothingYet ? '—' : count(data.portfolio, locale)}
+              value={nothingYet || data.portfolio === 0 ? '—' : count(data.portfolio, locale)}
               note={
                 nothingYet
                   ? 'No stations yet'
-                  : `across ${count(data.activeStations, locale)} active stations`
+                  : data.portfolio === 0
+                    ? `${count(data.activeStations, locale)} stations on the map, none reporting yet`
+                    : `across ${count(data.activeStations, locale)} active stations`
               }
               icon={<StationsIcon />}
               href={`/${locale}/staff/stations`}
@@ -114,11 +123,13 @@ export default async function TrackerOverview({
             <MetricCard
               tone="green"
               label="Accounts opened"
-              value={nothingYet ? '—' : count(data.accountsOpened, locale)}
+              value={nothingYet || data.accountsOpened === 0 ? '—' : count(data.accountsOpened, locale)}
               note={
-                data.coveragePct === null
-                  ? 'Coverage needs a portfolio figure'
-                  : `${data.coveragePct}% of the portfolio reached`
+                data.accountsOpened === 0
+                  ? 'Nothing filed yet'
+                  : data.coveragePct === null
+                    ? 'Coverage needs a portfolio figure'
+                    : `${data.coveragePct}% of the portfolio reached`
               }
               icon={<AccountsIcon />}
               href={`/${locale}/staff/categories`}
@@ -127,11 +138,13 @@ export default async function TrackerOverview({
             <MetricCard
               tone="gold"
               label="Deposits mobilised"
-              value={nothingYet ? '—' : money(data.deposits, locale, true)}
+              value={nothingYet || data.deposits === 0 ? '—' : money(data.deposits, locale, true)}
               note={
                 data.loansValue > 0
                   ? `${money(data.loansValue, locale, true)} in loans`
-                  : 'No loans reported yet'
+                  : data.deposits === 0
+                    ? 'No deposits reported yet'
+                    : 'No loans reported yet'
               }
               icon={<CategoriesIcon />}
               href={`/${locale}/staff/network`}
@@ -160,6 +173,11 @@ export default async function TrackerOverview({
           >
             {data.categories.length === 0 ? (
               <PanelEmpty>No categories yet.</PanelEmpty>
+            ) : nothingReported ? (
+              <PanelEmpty>
+                Nothing has been filed against any category yet. The first
+                monthly figures a branch files fill this in.
+              </PanelEmpty>
             ) : (
               <BarTable
                 caption="Coverage by category"

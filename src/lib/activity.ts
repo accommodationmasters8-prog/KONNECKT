@@ -64,17 +64,36 @@ function nameOf(row: AuditRow): string | null {
   return null;
 }
 
-export async function getActivity(limit = 60): Promise<ActivityItem[]> {
+/**
+ * What people have done, and how much the machinery did on its own.
+ *
+ * A register load writes one audit row per institution, so a single import of
+ * the branch list buries a week of real work under 252 identical lines. Those
+ * rows are worth keeping and not worth reading: this returns the ones with a
+ * person behind them, and counts the rest so the screen can say how many there
+ * are instead of pretending they do not exist.
+ */
+export async function getActivity(limit = 60): Promise<{
+  items: ActivityItem[];
+  automated: number;
+}> {
   const supabase = await getServerClient();
-  if (!supabase) return [];
+  if (!supabase) return { items: [], automated: 0 };
 
-  const { data } = await supabase
-    .from('audit_log' as never)
-    .select('id, occurred_at, actor_kind, action, table_name, after_state, before_state, staff_users(full_name, email)')
-    .order('occurred_at', { ascending: false })
-    .limit(limit);
+  const [{ data }, { count: automated }] = await Promise.all([
+    supabase
+      .from('audit_log' as never)
+      .select('id, occurred_at, actor_kind, action, table_name, after_state, before_state, staff_users(full_name, email)')
+      .neq('actor_kind', 'system')
+      .order('occurred_at', { ascending: false })
+      .limit(limit),
+    supabase
+      .from('audit_log' as never)
+      .select('id', { count: 'exact', head: true })
+      .eq('actor_kind', 'system'),
+  ]);
 
-  return ((data as unknown as AuditRow[]) ?? []).map((row) => {
+  const items = ((data as unknown as AuditRow[]) ?? []).map((row) => {
     const verb = VERB[row.action] ?? { word: row.action.toLowerCase(), kind: 'changed' as const };
     const thing = THING[row.table_name];
 
@@ -94,6 +113,8 @@ export async function getActivity(limit = 60): Promise<ActivityItem[]> {
       where: null,
     };
   });
+
+  return { items, automated: automated ?? 0 };
 }
 
 /** Who has been in, most recent first. */
