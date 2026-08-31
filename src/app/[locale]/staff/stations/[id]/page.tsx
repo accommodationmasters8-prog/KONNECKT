@@ -58,7 +58,7 @@ export default async function StationPage({
     );
   }
 
-  const [stationRes, reportsRes, categories, accountTypes, loanTypes] = await Promise.all([
+  const [stationRes, reportsRes, categories] = await Promise.all([
     supabase.from('stations' as never)
       .select('id, name, short_name, category_id, branch_id, zone_code, address, district_name, status, portfolio, last_report_month, contact_name, contact_phone, contact_email, contact_role, notes, created_at')
       .eq('id', id)
@@ -69,14 +69,6 @@ export default async function StationPage({
       .order('period_month', { ascending: false })
       .limit(60),
     getCategories(),
-    supabase.from('account_products' as never)
-      .select('code, label_en, label_sw')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true }),
-    supabase.from('loan_products' as never)
-      .select('code, label_en, label_sw')
-      .eq('is_active', true)
-      .order('display_order', { ascending: true }),
   ]);
 
   const station = stationRes.data as unknown as StationRow | null;
@@ -85,6 +77,29 @@ export default async function StationPage({
   // does not distinguish: saying "exists, but not yours" is itself a
   // disclosure about another branch's book.
   if (!station) notFound();
+
+  // The types this station may actually file against.
+  //
+  // Every type used to be offered everywhere, so a bodaboda stand scrolled
+  // past six kinds of account its riders cannot hold — and a list you scroll
+  // past is a list you eventually tick the wrong row in. HQ scopes a type to a
+  // category in Settings; this is where that scoping finally has an effect.
+  // A type with no category is a CRDB product offered everywhere and stays on
+  // every station's list.
+  const scoped = `category_id.eq.${station.category_id},category_id.is.null`;
+
+  const [accountTypes, loanTypes] = await Promise.all([
+    supabase.from('account_products' as never)
+      .select('code, label_en, label_sw')
+      .or(scoped)
+      .eq('is_active', true)
+      .order('display_order', { ascending: true }),
+    supabase.from('loan_products' as never)
+      .select('code, label_en, label_sw')
+      .or(scoped)
+      .eq('is_active', true)
+      .order('display_order', { ascending: true }),
+  ]);
 
   const reports = ((reportsRes.data as unknown as StationReport[]) ?? []).map((r) => ({
     ...r,

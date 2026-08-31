@@ -20,6 +20,7 @@ export const STAFF_LABELS = {
   settings: 'Settings',
   audit: 'Audit log',
   manual: 'Manual',
+  import: 'Import',
 };
 
 export function staffNav(locale: Locale, labels: Record<string, string>): StaffNavItem[] {
@@ -37,6 +38,9 @@ export function staffNav(locale: Locale, labels: Record<string, string>): StaffN
     // Take it away with you.
     { key: 'reports', href: to('/reports'), label: labels.reports, roles: ['hq', 'zone', 'branch'] },
     // Who may see it, and the lists everything else is recorded against.
+    // The door for lists that already exist. Not offered to a branch: a branch
+    // has a handful of stations and adds them faster from its own page.
+    { key: 'import', href: to('/import'), label: labels.import, roles: ['hq', 'zone'] },
     { key: 'access', href: to('/access'), label: labels.access, roles: ['hq'] },
     { key: 'settings', href: to('/settings'), label: labels.settings, roles: ['hq'] },
     { key: 'audit', href: to('/audit'), label: labels.audit, roles: ['hq'] },

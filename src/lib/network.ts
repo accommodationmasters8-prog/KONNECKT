@@ -63,6 +63,13 @@ export interface BranchStation {
   deposits: number;
   coveragePct: number | null;
   lastReport: string | null;
+  /** The three channels and the loan book, from the same newest period as
+   *  every other figure on the row. */
+  simbanking: number;
+  cards: number;
+  lipaHapa: number;
+  loans: number;
+  loanValue: number;
 }
 
 export interface NetworkView {
@@ -276,7 +283,7 @@ export async function getBranchStations(branchId: string): Promise<BranchStation
 
   const { data: latestData } = await supabase
     .from('station_latest' as never)
-    .select('station_id, portfolio, accounts_opened, deposits_tzs, coverage_pct')
+    .select('station_id, portfolio, accounts_opened, deposits_tzs, coverage_pct, simbanking_activated, cards_issued, lipa_hapa_registered, loans_count, loans_value_tzs')
     .in('station_id', stations.map((s) => s.id));
 
   const latest = new Map(
@@ -297,6 +304,11 @@ export async function getBranchStations(branchId: string): Promise<BranchStation
       coveragePct: l?.coverage_pct === null || l?.coverage_pct === undefined
         ? null : Number(l.coverage_pct),
       lastReport: station.last_report_month,
+      simbanking: Number(l?.simbanking_activated ?? 0),
+      cards: Number(l?.cards_issued ?? 0),
+      lipaHapa: Number(l?.lipa_hapa_registered ?? 0),
+      loans: Number(l?.loans_count ?? 0),
+      loanValue: Number(l?.loans_value_tzs ?? 0),
     };
   }).sort((a, b) => b.deposits - a.deposits);
 }
@@ -516,4 +528,97 @@ export async function getBranchTree(): Promise<ZoneNode[]> {
     if (b.zone === 'UNASSIGNED') return -1;
     return b.deposits - a.deposits;
   });
+}
+
+export interface AccountTypeSlice {
+  code: string;
+  label: string;
+  opened: number;
+  active: number;
+  dormant: number;
+  deposits: number;
+}
+
+/**
+ * Accounts opened, split by the type of account.
+ *
+ * The total says how many were opened; this says what they were. A branch that
+ * opened 800 accounts entirely on one product has a different conversation
+ * ahead of it from one spread across five, and the total alone cannot tell
+ * them apart.
+ *
+ * Read from the newest report each station filed, so it lines up with every
+ * other figure on the same screen rather than quietly summing a different set
+ * of months. Scope comes from row level security as everywhere else.
+ */
+export async function getAccountTypeBreakdown(
+  opts: { branchId?: string; zone?: string; categoryId?: string } = {},
+): Promise<AccountTypeSlice[]> {
+  const supabase = await getServerClient();
+  if (!supabase) return [];
+
+  let stationQuery = supabase.from('stations' as never)
+    .select('id, branch_id, zone_code, category_id')
+    .limit(5000);
+  if (opts.branchId) stationQuery = stationQuery.eq('branch_id', opts.branchId);
+  if (opts.categoryId) stationQuery = stationQuery.eq('category_id', opts.categoryId);
+
+  const { data: stationData } = await stationQuery;
+  let stations = (stationData as unknown as
+    { id: string; branch_id: string; zone_code: string | null }[]) ?? [];
+  if (opts.zone) stations = stations.filter((s) => s.zone_code === opts.zone);
+
+  const ids = stations.map((s) => s.id);
+  if (ids.length === 0) return [];
+
+  // The newest filed period per station, which is the same set every other
+  // figure on these screens is drawn from.
+  const { data: latestData } = await supabase
+    .from('station_latest' as never)
+    .select('station_id, report_id')
+    .in('station_id', ids);
+
+  const reportIds = ((latestData as unknown as
+    { report_id: string | null }[]) ?? [])
+    .map((r) => r.report_id)
+    .filter((r): r is string => Boolean(r));
+
+  if (reportIds.length === 0) return [];
+
+  const [{ data: splitData }, { data: productData }] = await Promise.all([
+    supabase.from('station_report_accounts' as never)
+      .select('report_id, product_code, opened, active, dormant, deposits_tzs')
+      .in('report_id', reportIds)
+      .limit(20000),
+    supabase.from('account_products' as never)
+      .select('code, label_en, display_order')
+      .order('display_order', { ascending: true })
+      .limit(200),
+  ]);
+
+  const label = new Map(
+    ((productData as unknown as { code: string; label_en: string }[]) ?? [])
+      .map((p) => [p.code, p.label_en]),
+  );
+
+  const out = new Map<string, AccountTypeSlice>();
+  for (const row of (splitData as unknown as {
+    product_code: string; opened: number; active: number;
+    dormant: number; deposits_tzs: number;
+  }[]) ?? []) {
+    if (!out.has(row.product_code)) {
+      out.set(row.product_code, {
+        code: row.product_code,
+        label: label.get(row.product_code) ?? row.product_code,
+        opened: 0, active: 0, dormant: 0, deposits: 0,
+      });
+    }
+    const slice = out.get(row.product_code)!;
+    slice.opened += Number(row.opened ?? 0);
+    slice.active += Number(row.active ?? 0);
+    slice.dormant += Number(row.dormant ?? 0);
+    slice.deposits += Number(row.deposits_tzs ?? 0);
+  }
+
+  return [...out.values()].sort((a, b) => b.opened - a.opened);
 }

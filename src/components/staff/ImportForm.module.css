@@ -1,0 +1,196 @@
+.form { display: grid; gap: var(--space-lg); }
+
+/* --- what kind of file --------------------------------------------------- */
+
+.kinds {
+  display: grid;
+  gap: var(--space-sm);
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 40rem) {
+  .kinds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kinds legend { grid-column: 1 / -1; }
+}
+
+.kind,
+.kindOn {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-sm) var(--space-md);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  background: var(--surface-raised);
+}
+
+.kindOn {
+  border-color: var(--konekt-teal);
+  background: var(--konekt-mist);
+}
+
+.radio { position: absolute; opacity: 0; pointer-events: none; }
+
+.kind:focus-within,
+.kindOn:focus-within {
+  outline: 2px solid var(--konekt-teal);
+  outline-offset: 2px;
+}
+
+.kindName { font-weight: 600; font-size: var(--size-caption); }
+.kindNote { font-size: var(--size-micro); color: var(--text-muted); }
+
+/* --- the column contract ------------------------------------------------- */
+
+.template {
+  display: grid;
+  gap: var(--space-xs);
+  padding: var(--space-md);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  background: var(--surface-canvas);
+}
+
+.templateHead {
+  margin: 0;
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.templateCode {
+  display: block;
+  overflow-x: auto;
+  font-family: var(--font-data);
+  font-size: var(--size-micro);
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+.templateNote {
+  margin: 0;
+  font-size: var(--size-micro);
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-inline-size: 66ch;
+}
+
+.templateNote code {
+  font-family: var(--font-data);
+  font-size: 0.94em;
+  background: var(--surface-raised);
+  padding: 0 4px;
+  border-radius: 3px;
+}
+
+/* --- inputs -------------------------------------------------------------- */
+
+.file { font-size: var(--size-micro); }
+
+.paste {
+  inline-size: 100%;
+  font-family: var(--font-data);
+  font-size: var(--size-micro);
+  line-height: 1.6;
+  padding: var(--space-sm);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  color: var(--text-strong);
+  resize: vertical;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* --- what will happen ---------------------------------------------------- */
+
+.report { display: grid; gap: var(--space-lg); }
+
+@media (min-width: 52rem) {
+  .report { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.reportBlock,
+.problems {
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  padding: var(--space-md);
+  background: var(--surface-raised);
+  display: grid;
+  gap: var(--space-xs);
+  align-content: start;
+}
+
+.reportHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin: 0;
+  font-size: var(--size-caption);
+  font-weight: 600;
+}
+
+.tagAdd,
+.tagUpdate,
+.tagSkip {
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+
+.tagAdd { background: var(--konekt-mist); color: var(--konekt-teal-deep); }
+.tagUpdate { background: color-mix(in srgb, var(--metric-gold-from) 18%, var(--surface-raised)); color: var(--metric-gold-from); }
+.tagSkip { background: color-mix(in srgb, var(--metric-pink-to) 12%, var(--surface-raised)); color: var(--metric-pink-to); }
+
+.reportList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 1px;
+  max-block-size: 22rem;
+  overflow-y: auto;
+}
+
+.reportList li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-xs);
+  padding-block: 5px;
+  border-block-end: 1px solid var(--line-app);
+  font-size: var(--size-micro);
+}
+
+.reportList li:last-child { border-block-end: none; }
+
+.rowLine {
+  font-family: var(--font-data);
+  font-size: var(--size-nano);
+  color: var(--text-muted);
+  flex: none;
+  min-inline-size: 3.5rem;
+}
+
+.rowName { font-weight: 600; color: var(--text-strong); }
+.rowDetail { color: var(--text-muted); }
+
+.rowProblem {
+  flex: 1 1 100%;
+  color: var(--metric-pink-to);
+  line-height: 1.5;
+}
+
+.more { color: var(--text-muted); font-style: italic; }

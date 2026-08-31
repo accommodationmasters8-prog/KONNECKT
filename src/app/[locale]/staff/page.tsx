@@ -234,12 +234,61 @@ export default async function TrackerOverview({
             />
             <MetricCard
               tone="pink"
+              label="Youth reached"
+              value={nothingYet ? '—' : count(data.portfolio, locale)}
+              note="Across every active station"
+              href={`/${locale}/staff/stations`}
+              hint="Every station"
+            />
+          </div>
+
+          {/* The channels, on their own line rather than crowded into one
+              card's note. An account opened and never activated is a number on
+              a form; these three are what say whether it became a customer,
+              and each is a target somebody is answerable for. */}
+          <div className={styles.metrics}>
+            <MetricCard
+              tone="teal"
               label="SimBanking activated"
               value={nothingYet ? '—' : count(data.simbanking, locale)}
               note={
-                nothingYet
-                  ? 'Nothing reported yet'
-                  : `${count(data.cardsIssued, locale)} cards · ${count(data.lipaHapa, locale)} Lipa Hapa`
+                data.accountsOpened > 0
+                  ? `${Math.round((data.simbanking / data.accountsOpened) * 1000) / 10}% of accounts opened`
+                  : 'Nothing opened yet'
+              }
+              href={`/${locale}/staff/categories`}
+              hint="By category"
+            />
+            <MetricCard
+              tone="green"
+              label="Lipa Hapa registered"
+              value={nothingYet ? '—' : count(data.lipaHapa, locale)}
+              note={
+                data.accountsOpened > 0
+                  ? `${Math.round((data.lipaHapa / data.accountsOpened) * 1000) / 10}% of accounts opened`
+                  : 'Nothing opened yet'
+              }
+              href={`/${locale}/staff/categories`}
+              hint="By category"
+            />
+            <MetricCard
+              tone="gold"
+              label="Cards issued"
+              value={nothingYet ? '—' : count(data.cardsIssued, locale)}
+              note={
+                data.accountsOpened > 0
+                  ? `${Math.round((data.cardsIssued / data.accountsOpened) * 1000) / 10}% of accounts opened`
+                  : 'Nothing opened yet'
+              }
+            />
+            <MetricCard
+              tone="ink"
+              label="Loans given"
+              value={nothingYet ? '—' : count(data.loansCount, locale)}
+              note={
+                data.loansValue > 0
+                  ? `${money(data.loansValue, locale, true)} lent`
+                  : 'No loans reported yet'
               }
             />
           </div>

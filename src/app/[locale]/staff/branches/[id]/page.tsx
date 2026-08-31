@@ -11,7 +11,9 @@ import { FilingBar } from '@/components/staff/FilingBar';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
-import { getBranchStations, getCategoryBreakdown, zoneWording } from '@/lib/network';
+import {
+  getAccountTypeBreakdown, getBranchStations, getCategoryBreakdown, zoneWording,
+} from '@/lib/network';
 import { getZones } from '@/lib/zones';
 import { count, formatPeriod, getCategories, money } from '@/lib/tracker';
 import { resolveLocale } from '@/lib/page';
@@ -61,7 +63,7 @@ export default async function BranchPage({
     );
   }
 
-  const [branchRes, stations, byCategory, categories, zones] = await Promise.all([
+  const [branchRes, stations, byCategory, categories, zones, byAccountType] = await Promise.all([
     supabase.from('branches' as never)
       .select('id, name, zone_code, year_established, year_refurbished, is_active, notes')
       .eq('id', id)
@@ -70,6 +72,7 @@ export default async function BranchPage({
     getCategoryBreakdown({ branchId: id }),
     getCategories(),
     getZones(),
+    getAccountTypeBreakdown({ branchId: id }),
   ]);
 
   const branch = branchRes.data as unknown as {
@@ -93,6 +96,19 @@ export default async function BranchPage({
   const coverage = totals.portfolio > 0
     ? Math.round((totals.accounts / totals.portfolio) * 1000) / 10
     : null;
+
+  const openedByType = byAccountType.reduce((a, t) => a + t.opened, 0);
+
+  const channels = stations.reduce(
+    (a, s) => ({
+      simbanking: a.simbanking + s.simbanking,
+      cards: a.cards + s.cards,
+      lipaHapa: a.lipaHapa + s.lipaHapa,
+      loans: a.loans + s.loans,
+      loanValue: a.loanValue + s.loanValue,
+    }),
+    { simbanking: 0, cards: 0, lipaHapa: 0, loans: 0, loanValue: 0 },
+  );
 
   // What is still to file, at this branch, this period.
   //
@@ -164,10 +180,89 @@ export default async function BranchPage({
         <MetricCard tone="gold" label="Deposits mobilised"
           value={totals.deposits > 0 ? money(totals.deposits, locale, true) : '—'}
           note="Newest period from each station" />
-        <MetricCard tone="ink" label="People in the portfolio"
+        <MetricCard tone="ink" label="Youth reached"
           value={totals.portfolio > 0 ? count(totals.portfolio, locale) : '—'}
           note="Across every station here" />
       </div>
+
+      {/* The channels, for this branch. An account opened and never activated
+          is a number on a form, and the total above cannot tell you which. */}
+      <div className={styles.metrics}>
+        <MetricCard tone="teal" label="SimBanking activated"
+          value={channels.simbanking > 0 ? count(channels.simbanking, locale) : '—'}
+          note={totals.accounts > 0
+            ? `${Math.round((channels.simbanking / totals.accounts) * 1000) / 10}% of accounts opened here`
+            : 'Nothing opened yet'} />
+        <MetricCard tone="green" label="Lipa Hapa registered"
+          value={channels.lipaHapa > 0 ? count(channels.lipaHapa, locale) : '—'}
+          note={totals.accounts > 0
+            ? `${Math.round((channels.lipaHapa / totals.accounts) * 1000) / 10}% of accounts opened here`
+            : 'Nothing opened yet'} />
+        <MetricCard tone="gold" label="Cards issued"
+          value={channels.cards > 0 ? count(channels.cards, locale) : '—'}
+          note={totals.accounts > 0
+            ? `${Math.round((channels.cards / totals.accounts) * 1000) / 10}% of accounts opened here`
+            : 'Nothing opened yet'} />
+        <MetricCard tone="pink" label="Loans given"
+          value={channels.loans > 0 ? count(channels.loans, locale) : '—'}
+          note={channels.loanValue > 0
+            ? `${money(channels.loanValue, locale, true)} lent`
+            : 'No loans reported here'} />
+      </div>
+
+      <Panel
+        title="Accounts opened, by type"
+        description="What the total above is actually made of. A branch opening everything on one product has a different conversation ahead of it from one spread across five."
+      >
+        {byAccountType.length === 0 ? (
+          <PanelEmpty>
+            No account-type split filed yet. The total is recorded on the
+            station&rsquo;s report; the split is entered underneath it, and HQ
+            decides which types belong to which category in Settings.
+          </PanelEmpty>
+        ) : (
+          <>
+            <div className={styles.tableWrap}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th scope="col">Account type</th>
+                    <th scope="col" className={styles.num}>Opened</th>
+                    <th scope="col" className={styles.num}>Share</th>
+                    <th scope="col" className={styles.num}>Active</th>
+                    <th scope="col" className={styles.num}>Dormant</th>
+                    <th scope="col" className={styles.num}>Deposits</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {byAccountType.map((type) => (
+                    <tr key={type.code}>
+                      <th scope="row">{type.label}</th>
+                      <td className={styles.num}>{count(type.opened, locale)}</td>
+                      <td className={styles.num}>
+                        {openedByType > 0
+                          ? `${Math.round((type.opened / openedByType) * 1000) / 10}%`
+                          : '—'}
+                      </td>
+                      <td className={styles.num}>{count(type.active, locale)}</td>
+                      <td className={styles.num}>{count(type.dormant, locale)}</td>
+                      <td className={styles.num}>{money(type.deposits, locale, true)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {openedByType < totals.accounts ? (
+              <p className={styles.sub}>
+                {count(totals.accounts - openedByType, locale)} of the{' '}
+                {count(totals.accounts, locale)} accounts opened here have no
+                type recorded against them yet.
+              </p>
+            ) : null}
+          </>
+        )}
+      </Panel>
 
       <Panel
         title="Stations at this branch"
