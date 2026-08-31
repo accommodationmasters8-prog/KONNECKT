@@ -210,8 +210,8 @@
    scrolling past them. */
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-  gap: var(--space-sm);
+  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+  gap: var(--space-md);
 }
 
 /* A left edge in the category's own colour, and nothing else decorative. The
@@ -219,8 +219,10 @@
 .categoryCard {
   display: flex;
   flex-direction: column;
-  gap: 1px;
-  padding: var(--space-md);
+  /* Room between the four lines on the card. They were 1px apart, which read
+     as one paragraph rather than a figure with three notes under it. */
+  gap: var(--space-2xs);
+  padding: var(--space-md) var(--space-lg);
   border-radius: var(--radius-md);
   background: var(--surface-raised);
   border: 1px solid var(--line-app);

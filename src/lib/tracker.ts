@@ -207,9 +207,14 @@ export async function getCategories(): Promise<TrackerCategory[]> {
   const supabase = await getServerClient();
   if (!supabase) return [];
 
+  // Retired categories are gone from every screen, not merely greyed out.
+  // A retired category with nothing in it still rendered a card saying 0
+  // stations, 0 accounts, 0% — nine tiles of nothing on the one screen whose
+  // job is comparing the categories that matter.
   const { data } = await supabase
     .from('tracker_categories' as never)
     .select('id, slug, name_en, name_sw, description, member_noun_en, member_noun_sw, colour, is_active, display_order')
+    .eq('is_active', true)
     .order('display_order', { ascending: true });
 
   return (data as unknown as TrackerCategory[]) ?? [];
