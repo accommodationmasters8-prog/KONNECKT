@@ -73,7 +73,7 @@ export default async function ImportPage({
     >
       <Panel
         title="Upload branches or stations"
-        description="Check the file first — you get a line-by-line list of what will be added, what will be updated and what will be skipped, before anything is written."
+        description="Excel or CSV, as it stands. Check the file first — you get a line-by-line list of what will be added, updated and skipped before anything is written."
       >
         <ImportForm
           canChooseZone={session.role === 'hq'}
@@ -81,43 +81,21 @@ export default async function ImportPage({
         />
       </Panel>
 
-      <Panel
-        title="How matching works"
-        description="Nothing is duplicated and nothing is silently overwritten."
-      >
-        <div className={styles.tableWrap}>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th scope="col">Situation</th>
-                <th scope="col">What happens</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <th scope="row">The name is not in the system</th>
-                <td>A new record is created.</td>
-              </tr>
-              <tr>
-                <th scope="row">The name is already there</th>
-                <td>That record is updated with the columns your file carries. Nothing filed against it is touched.</td>
-              </tr>
-              <tr>
-                <th scope="row">The same name twice in one file</th>
-                <td>The first is used and the rest are skipped by line number.</td>
-              </tr>
-              <tr>
-                <th scope="row">A station names a branch that does not exist</th>
-                <td>Skipped, and told which branch it was looking for. Import the branches first.</td>
-              </tr>
-              <tr>
-                <th scope="row">A row is outside your zone</th>
-                <td>Refused by the database and reported by name. Your own rows still import.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </Panel>
+      {/* One line, not a second panel of rules.
+          This screen is for a mixed file spanning several branches or
+          categories; the common case is importing into one, and that lives on
+          the branch and category pages where the answer is already known.
+          Everything about matching is in the manual rather than repeated
+          here. */}
+      <p className={styles.note}>
+        Importing into a single branch or a single category? Open that branch or
+        category instead — the uploader is on the page, and the file then needs
+        no branch or category column.{' '}
+        <Link href={`/${locale}/staff/manual#import`} className={styles.link}>
+          How matching works
+        </Link>
+      </p>
+
     </StaffShell>
   );
 }

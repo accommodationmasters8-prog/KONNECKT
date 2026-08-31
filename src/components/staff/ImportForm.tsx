@@ -38,6 +38,7 @@ export function ImportForm({
   canChooseZone,
   initialKind = 'branches',
   fixedCategory,
+  fixedBranch,
 }: {
   canChooseZone: boolean;
   /** Preselected when arriving from a link that already knows the answer —
@@ -46,9 +47,13 @@ export function ImportForm({
   /** Set on a category screen: every row lands in this category, and the file
    *  needs no category column. `{ slug, name }` so the form can say which. */
   fixedCategory?: { slug: string; name: string };
+  /** Set on a branch screen: every row lands at this branch, and the file
+   *  needs no branch column. */
+  fixedBranch?: { id: string; name: string };
 }) {
   const [state, formAction, pending] = useActionState(importCsv, INITIAL);
-  const [kind, setKind] = useState<ImportKind>(fixedCategory ? 'stations' : initialKind);
+  const locked = Boolean(fixedCategory || fixedBranch);
+  const [kind, setKind] = useState<ImportKind>(locked ? 'stations' : initialKind);
   const [fileName, setFileName] = useState('');
 
   const template = TEMPLATES[kind];
@@ -59,8 +64,11 @@ export function ImportForm({
       {fixedCategory ? (
         <input type="hidden" name="fixed_category" value={fixedCategory.slug} />
       ) : null}
+      {fixedBranch ? (
+        <input type="hidden" name="fixed_branch" value={fixedBranch.id} />
+      ) : null}
 
-      {fixedCategory ? (
+      {locked ? (
         <input type="hidden" name="kind" value="stations" />
       ) : (
       <fieldset className={styles.kinds}>
@@ -90,13 +98,23 @@ export function ImportForm({
       <div className={styles.template}>
         <p className={styles.templateHead}>Columns for this file</p>
         <code className={styles.templateCode}>
-          {fixedCategory
-            ? 'name,branch,region,district,portfolio,contact,phone'
-            : template.headers}
+          {fixedCategory && fixedBranch
+            ? 'name,region,district,portfolio,contact,phone'
+            : fixedCategory
+              ? 'name,branch,region,district,portfolio,contact,phone'
+              : fixedBranch
+                ? 'name,category,region,district,portfolio,contact,phone'
+                : template.headers}
         </code>
         <p className={styles.templateNote}>
-          {fixedCategory
-          ? `Every row lands in ${fixedCategory.name}, so the file needs no category column — one is ignored if it is there. The branch must already exist and must match by name.`
+          {fixedCategory || fixedBranch
+          ? `Every row lands ${[
+              fixedCategory ? `in ${fixedCategory.name}` : null,
+              fixedBranch ? `at ${fixedBranch.name}` : null,
+            ].filter(Boolean).join(' and ')}, so the file needs no ${[
+              fixedCategory ? 'category' : null,
+              fixedBranch ? 'branch' : null,
+            ].filter(Boolean).join(' or ')} column — one is ignored if it is there.`
           : template.note}{' '}
         Column names are matched loosely, so
           {' '}<code>Branch Name</code>, <code>branch_name</code> and{' '}

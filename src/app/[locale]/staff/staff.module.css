@@ -409,3 +409,13 @@
 }
 
 .crumbHere { color: var(--text-strong); font-weight: var(--weight-semibold); }
+
+/* A single line of guidance under a panel, where a second panel of rules would
+   be more screen than the point deserves. */
+.note {
+  font-size: var(--size-micro);
+  color: var(--text-muted);
+  line-height: 1.65;
+  max-inline-size: 70ch;
+  margin: 0;
+}

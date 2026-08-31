@@ -8,6 +8,7 @@ import { PieChart } from '@/components/staff/Charts';
 import { StationForm } from '@/components/staff/StationForms';
 import { BranchForm } from '@/components/staff/BranchForms';
 import { FilingBar } from '@/components/staff/FilingBar';
+import { ImportForm } from '@/components/staff/ImportForm';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
@@ -156,11 +157,6 @@ export default async function BranchPage({
               className={styles.link}
             >
               Compare in zone
-            </Link>
-          ) : null}
-          {session.role === 'hq' || session.role === 'zone' ? (
-            <Link href={`/${locale}/staff/import?kind=stations`} className={styles.link}>
-              Import stations
             </Link>
           ) : null}
           <Link href={`/${locale}/staff/branches`} className={styles.link}>
@@ -334,6 +330,22 @@ export default async function BranchPage({
               value: c.deposits,
               tone: SERIES[i % SERIES.length],
             }))}
+          />
+        </Panel>
+      ) : null}
+
+      {/* The bulk door, at the branch it fills.
+          Every row lands here, so the file needs no branch column — which is
+          the column most likely to be misspelt, and the one that sends a
+          station to the wrong branch when it is. */}
+      {session.role === 'hq' || session.role === 'zone' ? (
+        <Panel
+          title={`Add many stations to ${branch.name}`}
+          description="Upload the list you already have, in Excel or CSV. Check it first: you get a line-by-line list of what will be added and what will be skipped, before anything is written."
+        >
+          <ImportForm
+            canChooseZone={session.role === 'hq'}
+            fixedBranch={{ id: branch.id, name: branch.name }}
           />
         </Panel>
       ) : null}

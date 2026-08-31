@@ -116,10 +116,11 @@ export async function importCsv(
   // Arriving from a category screen, the category is already the answer to a
   // question the file would otherwise have to carry a column for.
   const fixedCategory = String(form.get('fixed_category') ?? '').trim() || null;
+  const fixedBranch = String(form.get('fixed_branch') ?? '').trim() || null;
 
   return kind === 'branches'
     ? importBranches(supabase, rows, commit, session.role, session.zone)
-    : importStations(supabase, rows, commit, fixedCategory);
+    : importStations(supabase, rows, commit, fixedCategory, fixedBranch);
 }
 
 type Client = NonNullable<Awaited<ReturnType<typeof getServerClient>>>;
@@ -283,6 +284,10 @@ async function importStations(
    *  A column in the file is then redundant, and is ignored rather than
    *  allowed to send half the rows somewhere else. */
   fixedCategory: string | null = null,
+  /** Likewise the branch, when importing from inside one. An id rather than a
+   *  name: the screen has the row, so there is nothing to match and nothing to
+   *  misspell. */
+  fixedBranchId: string | null = null,
 ): Promise<ImportResult> {
   const [{ data: branchRows }, { data: catRows }, { data: stationRows }] = await Promise.all([
     supabase.from('branches' as never).select('id, name').limit(5000),
@@ -291,10 +296,9 @@ async function importStations(
     supabase.from('stations' as never).select('id, name, branch_id').limit(5000),
   ]);
 
-  const branches = new Map(
-    ((branchRows as unknown as { id: string; name: string }[]) ?? [])
-      .map((b) => [key(b.name), b.id]),
-  );
+  const branchList = (branchRows as unknown as { id: string; name: string }[]) ?? [];
+  const branches = new Map(branchList.map((b) => [key(b.name), b.id]));
+  const branchNameById = new Map(branchList.map((b) => [b.id, b.name]));
   const categories = new Map<string, string>();
   const categoryLabel = new Map<string, string>();
   for (const c of (catRows as unknown as { id: string; slug: string; name_en: string }[]) ?? []) {
@@ -331,8 +335,10 @@ async function importStations(
     }
     seen.add(key(name));
 
-    const branchName = pick(row, 'branch', 'branch_name', 'coordinating_branch');
-    const branchId = branches.get(key(branchName));
+    const branchName = fixedBranchId
+      ? (branchNameById.get(fixedBranchId) ?? 'this branch')
+      : pick(row, 'branch', 'branch_name', 'coordinating_branch');
+    const branchId = fixedBranchId ?? branches.get(key(branchName));
     if (!branchId) {
       issues.push({
         line, name,
