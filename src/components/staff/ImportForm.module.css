@@ -1,95 +1,150 @@
-.form { display: grid; gap: var(--space-lg); }
+.form { display: grid; gap: var(--space-md); }
 
-/* --- what kind of file --------------------------------------------------- */
+/* --- what is in the file ------------------------------------------------- */
 
 .kinds {
-  display: grid;
-  gap: var(--space-sm);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
   border: 0;
   margin: 0;
   padding: 0;
 }
 
-@media (min-width: 40rem) {
-  .kinds { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .kinds legend { grid-column: 1 / -1; }
+.legend {
+  float: inline-start;
+  inline-size: 100%;
+  margin-block-end: var(--space-xs);
+  font-size: var(--size-micro);
+  font-weight: 600;
+  color: var(--text-strong);
 }
 
+/* Segmented, not stacked cards. Two options with two words each do not need a
+   card apiece and a sentence of explanation under them. */
 .kind,
 .kindOn {
-  display: grid;
-  gap: 2px;
-  padding: var(--space-sm) var(--space-md);
+  padding: 7px 16px;
   border: 1px solid var(--line-app);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
+  font-size: var(--size-micro);
+  font-weight: 600;
   cursor: pointer;
   background: var(--surface-raised);
+  color: var(--text-body);
 }
 
 .kindOn {
   border-color: var(--konekt-teal);
   background: var(--konekt-mist);
+  color: var(--konekt-teal-deep);
 }
 
 .radio { position: absolute; opacity: 0; pointer-events: none; }
 
 .kind:focus-within,
-.kindOn:focus-within {
+.kindOn:focus-within { outline: 2px solid var(--konekt-teal); outline-offset: 2px; }
+
+/* --- the upload button --------------------------------------------------- */
+
+/* The file input itself is hidden and the label is the control. It is the one
+   thing on this screen people are here to press, so it is the size of a thing
+   people press. */
+.fileInput {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.drop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-lg);
+  border: 1.5px dashed var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-canvas);
+  cursor: pointer;
+  transition: border-color var(--dur-base) var(--ease-out),
+              background var(--dur-base) var(--ease-out);
+}
+
+@media (hover: hover) {
+  .drop:hover { border-color: var(--konekt-teal); background: var(--konekt-mist); }
+}
+
+.drop:focus-within {
   outline: 2px solid var(--konekt-teal);
   outline-offset: 2px;
 }
 
-.kindName { font-weight: 600; font-size: var(--size-caption); }
-.kindNote { font-size: var(--size-micro); color: var(--text-muted); }
-
-/* --- the column contract ------------------------------------------------- */
-
-.template {
+.dropIcon {
   display: grid;
-  gap: var(--space-xs);
-  padding: var(--space-md);
+  place-items: center;
+  flex: none;
+  inline-size: 44px;
+  block-size: 44px;
+  border-radius: 50%;
+  background: var(--konekt-mist);
+  color: var(--konekt-teal-deep);
+}
+
+.dropText { display: grid; gap: 2px; min-inline-size: 0; }
+
+.dropTitle {
+  font-size: var(--size-caption);
+  font-weight: 600;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
+}
+
+.dropHint { font-size: var(--size-micro); color: var(--text-muted); }
+
+/* --- the detail, folded away --------------------------------------------- */
+
+/* Columns and pasting are answers to questions most people do not have. They
+   were three paragraphs standing between somebody and the button. */
+.aside {
   border: 1px solid var(--line-app);
   border-radius: var(--radius-md);
-  background: var(--surface-canvas);
+  background: var(--surface-raised);
+  padding: var(--space-sm) var(--space-md);
 }
 
-.templateHead {
-  margin: 0;
-  font-family: var(--font-data);
-  font-size: var(--size-nano);
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
-.templateCode {
-  display: block;
-  overflow-x: auto;
-  font-family: var(--font-data);
+.asideHead {
   font-size: var(--size-micro);
-  color: var(--text-strong);
-  white-space: nowrap;
+  font-weight: 600;
+  color: var(--konekt-teal-deep);
+  cursor: pointer;
+  list-style: none;
 }
 
-.templateNote {
-  margin: 0;
+.asideHead::-webkit-details-marker { display: none; }
+.asideHead::before { content: '+ '; }
+.aside[open] .asideHead::before { content: '– '; }
+
+.asideHead:focus-visible { outline: 2px solid var(--konekt-teal); outline-offset: 2px; }
+
+.asideBody {
+  margin: var(--space-sm) 0;
   font-size: var(--size-micro);
   color: var(--text-muted);
   line-height: 1.6;
-  max-inline-size: 66ch;
+  max-inline-size: 68ch;
 }
 
-.templateNote code {
+.asideBody code {
   font-family: var(--font-data);
   font-size: 0.94em;
-  background: var(--surface-raised);
-  padding: 0 4px;
-  border-radius: 3px;
+  color: var(--text-strong);
+  overflow-wrap: anywhere;
 }
-
-/* --- inputs -------------------------------------------------------------- */
-
-.file { font-size: var(--size-micro); }
 
 .paste {
   inline-size: 100%;
@@ -99,7 +154,7 @@
   padding: var(--space-sm);
   border: 1px solid var(--line-app);
   border-radius: var(--radius-md);
-  background: var(--surface-raised);
+  background: var(--surface-canvas);
   color: var(--text-strong);
   resize: vertical;
 }

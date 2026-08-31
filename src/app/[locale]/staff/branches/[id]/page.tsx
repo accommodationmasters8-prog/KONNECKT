@@ -341,7 +341,7 @@ export default async function BranchPage({
       {session.role === 'hq' || session.role === 'zone' ? (
         <Panel
           title={`Add many stations to ${branch.name}`}
-          description="Upload the list you already have, in Excel or CSV. Check it first: you get a line-by-line list of what will be added and what will be skipped, before anything is written."
+          description="Excel or CSV. Nothing is written until you have checked it."
         >
           <ImportForm
             canChooseZone={session.role === 'hq'}

@@ -58,6 +58,15 @@ export function ImportForm({
 
   const template = TEMPLATES[kind];
   const previewed = state.ran && state.preview && state.ok;
+  const total = state.toCreate.length + state.toUpdate.length;
+
+  const columns = fixedCategory && fixedBranch
+    ? 'name, region, district, portfolio, contact, phone'
+    : fixedCategory
+      ? 'name, branch, region, district, portfolio, contact, phone'
+      : fixedBranch
+        ? 'name, category, region, district, portfolio, contact, phone'
+        : template.headers.replace(/,/g, ', ');
 
   return (
     <form action={formAction} className={styles.form} encType="multipart/form-data">
@@ -71,117 +80,86 @@ export function ImportForm({
       {locked ? (
         <input type="hidden" name="kind" value="stations" />
       ) : (
-      <fieldset className={styles.kinds}>
-        <legend className={admin.label}>What does the file contain?</legend>
-
-        {(Object.keys(TEMPLATES) as ImportKind[]).map((k) => (
-          <label key={k} className={kind === k ? styles.kindOn : styles.kind}>
-            <input
-              type="radio"
-              name="kind"
-              value={k}
-              checked={kind === k}
-              onChange={() => setKind(k)}
-              className={styles.radio}
-            />
-            <span className={styles.kindName}>{k === 'branches' ? 'Branches' : 'Stations'}</span>
-            <span className={styles.kindNote}>
-              {k === 'branches'
-                ? 'Name, zone, year opened'
-                : 'Name, its branch, its category'}
-            </span>
-          </label>
-        ))}
-      </fieldset>
+        <fieldset className={styles.kinds}>
+          <legend className={styles.legend}>What is in the file?</legend>
+          {(Object.keys(TEMPLATES) as ImportKind[]).map((k) => (
+            <label key={k} className={kind === k ? styles.kindOn : styles.kind}>
+              <input
+                type="radio"
+                name="kind"
+                value={k}
+                checked={kind === k}
+                onChange={() => setKind(k)}
+                className={styles.radio}
+              />
+              {k === 'branches' ? 'Branches' : 'Stations'}
+            </label>
+          ))}
+        </fieldset>
       )}
 
-      <div className={styles.template}>
-        <p className={styles.templateHead}>Columns for this file</p>
-        <code className={styles.templateCode}>
-          {fixedCategory && fixedBranch
-            ? 'name,region,district,portfolio,contact,phone'
-            : fixedCategory
-              ? 'name,branch,region,district,portfolio,contact,phone'
-              : fixedBranch
-                ? 'name,category,region,district,portfolio,contact,phone'
-                : template.headers}
-        </code>
-        <p className={styles.templateNote}>
-          {fixedCategory || fixedBranch
-          ? `Every row lands ${[
-              fixedCategory ? `in ${fixedCategory.name}` : null,
-              fixedBranch ? `at ${fixedBranch.name}` : null,
-            ].filter(Boolean).join(' and ')}, so the file needs no ${[
-              fixedCategory ? 'category' : null,
-              fixedBranch ? 'branch' : null,
-            ].filter(Boolean).join(' or ')} column — one is ignored if it is there.`
-          : template.note}{' '}
-        Column names are matched loosely, so
-          {' '}<code>Branch Name</code>, <code>branch_name</code> and{' '}
-          <code>branch</code> are all the same column, and any other columns in
-          your sheet are left alone.
-        </p>
-        {canChooseZone ? null : (
-          <p className={styles.templateNote}>
-            Whatever the zone column says, your rows are filed into your own zone.
-          </p>
-        )}
-      </div>
-
-      <label className={admin.field}>
-        <span className={admin.label}>Upload a spreadsheet</span>
+      {/* The upload control, as an actual button.
+          A bare <input type="file"> renders as a small grey affair that people
+          genuinely miss — it was the least visible thing on a screen that
+          exists to do one job. The input is still the input; the label is what
+          you see and click. */}
+      <label className={styles.drop}>
         <input
           type="file"
           name="file"
           accept=".csv,text/csv,.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-          className={styles.file}
+          className={styles.fileInput}
           onChange={(e) => setFileName(e.target.files?.[0]?.name ?? '')}
         />
-        <span className={admin.help}>
-          {fileName ? `Selected: ${fileName}. ` : ''}
-          Excel (<strong>.xlsx</strong>) or CSV, whichever you already have.
-          Upload your working sheet as it is — columns it does not recognise
-          are ignored, so there is no template to fill in first.
+        <span className={styles.dropIcon} aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+            <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5" stroke="currentColor"
+              strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+            <path d="M4 15v3a2 2 0 002 2h12a2 2 0 002-2v-3" stroke="currentColor"
+              strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+        </span>
+        <span className={styles.dropText}>
+          <span className={styles.dropTitle}>
+            {fileName || 'Choose an Excel or CSV file'}
+          </span>
+          <span className={styles.dropHint}>
+            {fileName ? 'Click to choose a different file' : 'Upload the sheet you already have'}
+          </span>
         </span>
       </label>
 
-      <label className={admin.field}>
-        <span className={admin.label}>Or paste the rows</span>
+      <details className={styles.aside}>
+        <summary className={styles.asideHead}>Which columns?</summary>
+        <p className={styles.asideBody}>
+          <code>{columns}</code> — names are matched loosely, and any other
+          column in your sheet is ignored.
+        </p>
         <textarea
           name="pasted"
-          rows={7}
+          rows={5}
           className={styles.paste}
-          placeholder={`${template.headers}\n${template.example}`}
+          placeholder="…or paste the rows here, header included"
           spellCheck={false}
         />
-        <span className={admin.help}>
-          Copy the cells straight out of the spreadsheet, header row included.
-        </span>
-      </label>
+      </details>
 
       <div className={styles.actions}>
-        <button
-          type="submit"
-          name="commit"
-          value="no"
-          className="btn btn--quiet"
-          disabled={pending}
-        >
-          {pending ? 'Checking…' : 'Check the file'}
-        </button>
+        {previewed ? (
+          <button type="submit" name="commit" value="yes" className="btn btn--primary btn--lg" disabled={pending}>
+            {pending ? 'Importing…' : `Import ${total} ${total === 1 ? 'row' : 'rows'}`}
+          </button>
+        ) : (
+          <button type="submit" name="commit" value="no" className="btn btn--primary btn--lg" disabled={pending}>
+            {pending ? 'Checking…' : 'Check the file'}
+          </button>
+        )}
 
-        <button
-          type="submit"
-          name="commit"
-          value="yes"
-          className="btn btn--primary"
-          disabled={pending || !previewed}
-          title={previewed ? undefined : 'Check the file first'}
-        >
-          {previewed
-            ? `Import ${state.toCreate.length + state.toUpdate.length} rows`
-            : 'Import'}
-        </button>
+        {previewed ? (
+          <button type="submit" name="commit" value="no" className="btn btn--quiet" disabled={pending}>
+            Check again
+          </button>
+        ) : null}
 
         {state.message ? (
           <p className={state.ok ? admin.ok : admin.error} role="status" aria-live="polite">
