@@ -116,20 +116,32 @@ export async function setProductCategory(
   if (kind !== 'account' && kind !== 'loan') return { ok: false, message: 'Which list?' };
 
   const code = String(form.get('code') ?? '').trim();
-  const category = String(form.get('category_id') ?? '').trim();
   if (!code) return { ok: false, message: 'Which type?' };
 
-  const { error } = await gate.supabase
-    .from(TABLE[kind] as never)
-    .update({ category_id: category === '' ? null : category } as never)
-    .eq('code', code);
+  // Every ticked box, not one dropdown value. A student account belongs to
+  // universities, colleges and secondary schools at once — the single column
+  // this replaced forced HQ to pick one and leave the type missing from the
+  // other two, or leave it unscoped and have it turn up at bodaboda stands.
+  const ids = form.getAll('category_id')
+    .map((v) => String(v).trim())
+    .filter((v) => v !== '');
+
+  const { data, error } = await gate.supabase.rpc('set_product_categories' as never, {
+    p_kind: kind,
+    p_code: code,
+    p_category_ids: ids,
+  } as never);
 
   if (error) return { ok: false, message: error.message };
+
+  const count = Number(data ?? 0);
 
   revalidatePath('/', 'layout');
   return {
     ok: true,
-    message: category === '' ? 'Now offered everywhere.' : 'Scoped to that category.',
+    message: count === 0
+      ? 'Saved. Offered in every category.'
+      : `Saved. Offered in ${count} ${count === 1 ? 'category' : 'categories'}.`,
   };
 }
 

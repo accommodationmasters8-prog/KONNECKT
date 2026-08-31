@@ -3,10 +3,12 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  gap: var(--space-2xs);
-  padding: var(--space-md);
-  border-radius: var(--radius-lg);
-  min-block-size: 8.5rem;
+  gap: 2px;
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  /* Down from 8.5rem. The height was set when there were four of these; at
+     nine it was most of a screen of padding. */
+  min-block-size: 6rem;
   color: var(--card-ink);
   /* Flat colour first — the lighter, harder end of the ramp — then the ramp
      over it. See MetricCard.tsx on why the flat value is the light stop. */
@@ -95,7 +97,9 @@
    its number the same weight, and then the card stops being readable across
    a room. */
 .value {
-  font-size: 1.5rem;
+  /* Scales with the card rather than a fixed size: at five across on a laptop
+     a 1.5rem figure and a six-digit number collide. */
+  font-size: clamp(1.05rem, 2.1vw, 1.375rem);
   font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;

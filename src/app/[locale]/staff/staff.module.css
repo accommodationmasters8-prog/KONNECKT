@@ -7,10 +7,16 @@
 
 /* The headline row. auto-fit rather than auto-fill so four cards stretch to
    fill a wide desk screen instead of leaving a ghost column at the end. */
+/* Nine cards, two rows.
+   
+   At 14rem minimum these wrapped to three and four rows on an ordinary laptop,
+   and an overview that needs scrolling to be seen is not an overview. 10.5rem
+   fits five across at 1280px and four at 1024, so the set lands in two rows on
+   both. */
 .metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  gap: var(--space-sm);
 }
 
 /* Two panels side by side above 68rem, stacked below. */

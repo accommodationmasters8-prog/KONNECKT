@@ -62,7 +62,7 @@ export default async function StaffSettings({
     );
   }
 
-  const [accountsRes, loansRes, branchesRes, sampleRes, catRes, zones] = await Promise.all([
+  const [accountsRes, loansRes, branchesRes, sampleRes, catRes, zones, scopeRes] = await Promise.all([
     supabase.from('account_products' as never)
       .select('code, label_en, label_sw, is_active, category_id')
       .order('is_active', { ascending: false })
@@ -83,6 +83,8 @@ export default async function StaffSettings({
       .select('id, name_en').eq('is_active', true)
       .order('display_order', { ascending: true }).limit(100),
     getZones(),
+    supabase.from('product_categories' as never)
+      .select('kind, product_code, category_id').limit(5000),
   ]);
 
   const sampleReports = sampleRes.count ?? 0;
@@ -90,8 +92,22 @@ export default async function StaffSettings({
     { id: string; name_en: string }[]) ?? [])
     .map((c) => ({ id: c.id, name: c.name_en }));
 
-  const accounts = (accountsRes.data as unknown as ProductItem[]) ?? [];
-  const loans = (loansRes.data as unknown as ProductItem[]) ?? [];
+  // Every product's categories, gathered once and attached to its row.
+  const scopes = new Map<string, string[]>();
+  for (const row of (scopeRes.data as unknown as
+    { kind: string; product_code: string; category_id: string }[]) ?? []) {
+    const key = `${row.kind}:${row.product_code}`;
+    scopes.set(key, [...(scopes.get(key) ?? []), row.category_id]);
+  }
+
+  const withScope = (items: ProductItem[], kind: 'account' | 'loan') =>
+    items.map((item) => ({
+      ...item,
+      category_ids: scopes.get(`${kind}:${item.code}`) ?? [],
+    }));
+
+  const accounts = withScope((accountsRes.data as unknown as ProductItem[]) ?? [], 'account');
+  const loans = withScope((loansRes.data as unknown as ProductItem[]) ?? [], 'loan');
 
   // Unzoned first: those are the ones nobody above the branch can see.
   const branches = ((branchesRes.data as unknown as BranchRow[]) ?? [])

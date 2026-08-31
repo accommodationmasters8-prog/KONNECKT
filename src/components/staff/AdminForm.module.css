@@ -143,3 +143,47 @@
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* --- scoping a product to categories -------------------------------------
+   Chips that toggle, because a type belongs to as many categories as it
+   belongs to and the control has to be able to say so. "Everywhere" is the
+   state of having none ticked, shown as its own chip so it reads as a choice
+   rather than as an empty row. */
+
+.scopeForm {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.chip,
+.chipOn {
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--line-app);
+  font-size: var(--size-nano);
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--surface-raised);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.chipOn {
+  border-color: var(--konekt-teal);
+  background: var(--konekt-mist);
+  color: var(--konekt-teal-deep);
+}
+
+.chip:focus-within,
+.chipOn:focus-within { outline: 2px solid var(--konekt-teal); outline-offset: 2px; }

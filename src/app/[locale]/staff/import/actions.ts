@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { getServerClient } from '@/lib/supabase/server';
 import { getStaffSession } from '@/lib/staff-session';
 import { parseCsvRows, pick, num, normaliseHeader, type CsvRow } from '@/lib/csv';
+import { detectColumns, valueOf, FIELD_WORDING, type ColumnMap } from '@/lib/column-map';
 import { readXlsx } from '@/lib/xlsx';
 
 export type ImportKind = 'branches' | 'stations';
@@ -19,6 +20,9 @@ export interface ImportResult {
   /** True when nothing was written — the preview pass. */
   preview: boolean;
   kind: ImportKind | null;
+  /** Which column the importer decided is which, so the preview can show it
+   *  and somebody can see it read the wrong one before it writes anything. */
+  mapping: { field: string; column: string }[];
   toCreate: { line: number; name: string; detail: string }[];
   toUpdate: { line: number; name: string; detail: string }[];
   issues: ImportIssue[];
@@ -27,9 +31,17 @@ export interface ImportResult {
 }
 
 const EMPTY: ImportResult = {
-  ran: false, preview: true, kind: null,
+  ran: false, preview: true, kind: null, mapping: [],
   toCreate: [], toUpdate: [], issues: [], message: '', ok: false,
 };
+
+/** The mapping, in the order a person would read it. */
+function describe(map: ColumnMap): { field: string; column: string }[] {
+  return Object.entries(map).map(([field, column]) => ({
+    field: FIELD_WORDING[field as keyof typeof FIELD_WORDING] ?? field,
+    column,
+  }));
+}
 
 /**
  * Bring a spreadsheet in.
@@ -68,8 +80,14 @@ export async function importCsv(
   let rows: CsvRow[] = [];
 
   if (file instanceof File && file.size > 0) {
-    if (file.size > 8_000_000) {
-      return { ...EMPTY, ran: true, message: 'That file is over 8MB. Split it, or paste the rows instead.' };
+    // A register is a big file. 40MB covers every workbook this has been
+    // handed so far with room over — an .xlsx is a compressed archive, so a
+    // 40MB one is tens of thousands of rows, not hundreds.
+    if (file.size > 40_000_000) {
+      return {
+        ...EMPTY, ran: true,
+        message: 'That file is over 40MB, which is larger than a register of stations should ever be. If it carries embedded images or extra sheets, save a copy with just the list in it.',
+      };
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
@@ -109,8 +127,27 @@ export async function importCsv(
   if (rows.length === 0) {
     return { ...EMPTY, ran: true, message: 'That file has a header row and nothing under it.' };
   }
-  if (rows.length > 2000) {
-    return { ...EMPTY, ran: true, message: `${rows.length} rows is more than one import should carry. Split it into files of 2000 or fewer.` };
+
+  // Which column is which, decided once from the headers rather than guessed
+  // per row. Real files do not use this importer's names for things — the TCU
+  // register calls the name "NAME OF UNIVERSITY" and the branch "NEAR BRANCH".
+  const map = detectColumns(Object.keys(rows[0] ?? {}));
+
+  if (!map.name) {
+    return {
+      ...EMPTY, ran: true, mapping: describe(map),
+      message: 'No column in that file looks like a name. Rename the column holding the names to "name" and upload it again.',
+    };
+  }
+  // The whole file lands in one transaction, so the ceiling is what the
+  // database will do inside one statement timeout rather than what the parser
+  // can read. Ten thousand is comfortably inside it and well past any real
+  // register.
+  if (rows.length > 10_000) {
+    return {
+      ...EMPTY, ran: true,
+      message: `${rows.length.toLocaleString()} rows is more than one import should carry in a single transaction. Split it into files of 10,000 or fewer and upload them one after another — each is all-or-nothing on its own.`,
+    };
   }
 
   // Arriving from a category screen, the category is already the answer to a
@@ -119,8 +156,8 @@ export async function importCsv(
   const fixedBranch = String(form.get('fixed_branch') ?? '').trim() || null;
 
   return kind === 'branches'
-    ? importBranches(supabase, rows, commit, session.role, session.zone)
-    : importStations(supabase, rows, commit, fixedCategory, fixedBranch);
+    ? importBranches(supabase, rows, map, commit, session.role, session.zone)
+    : importStations(supabase, rows, map, commit, fixedCategory, fixedBranch);
 }
 
 type Client = NonNullable<Awaited<ReturnType<typeof getServerClient>>>;
@@ -165,6 +202,7 @@ function slugify(name: string): string {
 async function importBranches(
   supabase: Client,
   rows: CsvRow[],
+  map: ColumnMap,
   commit: boolean,
   role: string,
   ownZone: string | null,
@@ -193,7 +231,7 @@ async function importBranches(
 
   rows.forEach((row, i) => {
     const line = i + 2; // header is line 1
-    const name = pick(row, 'name', 'branch', 'branch_name');
+    const name = valueOf(row, map, 'name');
 
     if (name.length < 2) {
       issues.push({ line, name: name || '(blank)', problem: 'No branch name in this row.' });
@@ -205,7 +243,9 @@ async function importBranches(
     }
     seen.add(key(name));
 
-    const rawZone = pick(row, 'zone', 'zone_code').toUpperCase().replace(/[\s-]+/g, '_');
+    const rawZone = valueOf(row, map, 'zone').toUpperCase()
+      .replace(/\s*ZONE\s*$/, '')      // "LAKE ZONE" is the LAKE zone.
+      .trim().replace(/[\s-]+/g, '_');
     // A zone manager's file is filed into their own zone whatever it says.
     const zone = role === 'zone' ? ownZone : (rawZone || null);
 
@@ -228,7 +268,7 @@ async function importBranches(
 
   if (!commit) {
     return {
-      ran: true, preview: true, kind: 'branches', toCreate, toUpdate, issues, ok: true,
+      ran: true, preview: true, kind: 'branches', mapping: describe(map), toCreate, toUpdate, issues, ok: true,
       message: `${toCreate.length} to add, ${toUpdate.length} to update, ${issues.length} skipped. Nothing has been written yet — importing writes all of them together or none.`,
     };
   }
@@ -238,18 +278,16 @@ async function importBranches(
   // closed browser, one row refused — left the database holding half a
   // spreadsheet, with nothing to say which half.
   const payload = planned.map((item) => {
-    const year = (k: string) => {
-      const n = num(pick(item.row, k));
-      return n !== null && n >= 1960 && n <= new Date().getFullYear() + 1 ? String(n) : '';
-    };
+    const n = num(valueOf(item.row, map, 'year'));
+    const year = n !== null && n >= 1960 && n <= new Date().getFullYear() + 1 ? String(n) : '';
 
     return {
       name: item.name,
       slug: slugify(item.name),
       zone_code: item.zone ?? '',
-      year_established: year('year_established') || year('year') || year('established'),
-      year_refurbished: year('year_refurbished') || year('refurbished'),
-      notes: pick(item.row, 'notes', 'note'),
+      year_established: year,
+      year_refurbished: '',
+      notes: valueOf(item.row, map, 'notes'),
     };
   });
 
@@ -258,13 +296,13 @@ async function importBranches(
     { p_rows: payload } as never,
   );
 
-  if (error) return { ...EMPTY, ran: true, kind: 'branches', issues, message: wording(error.message) };
+  if (error) return { ...EMPTY, ran: true, kind: 'branches', mapping: describe(map), issues, message: wording(error.message) };
 
   const counts = (result as unknown as { created: number; updated: number }) ?? { created: 0, updated: 0 };
 
   revalidatePath('/', 'layout');
   return {
-    ran: true, preview: false, kind: 'branches',
+    ran: true, preview: false, kind: 'branches', mapping: describe(map),
     toCreate: [], toUpdate: [], issues, ok: true,
     message: `Done. ${counts.created} branches added, ${counts.updated} updated${issues.length ? `, ${issues.length} skipped before it ran` : ''}.`,
   };
@@ -273,6 +311,7 @@ async function importBranches(
 async function importStations(
   supabase: Client,
   rows: CsvRow[],
+  map: ColumnMap,
   commit: boolean,
   /** Slug of the category every row belongs to, when the screen already knows.
    *  A column in the file is then redundant, and is ignored rather than
@@ -317,7 +356,7 @@ async function importStations(
 
   rows.forEach((row, i) => {
     const line = i + 2;
-    const name = pick(row, 'name', 'station', 'station_name', 'institution');
+    const name = valueOf(row, map, 'name');
 
     if (name.length < 2) {
       issues.push({ line, name: name || '(blank)', problem: 'No station name in this row.' });
@@ -331,7 +370,7 @@ async function importStations(
 
     const branchName = fixedBranchId
       ? (branchNameById.get(fixedBranchId) ?? 'this branch')
-      : pick(row, 'branch', 'branch_name', 'coordinating_branch');
+      : valueOf(row, map, 'branch');
     const branchId = fixedBranchId ?? branches.get(key(branchName));
     if (!branchId) {
       issues.push({
@@ -343,7 +382,7 @@ async function importStations(
       return;
     }
 
-    const catName = fixedCategory ?? pick(row, 'category', 'type', 'category_name');
+    const catName = fixedCategory ?? valueOf(row, map, 'category');
     const categoryId = categories.get(key(catName));
     if (!categoryId) {
       issues.push({
@@ -364,7 +403,7 @@ async function importStations(
 
   if (!commit) {
     return {
-      ran: true, preview: true, kind: 'stations', toCreate, toUpdate, issues, ok: true,
+      ran: true, preview: true, kind: 'stations', mapping: describe(map), toCreate, toUpdate, issues, ok: true,
       message: `${toCreate.length} to add, ${toUpdate.length} to update, ${issues.length} skipped. Nothing has been written yet — importing writes all of them together or none.`,
     };
   }
@@ -375,12 +414,12 @@ async function importStations(
     name: item.name,
     branch_id: item.branchId,
     category_id: item.categoryId,
-    region_name: pick(item.row, 'region', 'region_name'),
-    district_name: pick(item.row, 'district', 'district_name'),
-    address: pick(item.row, 'address', 'location'),
-    contact_name: pick(item.row, 'contact', 'contact_name'),
-    contact_phone: pick(item.row, 'phone', 'contact_phone'),
-    portfolio: String(num(pick(item.row, 'portfolio', 'people', 'youth', 'headcount')) ?? ''),
+    region_name: valueOf(item.row, map, 'region'),
+    district_name: valueOf(item.row, map, 'district'),
+    address: valueOf(item.row, map, 'address'),
+    contact_name: valueOf(item.row, map, 'contact'),
+    contact_phone: valueOf(item.row, map, 'phone'),
+    portfolio: String(num(valueOf(item.row, map, 'portfolio')) ?? ''),
   }));
 
   const { data: result, error } = await supabase.rpc(
@@ -388,13 +427,13 @@ async function importStations(
     { p_rows: payload } as never,
   );
 
-  if (error) return { ...EMPTY, ran: true, kind: 'stations', issues, message: wording(error.message) };
+  if (error) return { ...EMPTY, ran: true, kind: 'stations', mapping: describe(map), issues, message: wording(error.message) };
 
   const counts = (result as unknown as { created: number; updated: number }) ?? { created: 0, updated: 0 };
 
   revalidatePath('/', 'layout');
   return {
-    ran: true, preview: false, kind: 'stations',
+    ran: true, preview: false, kind: 'stations', mapping: describe(map),
     toCreate: [], toUpdate: [], issues, ok: true,
     message: `Done. ${counts.created} stations added, ${counts.updated} updated${issues.length ? `, ${issues.length} skipped before it ran` : ''}.`,
   };

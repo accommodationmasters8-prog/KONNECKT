@@ -6,7 +6,7 @@ import styles from './ImportForm.module.css';
 import admin from './AdminForm.module.css';
 
 const INITIAL: ImportResult = {
-  ran: false, preview: true, kind: null,
+  ran: false, preview: true, kind: null, mapping: [],
   toCreate: [], toUpdate: [], issues: [], message: '', ok: false,
 };
 
@@ -124,7 +124,9 @@ export function ImportForm({
             {fileName || 'Choose an Excel or CSV file'}
           </span>
           <span className={styles.dropHint}>
-            {fileName ? 'Click to choose a different file' : 'Upload the sheet you already have'}
+            {fileName
+              ? 'Click to choose a different file'
+              : 'Any Excel or CSV, up to 40MB — columns are matched for you'}
           </span>
         </span>
       </label>
@@ -173,6 +175,21 @@ export function ImportForm({
           </p>
         ) : null}
       </div>
+
+      {state.mapping.length > 0 ? (
+        <div className={styles.mapping}>
+          <p className={styles.mappingHead}>How your columns were read</p>
+          <ul className={styles.mappingList}>
+            {state.mapping.map((m) => (
+              <li key={m.field}>
+                <span className={styles.mappingField}>{m.field}</span>
+                <span className={styles.mappingArrow} aria-hidden="true">←</span>
+                <code className={styles.mappingCol}>{m.column}</code>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
 
       {state.ran && (state.toCreate.length > 0 || state.toUpdate.length > 0) ? (
         <div className={styles.report}>

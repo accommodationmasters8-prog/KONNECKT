@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
 import {
   addProduct, setProductActive, setProductCategory, deleteProduct,
   type ActionResult,
@@ -18,6 +18,8 @@ export interface ProductItem {
   label_sw: string;
   is_active: boolean;
   category_id: string | null;
+  /** Every category this type is offered in; empty means everywhere. */
+  category_ids?: string[];
 }
 
 export interface CategoryOption { id: string; name: string }
@@ -86,29 +88,69 @@ export function ToggleProduct({
 function CategoryPicker({
   kind,
   code,
-  categoryId,
+  categoryIds,
   categories,
 }: {
   kind: ProductKind;
   code: string;
-  categoryId: string | null;
+  /** Every category this type is offered in. Empty means everywhere. */
+  categoryIds: string[];
   categories: CategoryOption[];
 }) {
   const [state, formAction, pending] = useActionState(setProductCategory, INITIAL);
+  const [picked, setPicked] = useState<string[]>(categoryIds);
+
+  const toggle = (id: string) => setPicked((current) =>
+    current.includes(id) ? current.filter((c) => c !== id) : [...current, id]);
+
+  const dirty =
+    picked.length !== categoryIds.length
+    || picked.some((id) => !categoryIds.includes(id));
+
   return (
-    <form action={formAction} className={styles.inlineForm}>
+    <form action={formAction} className={styles.scopeForm}>
       <input type="hidden" name="kind" value={kind} />
       <input type="hidden" name="code" value={code} />
-      <select className={styles.select} name="category_id" defaultValue={categoryId ?? ''}
-        aria-label={`Category for ${code}`}>
-        <option value="">Everywhere</option>
-        {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-      </select>
-      <button type="submit" className="btn btn--quiet btn--sm" disabled={pending}>
-        {pending ? '…' : 'Set'}
-      </button>
-      {state.message && !state.ok ? (
-        <span className={styles.error}>{state.message}</span>
+
+      {/* Checkboxes, not a dropdown. A type belongs to as many categories as
+          it belongs to, and the control has to be able to say so — a select
+          could only ever name one. */}
+      <fieldset className={styles.scope}>
+        <legend className={styles.srOnly}>Categories for {code}</legend>
+
+        <label className={picked.length === 0 ? styles.chipOn : styles.chip}>
+          <input
+            type="checkbox"
+            className={styles.srOnly}
+            checked={picked.length === 0}
+            onChange={() => setPicked([])}
+          />
+          Everywhere
+        </label>
+
+        {categories.map((c) => (
+          <label key={c.id} className={picked.includes(c.id) ? styles.chipOn : styles.chip}>
+            <input
+              type="checkbox"
+              name="category_id"
+              value={c.id}
+              className={styles.srOnly}
+              checked={picked.includes(c.id)}
+              onChange={() => toggle(c.id)}
+            />
+            {c.name}
+          </label>
+        ))}
+      </fieldset>
+
+      {dirty ? (
+        <button type="submit" className="btn btn--primary btn--sm" disabled={pending}>
+          {pending ? 'Saving…' : 'Save'}
+        </button>
+      ) : null}
+
+      {state.message ? (
+        <span className={state.ok ? styles.ok : styles.error}>{state.message}</span>
       ) : null}
     </form>
   );
@@ -163,7 +205,7 @@ export function ProductTable({
                 <CategoryPicker
                   kind={kind}
                   code={item.code}
-                  categoryId={item.category_id}
+                  categoryIds={item.category_ids ?? []}
                   categories={categories}
                 />
               </td>

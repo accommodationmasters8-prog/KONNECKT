@@ -86,20 +86,37 @@ export default async function StationPage({
   // category in Settings; this is where that scoping finally has an effect.
   // A type with no category is a CRDB product offered everywhere and stays on
   // every station's list.
-  const scoped = `category_id.eq.${station.category_id},category_id.is.null`;
-
-  const [accountTypes, loanTypes] = await Promise.all([
+  const [accountTypes, loanTypes, scopeRes] = await Promise.all([
     supabase.from('account_products' as never)
       .select('code, label_en, label_sw')
-      .or(scoped)
       .eq('is_active', true)
       .order('display_order', { ascending: true }),
     supabase.from('loan_products' as never)
       .select('code, label_en, label_sw')
-      .or(scoped)
       .eq('is_active', true)
       .order('display_order', { ascending: true }),
+    supabase.from('product_categories' as never)
+      .select('kind, product_code, category_id').limit(5000),
   ]);
+
+  // Which types this station may file against.
+  //
+  // A type with no categories at all is a CRDB-wide product and stays on every
+  // list. A type with categories is offered only where it belongs — and it can
+  // belong to several, which is why this is a set rather than a column
+  // comparison.
+  const scopedTo = new Map<string, Set<string>>();
+  for (const row of (scopeRes.data as unknown as
+    { kind: string; product_code: string; category_id: string }[]) ?? []) {
+    const key = `${row.kind}:${row.product_code}`;
+    if (!scopedTo.has(key)) scopedTo.set(key, new Set());
+    scopedTo.get(key)!.add(row.category_id);
+  }
+
+  const offeredHere = (kind: 'account' | 'loan') => (row: { code: string }) => {
+    const set = scopedTo.get(`${kind}:${row.code}`);
+    return !set || set.size === 0 || set.has(station.category_id);
+  };
 
   const reports = ((reportsRes.data as unknown as StationReport[]) ?? []).map((r) => ({
     ...r,
@@ -143,9 +160,11 @@ export default async function StationPage({
   });
 
   const accountOptions = ((accountTypes.data as unknown as
-    { code: string; label_en: string; label_sw: string }[]) ?? []).map(productOption);
+    { code: string; label_en: string; label_sw: string }[]) ?? [])
+    .filter(offeredHere('account')).map(productOption);
   const loanOptions = ((loanTypes.data as unknown as
-    { code: string; label_en: string; label_sw: string }[]) ?? []).map(productOption);
+    { code: string; label_en: string; label_sw: string }[]) ?? [])
+    .filter(offeredHere('loan')).map(productOption);
 
   const accountSplit = (accountSplitRes.data as unknown as AccountRow[]) ?? [];
   const loanSplit = (loanSplitRes.data as unknown as LoanRow[]) ?? [];
