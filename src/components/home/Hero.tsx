@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { KonektLogo } from '../KonektLogo';
+import { HeroVideo } from './HeroVideo';
 import { getPublicMapData } from '@/lib/tracker';
 import { nationalStats } from '@/lib/seed';
 import type { Dictionary, Locale } from '@/i18n';
@@ -8,10 +8,13 @@ import styles from './Hero.module.css';
 /**
  * The front door.
  *
- * The mark at real size, one sentence about what this is, a way in, and the
- * figures that say how wide the network runs. Nothing is sold here — everyone
- * arriving already works for the bank — so the job is to look like somewhere
- * serious and get them signed in.
+ * One sentence about what this is, a way in, and the figures that say how wide
+ * the network runs. Nothing is sold here — everyone arriving already works for
+ * the bank — so the job is to look like somewhere serious and get them signed
+ * in, in as little height as that takes.
+ *
+ * No lockup over the footage. The clip carries the brand already, and a second
+ * mark laid on top of it is the same logo twice on one screen.
  *
  * The reveal is a single staggered sequence on load rather than effects
  * scattered through the page: one orchestrated moment reads as craft, six
@@ -53,15 +56,7 @@ export async function Hero({ locale, t }: { locale: Locale; t: Dictionary }) {
           frame, a slow connection and a browser that will not decode it all
           land on a designed ground rather than on black. */}
       <div className={styles.stage} aria-hidden="true">
-        <video
-          className={styles.video}
-          src="/media/konekt-hero.mp4"
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="metadata"
-        />
+        <HeroVideo className={styles.video} src="/media/konekt-hero.mp4" startAt={7} />
         <span className={styles.scrim} />
       </div>
 
@@ -70,10 +65,6 @@ export async function Hero({ locale, t }: { locale: Locale; t: Dictionary }) {
           <span className={styles.dot} aria-hidden="true" />
           {t.hero.eyebrow}
         </span>
-
-        {/* The lockup, at size, once. Decorative: the headline underneath
-            already says the name. */}
-        <KonektLogo label="" className={`${styles.mark} ${styles.r2}`} />
 
         <h1 className={`${styles.headline} ${styles.r3}`}>{t.hero.headline}</h1>
         <p className={`${styles.subline} ${styles.r4}`}>{t.hero.subline}</p>
