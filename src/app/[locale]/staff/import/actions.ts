@@ -7,7 +7,9 @@ import { parseCsvRows, pick, num, normaliseHeader, type CsvRow } from '@/lib/csv
 import { detectColumns, valueOf, FIELD_WORDING, type ColumnMap } from '@/lib/column-map';
 import { readXlsx } from '@/lib/xlsx';
 
-export type ImportKind = 'zones' | 'branches' | 'stations';
+export type ImportKind =
+  | 'zones' | 'branches' | 'stations'
+  | 'categories' | 'account-types' | 'loan-types';
 
 export interface ImportIssue {
   line: number;
@@ -67,7 +69,10 @@ export async function importCsv(
   if (!session.signedIn) return { ...EMPTY, ran: true, message: 'Sign in first.' };
 
   const kind = String(form.get('kind') ?? '') as ImportKind;
-  if (kind !== 'branches' && kind !== 'stations' && kind !== 'zones') {
+  const KINDS: ImportKind[] = [
+    'zones', 'branches', 'stations', 'categories', 'account-types', 'loan-types',
+  ];
+  if (!KINDS.includes(kind)) {
     return { ...EMPTY, ran: true, message: 'Choose what the file contains.' };
   }
 
@@ -156,6 +161,9 @@ export async function importCsv(
   const fixedBranch = String(form.get('fixed_branch') ?? '').trim() || null;
 
   if (kind === 'zones') return importZones(supabase, rows, map, commit, session.role);
+  if (kind === 'categories' || kind === 'account-types' || kind === 'loan-types') {
+    return importList(supabase, rows, map, commit, session.role, kind);
+  }
 
   return kind === 'branches'
     ? importBranches(supabase, rows, map, commit, session.role, session.zone)
@@ -215,6 +223,100 @@ function slugify(name: string): string {
  * half-imported zone list breaks nothing and the missing ones can simply be
  * added again.
  */
+/**
+ * The short lists: categories, account types, loan types.
+ *
+ * One shape covers all three because all three are the same shape — a name,
+ * and a code derived from it. They change rarely, which is exactly why nobody
+ * gets round to typing them one at a time.
+ *
+ * The code is never asked for. It is what every historic row is keyed on, so
+ * it must not be something a person can spell differently in a second file.
+ */
+async function importList(
+  supabase: Client,
+  rows: CsvRow[],
+  map: ColumnMap,
+  commit: boolean,
+  role: string,
+  kind: 'categories' | 'account-types' | 'loan-types',
+): Promise<ImportResult> {
+  if (role !== 'hq') {
+    return { ...EMPTY, ran: true, kind, message: 'Only HQ maintains these lists.' };
+  }
+
+  const table = kind === 'categories' ? 'tracker_categories'
+    : kind === 'account-types' ? 'account_products' : 'loan_products';
+  const nameColumn = kind === 'categories' ? 'name_en' : 'label_en';
+
+  const { data: existing } = await supabase.from(table as never)
+    .select(nameColumn).limit(2000);
+  const known = new Set(
+    ((existing as unknown as Record<string, string>[]) ?? [])
+      .map((r) => key(r[nameColumn] ?? '')),
+  );
+
+  const toCreate: ImportResult['toCreate'] = [];
+  const toUpdate: ImportResult['toUpdate'] = [];
+  const issues: ImportIssue[] = [];
+  const seen = new Set<string>();
+  const planned: { name: string; noun: string }[] = [];
+
+  rows.forEach((row, i) => {
+    const line = i + 2;
+    const name = valueOf(row, map, 'name');
+
+    if (name.length < 2) {
+      issues.push({ line, name: name || '(blank)', problem: 'No name in this row.' });
+      return;
+    }
+    if (seen.has(key(name))) {
+      issues.push({ line, name, problem: 'The same name appears earlier in this file.' });
+      return;
+    }
+    seen.add(key(name));
+
+    const noun = valueOf(row, map, 'notes');
+    if (known.has(key(name))) toUpdate.push({ line, name, detail: 'already here' });
+    else toCreate.push({ line, name, detail: 'new' });
+    planned.push({ name, noun });
+  });
+
+  if (!commit) {
+    return {
+      ran: true, preview: true, kind, mapping: describe(map),
+      toCreate, toUpdate, issues, ok: true,
+      message: `${toCreate.length} to add, ${toUpdate.length} already here, ${issues.length} skipped. Nothing has been written yet.`,
+    };
+  }
+
+  const payload = planned.map((item) => ({
+    name: item.name,
+    slug: slugify(item.name),
+    code: slugify(item.name).replace(/-/g, '_'),
+    noun: item.noun,
+  }));
+
+  const { data: result, error } = kind === 'categories'
+    ? await supabase.rpc('import_categories' as never, { p_rows: payload } as never)
+    : await supabase.rpc('import_products' as never, {
+        p_kind: kind === 'account-types' ? 'account' : 'loan',
+        p_rows: payload,
+      } as never);
+
+  if (error) return { ...EMPTY, ran: true, kind, mapping: describe(map), issues, message: wording(error.message) };
+
+  const counts = (result as unknown as { created: number; updated: number })
+    ?? { created: 0, updated: 0 };
+
+  revalidatePath('/', 'layout');
+  return {
+    ran: true, preview: false, kind, mapping: describe(map),
+    toCreate: [], toUpdate: [], issues, ok: true,
+    message: `Done. ${counts.created} added, ${counts.updated} updated${issues.length ? `, ${issues.length} skipped` : ''}.`,
+  };
+}
+
 async function importZones(
   supabase: Client,
   rows: CsvRow[],

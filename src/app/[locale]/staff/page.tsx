@@ -2,8 +2,8 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { MetricCard } from '@/components/staff/MetricCard';
-import { BarChart, BarTable, PieChart } from '@/components/staff/Charts';
-import { Panel, PanelEmpty } from '@/components/staff/Panel';
+import { BarTable } from '@/components/staff/Charts';
+import { FoldPanel, Panel, PanelEmpty } from '@/components/staff/Panel';
 import { FilingBar } from '@/components/staff/FilingBar';
 import {
   AccountsIcon, CategoriesIcon, EventsIcon, StationsIcon,
@@ -45,16 +45,6 @@ export default async function TrackerOverview({
   const data = await getTrackerOverview();
 
   const nothingYet = data.stations === 0;
-
-  const trendPoints = data.trend.map((point) => ({
-    label: formatPeriod(`${point.month}-01`, locale).replace(/\s\d{4}$/, ''),
-    value: point.deposits,
-  }));
-
-  const accountsTrend = data.trend.map((point) => ({
-    label: formatPeriod(`${point.month}-01`, locale).replace(/\s\d{4}$/, ''),
-    value: point.accounts,
-  }));
 
   return (
     <StaffShell
@@ -163,146 +153,10 @@ export default async function TrackerOverview({
           </div>
 
 
-          <div className={styles.split}>
-            <Panel
-              title="Deposits mobilised"
-              description="The sum of what every station reported that month. A month with fewer reports in it shows a lower figure — the bar above says how many are in."
-            >
-              <BarChart
-                points={trendPoints}
-                title="Deposits mobilised by month"
-                format={(v) => money(v, locale, true)}
-                tone="teal"
-              />
-            </Panel>
-
-            <Panel
-              title="Where the accounts stand"
-              description="Of everything opened, how much is still being used."
-            >
-              {data.accountsOpened === 0 ? (
-                <PanelEmpty>
-                  No accounts reported yet. This splits active from dormant as
-                  soon as the first station reports.
-                </PanelEmpty>
-              ) : (
-                <PieChart
-                  title="Active against dormant accounts"
-                  slices={[
-                    { label: 'Active', value: data.activeAccounts, tone: 'green' },
-                    { label: 'Dormant', value: data.dormantAccounts, tone: 'gold' },
-                    {
-                      label: 'Neither reported',
-                      value: Math.max(
-                        data.accountsOpened - data.activeAccounts - data.dormantAccounts, 0),
-                      tone: 'slate',
-                    },
-                  ]}
-                />
-              )}
-            </Panel>
-          </div>
-
-          {/* Structure before performance: how much there is to look at,
-              before how it is doing. HQ opens this to orient, and four money
-              cards alone do not say whether they are reading a country or a
-              district. */}
-          <div className={styles.metrics}>
-            <MetricCard
-              tone="teal"
-              label="Categories"
-              value={count(data.totalCategories, locale)}
-              note="Kinds of place being tracked"
-              href={`/${locale}/staff/categories`}
-              hint="Open categories"
-            />
-            <MetricCard
-              tone="green"
-              label="Stations"
-              value={count(data.stations, locale)}
-              note={`${count(data.activeStations, locale)} active`}
-              href={`/${locale}/staff/stations`}
-              hint="Open stations"
-            />
-            <MetricCard
-              tone="gold"
-              label="Branches reporting"
-              value={count(data.totalBranches, locale)}
-              note={`${count(data.branchesReporting, locale)} filed this period · ${count(data.zonesCovered, locale)} zones`}
-              href={`/${locale}/staff/network`}
-              hint="Compare them"
-            />
-            <MetricCard
-              tone="pink"
-              label="Youth reached"
-              value={nothingYet ? '—' : count(data.portfolio, locale)}
-              note="Across every active station"
-              href={`/${locale}/staff/stations`}
-              hint="Every station"
-            />
-          </div>
-
-          {/* The channels, on their own line rather than crowded into one
-              card's note. An account opened and never activated is a number on
-              a form; these three are what say whether it became a customer,
-              and each is a target somebody is answerable for. */}
-          <div className={styles.metrics}>
-            <MetricCard
-              tone="teal"
-              label="SimBanking activated"
-              value={nothingYet ? '—' : count(data.simbanking, locale)}
-              note={
-                data.accountsOpened > 0
-                  ? `${Math.round((data.simbanking / data.accountsOpened) * 1000) / 10}% of accounts opened`
-                  : 'Nothing opened yet'
-              }
-              href={`/${locale}/staff/categories`}
-              hint="By category"
-            />
-            <MetricCard
-              tone="green"
-              label="Lipa Hapa registered"
-              value={nothingYet ? '—' : count(data.lipaHapa, locale)}
-              note={
-                data.accountsOpened > 0
-                  ? `${Math.round((data.lipaHapa / data.accountsOpened) * 1000) / 10}% of accounts opened`
-                  : 'Nothing opened yet'
-              }
-              href={`/${locale}/staff/categories`}
-              hint="By category"
-            />
-            <MetricCard
-              tone="gold"
-              label="Cards issued"
-              value={nothingYet ? '—' : count(data.cardsIssued, locale)}
-              note={
-                data.accountsOpened > 0
-                  ? `${Math.round((data.cardsIssued / data.accountsOpened) * 1000) / 10}% of accounts opened`
-                  : 'Nothing opened yet'
-              }
-            />
-            <MetricCard
-              tone="ink"
-              label="Loans given"
-              value={nothingYet ? '—' : count(data.loansCount, locale)}
-              note={
-                data.loansValue > 0
-                  ? `${money(data.loansValue, locale, true)} lent`
-                  : 'No loans reported yet'
-              }
-            />
-          </div>
-
-          {/* Categories lead the analysis: the question HQ asks first is
-              which kind of place is working, not which branch. */}
-          <Panel
+          <FoldPanel
             title="Coverage by category"
-            description="How much of each category's people actually bank with CRDB. The number that decides where next month goes."
-            action={
-              <Link href={`/${locale}/staff/categories`} className={styles.panelLink}>
-                Open categories →
-              </Link>
-            }
+            count={data.categories.length}
+            note="How much of each category actually banks with CRDB"
           >
             {data.categories.length === 0 ? (
               <PanelEmpty>No categories yet.</PanelEmpty>
@@ -320,7 +174,7 @@ export default async function TrackerOverview({
                 }))}
               />
             )}
-          </Panel>
+          </FoldPanel>
 
           <Panel
             title="Events"
@@ -382,21 +236,8 @@ export default async function TrackerOverview({
           </Panel>
 
 
-          <div className={styles.split}>
-            <Panel
-              title="Accounts opened by month"
-              description="Reported, not projected."
-            >
-              <BarChart
-                points={accountsTrend}
-                title="Accounts opened by month"
-                format={(v) => count(v, locale)}
-                tone="green"
-              />
-            </Panel>
-
-            <Panel
-              title="What has moved"
+          <Panel
+            title="What has moved"
               description="Every station added, every report filed, every event recorded — newest first."
             >
               {data.recent.length === 0 ? (
@@ -420,9 +261,8 @@ export default async function TrackerOverview({
                     </li>
                   ))}
                 </ol>
-              )}
-            </Panel>
-          </div>
+            )}
+          </Panel>
         </>
       )}
     </StaffShell>

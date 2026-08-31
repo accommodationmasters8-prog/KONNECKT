@@ -208,10 +208,24 @@
 /* Eight categories, two rows. At 15rem they wrapped to three and four, and
    the point of this screen is comparing them — which you cannot do while
    scrolling past them. */
+/* Four across, and exactly four.
+   
+   `auto-fit` was giving five or six on a wide monitor and three on a laptop,
+   so the eight categories wrapped differently on every screen and the second
+   row was never the same shape as the first. Four is what makes eight read as
+   two even rows. */
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12.5rem, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-md);
+}
+
+@media (min-width: 64rem) {
+  .cardGrid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
+@media (max-width: 34rem) {
+  .cardGrid { grid-template-columns: minmax(0, 1fr); }
 }
 
 /* A left edge in the category's own colour, and nothing else decorative. The

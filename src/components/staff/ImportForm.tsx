@@ -5,12 +5,37 @@ import { importCsv, type ImportKind, type ImportResult } from '@/app/[locale]/st
 import styles from './ImportForm.module.css';
 import admin from './AdminForm.module.css';
 
+/** What each kind is called on the picker. */
+const LABEL: Record<ImportKind, string> = {
+  zones: 'Zones',
+  branches: 'Branches',
+  stations: 'Stations',
+  categories: 'Categories',
+  'account-types': 'Account types',
+  'loan-types': 'Loan types',
+};
+
 const INITIAL: ImportResult = {
   ran: false, preview: true, kind: null, mapping: [],
   toCreate: [], toUpdate: [], issues: [], message: '', ok: false,
 };
 
 const TEMPLATES: Record<ImportKind, { headers: string; example: string; note: string }> = {
+  categories: {
+    headers: 'name,noun',
+    example: 'Hospitals,staff\nFish markets,traders',
+    note: 'One category per row. The second column is what its people are called.',
+  },
+  'account-types': {
+    headers: 'name',
+    example: 'Scholar Account\nTeen Account',
+    note: 'One account type per row. Scope them to categories afterwards in Settings.',
+  },
+  'loan-types': {
+    headers: 'name',
+    example: 'Student Loan\nBoda Asset Finance',
+    note: 'One loan type per row.',
+  },
   zones: {
     headers: 'name',
     example: 'Southern Highlands\nCentral',
@@ -97,7 +122,7 @@ export function ImportForm({
                 onChange={() => setKind(k)}
                 className={styles.radio}
               />
-              {k === 'zones' ? 'Zones' : k === 'branches' ? 'Branches' : 'Stations'}
+              {LABEL[k]}
             </label>
           ))}
         </fieldset>
