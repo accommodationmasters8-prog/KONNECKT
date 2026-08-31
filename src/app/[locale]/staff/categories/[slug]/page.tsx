@@ -7,6 +7,7 @@ import { MetricCard } from '@/components/staff/MetricCard';
 import { BarChart, BarTable, PieChart } from '@/components/staff/Charts';
 import { AddCategoryLoanType, DeleteCategory } from '@/components/staff/CategoryForms';
 import { StationForm } from '@/components/staff/StationForms';
+import { ImportForm } from '@/components/staff/ImportForm';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
@@ -437,6 +438,23 @@ export default async function CategoryPage({
           needsBranch={session.role !== 'branch'}
         />
       </Panel>
+
+      {/* The bulk door, on the screen the list belongs to.
+          Somebody opening Hospitals with a spreadsheet of hospitals should not
+          have to go to a general import screen and then answer "which
+          category" — the screen they are standing on already knows, so the
+          file needs no category column at all. */}
+      {session.role === 'hq' || session.role === 'zone' ? (
+        <Panel
+          title={`Add many ${category.name_en.toLowerCase()} at once`}
+          description="Upload the list you already have, in Excel or CSV. Check it first: you get a line-by-line list of what will be added and what will be skipped, before anything is written."
+        >
+          <ImportForm
+            canChooseZone={session.role === 'hq'}
+            fixedCategory={{ slug: category.slug, name: category.name_en }}
+          />
+        </Panel>
+      ) : null}
 
       <Panel
         title="Every station in this category"

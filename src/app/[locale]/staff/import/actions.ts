@@ -113,9 +113,13 @@ export async function importCsv(
     return { ...EMPTY, ran: true, message: `${rows.length} rows is more than one import should carry. Split it into files of 2000 or fewer.` };
   }
 
+  // Arriving from a category screen, the category is already the answer to a
+  // question the file would otherwise have to carry a column for.
+  const fixedCategory = String(form.get('fixed_category') ?? '').trim() || null;
+
   return kind === 'branches'
     ? importBranches(supabase, rows, commit, session.role, session.zone)
-    : importStations(supabase, rows, commit);
+    : importStations(supabase, rows, commit, fixedCategory);
 }
 
 type Client = NonNullable<Awaited<ReturnType<typeof getServerClient>>>;
@@ -275,6 +279,10 @@ async function importStations(
   supabase: Client,
   rows: CsvRow[],
   commit: boolean,
+  /** Slug of the category every row belongs to, when the screen already knows.
+   *  A column in the file is then redundant, and is ignored rather than
+   *  allowed to send half the rows somewhere else. */
+  fixedCategory: string | null = null,
 ): Promise<ImportResult> {
   const [{ data: branchRows }, { data: catRows }, { data: stationRows }] = await Promise.all([
     supabase.from('branches' as never).select('id, name').limit(5000),
@@ -288,10 +296,12 @@ async function importStations(
       .map((b) => [key(b.name), b.id]),
   );
   const categories = new Map<string, string>();
+  const categoryLabel = new Map<string, string>();
   for (const c of (catRows as unknown as { id: string; slug: string; name_en: string }[]) ?? []) {
     categories.set(key(c.name_en), c.id);
     categories.set(key(c.slug.replace(/-/g, ' ')), c.id);
     categories.set(key(c.slug), c.id);
+    categoryLabel.set(c.id, c.name_en);
   }
   const existing = new Map(
     ((stationRows as unknown as { id: string; name: string }[]) ?? [])
@@ -333,7 +343,7 @@ async function importStations(
       return;
     }
 
-    const catName = pick(row, 'category', 'type', 'category_name');
+    const catName = fixedCategory ?? pick(row, 'category', 'type', 'category_name');
     const categoryId = categories.get(key(catName));
     if (!categoryId) {
       issues.push({
@@ -346,7 +356,7 @@ async function importStations(
     }
 
     const found = existing.get(key(name));
-    const detail = `${branchName} · ${catName}`;
+    const detail = `${branchName} · ${categoryLabel.get(categoryId) ?? catName}`;
 
     if (found) { toUpdate.push({ line, name, detail }); planned.push({ line, row, name, branchId, categoryId, existingId: found }); }
     else { toCreate.push({ line, name, detail }); planned.push({ line, row, name, branchId, categoryId }); }

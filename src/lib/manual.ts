@@ -213,6 +213,11 @@ export const MANUAL: ManualSection[] = [
       },
       {
         kind: 'note',
+        heading: 'Importing into one category',
+        text: 'Open a category first \u2014 Hospitals, Bodaboda, whichever \u2014 and the same uploader is at the bottom of that screen with the category already decided. Every row lands there, so the file needs no category column at all, and one that is there is ignored rather than allowed to send half the rows somewhere else.',
+      },
+      {
+        kind: 'note',
         heading: 'Order matters once',
         text: 'A station has to name a branch that already exists, and a category from the official eight. Import branches first and stations second, and nothing is skipped for a reason you then have to go and fix.',
       },

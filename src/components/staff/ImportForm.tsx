@@ -37,14 +37,18 @@ const TEMPLATES: Record<ImportKind, { headers: string; example: string; note: st
 export function ImportForm({
   canChooseZone,
   initialKind = 'branches',
+  fixedCategory,
 }: {
   canChooseZone: boolean;
   /** Preselected when arriving from a link that already knows the answer —
    *  "Import stations" on the branches screen should not then ask which. */
   initialKind?: ImportKind;
+  /** Set on a category screen: every row lands in this category, and the file
+   *  needs no category column. `{ slug, name }` so the form can say which. */
+  fixedCategory?: { slug: string; name: string };
 }) {
   const [state, formAction, pending] = useActionState(importCsv, INITIAL);
-  const [kind, setKind] = useState<ImportKind>(initialKind);
+  const [kind, setKind] = useState<ImportKind>(fixedCategory ? 'stations' : initialKind);
   const [fileName, setFileName] = useState('');
 
   const template = TEMPLATES[kind];
@@ -52,6 +56,13 @@ export function ImportForm({
 
   return (
     <form action={formAction} className={styles.form} encType="multipart/form-data">
+      {fixedCategory ? (
+        <input type="hidden" name="fixed_category" value={fixedCategory.slug} />
+      ) : null}
+
+      {fixedCategory ? (
+        <input type="hidden" name="kind" value="stations" />
+      ) : (
       <fieldset className={styles.kinds}>
         <legend className={admin.label}>What does the file contain?</legend>
 
@@ -74,12 +85,20 @@ export function ImportForm({
           </label>
         ))}
       </fieldset>
+      )}
 
       <div className={styles.template}>
         <p className={styles.templateHead}>Columns for this file</p>
-        <code className={styles.templateCode}>{template.headers}</code>
+        <code className={styles.templateCode}>
+          {fixedCategory
+            ? 'name,branch,region,district,portfolio,contact,phone'
+            : template.headers}
+        </code>
         <p className={styles.templateNote}>
-          {template.note} Column names are matched loosely, so
+          {fixedCategory
+          ? `Every row lands in ${fixedCategory.name}, so the file needs no category column — one is ignored if it is there. The branch must already exist and must match by name.`
+          : template.note}{' '}
+        Column names are matched loosely, so
           {' '}<code>Branch Name</code>, <code>branch_name</code> and{' '}
           <code>branch</code> are all the same column, and any other columns in
           your sheet are left alone.
