@@ -161,6 +161,12 @@ export function ImportForm({
           </button>
         ) : null}
 
+        {previewed && total > 0 ? (
+          <span className={styles.atomic}>
+            All {total} together, or none at all.
+          </span>
+        ) : null}
+
         {state.message ? (
           <p className={state.ok ? admin.ok : admin.error} role="status" aria-live="polite">
             {state.message}

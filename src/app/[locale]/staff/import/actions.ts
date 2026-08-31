@@ -229,50 +229,44 @@ async function importBranches(
   if (!commit) {
     return {
       ran: true, preview: true, kind: 'branches', toCreate, toUpdate, issues, ok: true,
-      message: `${toCreate.length} to add, ${toUpdate.length} to update, ${issues.length} skipped. Nothing has been written yet.`,
+      message: `${toCreate.length} to add, ${toUpdate.length} to update, ${issues.length} skipped. Nothing has been written yet — importing writes all of them together or none.`,
     };
   }
 
-  let created = 0;
-  let updated = 0;
-  const failures: ImportIssue[] = [...issues];
-
-  for (const item of planned) {
+  // One call, one transaction. The loop that used to live here made a separate
+  // write per row, so anything that stopped it in the middle — a timeout, a
+  // closed browser, one row refused — left the database holding half a
+  // spreadsheet, with nothing to say which half.
+  const payload = planned.map((item) => {
     const year = (k: string) => {
       const n = num(pick(item.row, k));
-      return n !== null && n >= 1960 && n <= new Date().getFullYear() + 1 ? n : null;
+      return n !== null && n >= 1960 && n <= new Date().getFullYear() + 1 ? String(n) : '';
     };
 
-    const payload = {
+    return {
       name: item.name,
-      zone_code: item.zone,
-      year_established: year('year_established') ?? year('year') ?? year('established'),
-      year_refurbished: year('year_refurbished') ?? year('refurbished'),
-      is_active: true,
-      notes: pick(item.row, 'notes', 'note') || null,
+      slug: slugify(item.name),
+      zone_code: item.zone ?? '',
+      year_established: year('year_established') || year('year') || year('established'),
+      year_refurbished: year('year_refurbished') || year('refurbished'),
+      notes: pick(item.row, 'notes', 'note'),
     };
+  });
 
-    const { error } = item.existingId
-      ? await supabase.from('branches' as never).update(payload as never).eq('id', item.existingId)
-      : await supabase.from('branches' as never)
-          .insert({ ...payload, slug: slugify(item.name) } as never);
+  const { data: result, error } = await supabase.rpc(
+    'import_branches' as never,
+    { p_rows: payload } as never,
+  );
 
-    if (error) {
-      failures.push({
-        line: item.line, name: item.name,
-        problem: error.message.includes('row-level security')
-          ? 'Outside what your account can write to.'
-          : error.message,
-      });
-    } else if (item.existingId) updated += 1;
-    else created += 1;
-  }
+  if (error) return { ...EMPTY, ran: true, kind: 'branches', issues, message: wording(error.message) };
+
+  const counts = (result as unknown as { created: number; updated: number }) ?? { created: 0, updated: 0 };
 
   revalidatePath('/', 'layout');
   return {
     ran: true, preview: false, kind: 'branches',
-    toCreate: [], toUpdate: [], issues: failures, ok: true,
-    message: `Added ${created} branches, updated ${updated}${failures.length ? `, skipped ${failures.length}` : ''}.`,
+    toCreate: [], toUpdate: [], issues, ok: true,
+    message: `Done. ${counts.created} branches added, ${counts.updated} updated${issues.length ? `, ${issues.length} skipped before it ran` : ''}.`,
   };
 }
 
@@ -371,47 +365,65 @@ async function importStations(
   if (!commit) {
     return {
       ran: true, preview: true, kind: 'stations', toCreate, toUpdate, issues, ok: true,
-      message: `${toCreate.length} to add, ${toUpdate.length} to update, ${issues.length} skipped. Nothing has been written yet.`,
+      message: `${toCreate.length} to add, ${toUpdate.length} to update, ${issues.length} skipped. Nothing has been written yet — importing writes all of them together or none.`,
     };
   }
 
-  let created = 0;
-  let updated = 0;
-  const failures: ImportIssue[] = [...issues];
+  // One call, one transaction — same reasoning as the branches above. Either
+  // the whole sheet lands or none of it does.
+  const payload = planned.map((item) => ({
+    name: item.name,
+    branch_id: item.branchId,
+    category_id: item.categoryId,
+    region_name: pick(item.row, 'region', 'region_name'),
+    district_name: pick(item.row, 'district', 'district_name'),
+    address: pick(item.row, 'address', 'location'),
+    contact_name: pick(item.row, 'contact', 'contact_name'),
+    contact_phone: pick(item.row, 'phone', 'contact_phone'),
+    portfolio: String(num(pick(item.row, 'portfolio', 'people', 'youth', 'headcount')) ?? ''),
+  }));
 
-  for (const item of planned) {
-    const payload = {
-      name: item.name,
-      branch_id: item.branchId,
-      category_id: item.categoryId,
-      region_name: pick(item.row, 'region', 'region_name') || null,
-      district_name: pick(item.row, 'district', 'district_name') || null,
-      address: pick(item.row, 'address', 'location') || null,
-      contact_name: pick(item.row, 'contact', 'contact_name') || null,
-      contact_phone: pick(item.row, 'phone', 'contact_phone') || null,
-      portfolio: num(pick(item.row, 'portfolio', 'people', 'youth', 'headcount')) ?? 0,
-      status: 'active',
-    };
+  const { data: result, error } = await supabase.rpc(
+    'import_stations' as never,
+    { p_rows: payload } as never,
+  );
 
-    const { error } = item.existingId
-      ? await supabase.from('stations' as never).update(payload as never).eq('id', item.existingId)
-      : await supabase.from('stations' as never).insert(payload as never);
+  if (error) return { ...EMPTY, ran: true, kind: 'stations', issues, message: wording(error.message) };
 
-    if (error) {
-      failures.push({
-        line: item.line, name: item.name,
-        problem: error.message.includes('row-level security')
-          ? 'Outside what your account can write to.'
-          : error.message,
-      });
-    } else if (item.existingId) updated += 1;
-    else created += 1;
-  }
+  const counts = (result as unknown as { created: number; updated: number }) ?? { created: 0, updated: 0 };
 
   revalidatePath('/', 'layout');
   return {
     ran: true, preview: false, kind: 'stations',
-    toCreate: [], toUpdate: [], issues: failures, ok: true,
-    message: `Added ${created} stations, updated ${updated}${failures.length ? `, skipped ${failures.length}` : ''}.`,
+    toCreate: [], toUpdate: [], issues, ok: true,
+    message: `Done. ${counts.created} stations added, ${counts.updated} updated${issues.length ? `, ${issues.length} skipped before it ran` : ''}.`,
   };
+}
+
+/**
+ * A database error, said to somebody holding a spreadsheet.
+ *
+ * The important half of every one of these is the same: nothing was written.
+ * That has to lead, because the question in the reader's head is "what state
+ * is it in now" and the answer is always "exactly as it was".
+ */
+function wording(message: string): string {
+  const nothing = 'Nothing was imported — the whole file was rolled back, so the database is exactly as it was.';
+
+  if (message.includes('row-level security')) {
+    return `${nothing} One or more rows are outside what your account can write to.`;
+  }
+  if (message.includes('duplicate key')) {
+    return `${nothing} Two rows would have created the same record.`;
+  }
+  if (message.includes('violates foreign key')) {
+    return `${nothing} A row points at a branch or category that no longer exists — check the file and try again.`;
+  }
+  if (message.includes('invalid input value for enum')) {
+    return `${nothing} A zone in the file is not one this system knows.`;
+  }
+  if (/timeout|canceling statement/i.test(message)) {
+    return `${nothing} The file was too large to finish in one go — split it into smaller files and upload them one at a time.`;
+  }
+  return `${nothing} The database said: ${message}`;
 }

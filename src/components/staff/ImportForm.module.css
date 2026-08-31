@@ -249,3 +249,10 @@
 }
 
 .more { color: var(--text-muted); font-style: italic; }
+
+/* Said next to the button that does it, because it is the reassurance somebody
+   wants at the moment they are deciding whether to press it. */
+.atomic {
+  font-size: var(--size-micro);
+  color: var(--text-muted);
+}
