@@ -11,6 +11,11 @@ const INITIAL: ImportResult = {
 };
 
 const TEMPLATES: Record<ImportKind, { headers: string; example: string; note: string }> = {
+  zones: {
+    headers: 'name',
+    example: 'Southern Highlands\nCentral',
+    note: 'One zone per row. A zone already here is left alone rather than duplicated.',
+  },
   branches: {
     headers: 'name,zone,year_established,notes',
     example: 'Mwanza,LAKE,1998,\nGeita,LAKE,2011,\n"Kariakoo, Narung\'ombe",DAR_ES_SALAAM,1996,',
@@ -92,7 +97,7 @@ export function ImportForm({
                 onChange={() => setKind(k)}
                 className={styles.radio}
               />
-              {k === 'branches' ? 'Branches' : 'Stations'}
+              {k === 'zones' ? 'Zones' : k === 'branches' ? 'Branches' : 'Stations'}
             </label>
           ))}
         </fieldset>

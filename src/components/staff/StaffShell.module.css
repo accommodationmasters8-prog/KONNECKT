@@ -199,6 +199,8 @@
   margin-block-start: auto;
   padding-block-start: var(--space-md);
   border-block-start: 1px solid var(--line-app);
+  display: grid;
+  gap: 2px;
 }
 
 @media (max-width: 59.999rem) {
@@ -275,4 +277,104 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-lg);
+}
+
+/* ===========================================================================
+   THE COLLAPSED RAIL
+
+   Two widths, one layout. Collapsed, the rail is its icons: the labels go, the
+   logo becomes the mark alone, and the panel beside it gains four rem — which
+   on a branch laptop is a whole extra column of a figures table.
+
+   The state lives on the document element rather than in React, set by an
+   inline script before first paint. In component state the rail would render
+   wide and jump narrow on every navigation once hydration caught up.
+   ======================================================================== */
+
+@media (min-width: 60rem) {
+  :global(html[data-rail='collapsed']) .console {
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+  }
+
+  :global(html[data-rail='collapsed']) .rail {
+    padding-inline: var(--space-2xs);
+    align-items: center;
+  }
+
+  /* Everything that is words rather than shape. */
+  :global(html[data-rail='collapsed']) .navLabel,
+  :global(html[data-rail='collapsed']) .whoText,
+  :global(html[data-rail='collapsed']) .railToggleLabel {
+    display: none;
+  }
+
+  :global(html[data-rail='collapsed']) .navLink,
+  :global(html[data-rail='collapsed']) .signOut {
+    justify-content: center;
+    padding-inline: 0;
+    inline-size: 44px;
+    margin-inline: auto;
+  }
+
+  :global(html[data-rail='collapsed']) .who {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  /* The lockup crops to the chevron: the wordmark at 4.5rem is unreadable, and
+     an unreadable wordmark is worse than no wordmark. */
+  :global(html[data-rail='collapsed']) .brandLogo {
+    inline-size: 132px;
+    margin-inline-start: -6px;
+    clip-path: inset(0 72% 0 0);
+  }
+
+  :global(html[data-rail='collapsed']) .brand {
+    inline-size: 44px;
+    overflow: hidden;
+    margin-inline: auto;
+  }
+
+  :global(html[data-rail='collapsed']) .railToggle {
+    justify-content: center;
+    inline-size: 44px;
+    margin-inline: auto;
+  }
+
+  :global(html[data-rail='collapsed']) .railToggle svg { rotate: 180deg; }
+}
+
+/* --- the control itself -------------------------------------------------- */
+
+.railToggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  inline-size: 100%;
+  min-block-size: 36px;
+  padding-inline: var(--space-sm);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text-body);
+  font-size: var(--size-micro);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.railToggle svg { flex: none; transition: rotate var(--dur-base) var(--ease-out); }
+
+@media (hover: hover) {
+  .railToggle:hover { background: var(--konekt-mist); color: var(--konekt-teal-deep); }
+}
+
+.railToggle:focus-visible { outline: 2px solid var(--konekt-teal); outline-offset: -2px; }
+
+/* On a phone the rail is already a chip row; there is nothing to collapse. */
+@media (max-width: 59.999rem) {
+  .railToggle { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .railToggle svg { transition: none; }
 }

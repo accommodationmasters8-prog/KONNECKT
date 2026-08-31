@@ -205,10 +205,13 @@
 
 /* --- Category cards ------------------------------------------------------ */
 
+/* Eight categories, two rows. At 15rem they wrapped to three and four, and
+   the point of this screen is comparing them — which you cannot do while
+   scrolling past them. */
 .cardGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: var(--space-md);
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--space-sm);
 }
 
 /* A left edge in the category's own colour, and nothing else decorative. The
@@ -216,12 +219,12 @@
 .categoryCard {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: var(--space-lg);
-  border-radius: var(--radius-lg);
+  gap: 1px;
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
   background: var(--surface-raised);
   border: 1px solid var(--line-app);
-  border-inline-start: 4px solid var(--card-accent);
+  border-inline-start: 3px solid var(--card-accent);
   text-decoration: none;
   transition: border-color var(--dur-fast) var(--ease-out),
               transform var(--dur-fast) var(--ease-out);
@@ -247,7 +250,7 @@
 
 .categoryFigure {
   font-family: var(--font-display);
-  font-size: var(--size-h2);
+  font-size: var(--size-h3);
   font-weight: var(--weight-black);
   line-height: 1;
   color: var(--card-accent);
@@ -261,7 +264,7 @@
   color: var(--text-body);
   text-transform: uppercase;
   letter-spacing: var(--tracking-wide);
-  margin-block-start: var(--space-xs);
+  margin-block-start: var(--space-2xs);
 }
 
 /* --- Measure switch ------------------------------------------------------ */

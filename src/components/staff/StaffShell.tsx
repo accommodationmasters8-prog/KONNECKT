@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { KonektLogo } from '../KonektLogo';
+import { RailStateScript, RailToggle } from './RailToggle';
 import type { Locale } from '@/i18n';
 import type { StaffRole } from '@/lib/supabase/types';
 import {
@@ -122,6 +123,7 @@ export function StaffShell({
 
   return (
     <div className={styles.console}>
+      <RailStateScript />
       <aside className={styles.rail}>
         {/* The logo sits on white, with the artwork's own margins as its
             breathing room. It is the one place in the console that is pure
@@ -160,6 +162,7 @@ export function StaffShell({
                    prefetching is for. */
                 className={styles.navLink}
                 aria-current={active === item.key ? 'page' : undefined}
+                title={item.label}
               >
                 <Icon className={styles.navIcon} />
                 <span className={styles.navLabel}>{item.label}</span>
@@ -168,14 +171,18 @@ export function StaffShell({
           })}
         </nav>
 
-        {user ? (
-          <form method="post" action={`/${locale}/staff/sign-out`} className={styles.railFoot}>
-            <button type="submit" className={styles.signOut}>
-              <SignOutIcon className={styles.navIcon} />
-              Sign out
-            </button>
-          </form>
-        ) : null}
+        <div className={styles.railFoot}>
+          <RailToggle />
+
+          {user ? (
+            <form method="post" action={`/${locale}/staff/sign-out`}>
+              <button type="submit" className={styles.signOut} title="Sign out">
+                <SignOutIcon className={styles.navIcon} />
+                <span className={styles.navLabel}>Sign out</span>
+              </button>
+            </form>
+          ) : null}
+        </div>
       </aside>
 
       <div className={styles.panel}>

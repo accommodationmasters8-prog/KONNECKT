@@ -128,6 +128,8 @@ export function DeleteCategory({
     <form action={formAction} className={styles.form}>
       <input type="hidden" name="category_id" value={id} />
       <input type="hidden" name="expected_name" value={name} />
+      {/* The count as shown, so the database can refuse if it has moved since. */}
+      <input type="hidden" name="expected_stations" value={stations} />
 
       <label className={styles.field}>
         <span className={styles.label}>

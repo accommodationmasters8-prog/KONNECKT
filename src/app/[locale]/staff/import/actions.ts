@@ -7,7 +7,7 @@ import { parseCsvRows, pick, num, normaliseHeader, type CsvRow } from '@/lib/csv
 import { detectColumns, valueOf, FIELD_WORDING, type ColumnMap } from '@/lib/column-map';
 import { readXlsx } from '@/lib/xlsx';
 
-export type ImportKind = 'branches' | 'stations';
+export type ImportKind = 'zones' | 'branches' | 'stations';
 
 export interface ImportIssue {
   line: number;
@@ -67,7 +67,7 @@ export async function importCsv(
   if (!session.signedIn) return { ...EMPTY, ran: true, message: 'Sign in first.' };
 
   const kind = String(form.get('kind') ?? '') as ImportKind;
-  if (kind !== 'branches' && kind !== 'stations') {
+  if (kind !== 'branches' && kind !== 'stations' && kind !== 'zones') {
     return { ...EMPTY, ran: true, message: 'Choose what the file contains.' };
   }
 
@@ -155,6 +155,8 @@ export async function importCsv(
   const fixedCategory = String(form.get('fixed_category') ?? '').trim() || null;
   const fixedBranch = String(form.get('fixed_branch') ?? '').trim() || null;
 
+  if (kind === 'zones') return importZones(supabase, rows, map, commit, session.role);
+
   return kind === 'branches'
     ? importBranches(supabase, rows, map, commit, session.role, session.zone)
     : importStations(supabase, rows, map, commit, fixedCategory, fixedBranch);
@@ -197,6 +199,96 @@ function key(name: string): string {
 
 function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60);
+}
+
+/**
+ * Zones, from a list of names.
+ *
+ * The one import that is not a single transaction, and cannot be: adding a
+ * zone alters an enum twelve tables depend on, and Postgres will not let a new
+ * enum value be used in the transaction that created it. So each zone is two
+ * calls, and the loop is honest about what it managed rather than pretending
+ * to be atomic.
+ *
+ * It is close to harmless in practice. A zone with no branches in it shows an
+ * empty panel and nothing else — unlike a half-imported branch list, a
+ * half-imported zone list breaks nothing and the missing ones can simply be
+ * added again.
+ */
+async function importZones(
+  supabase: Client,
+  rows: CsvRow[],
+  map: ColumnMap,
+  commit: boolean,
+  role: string,
+): Promise<ImportResult> {
+  if (role !== 'hq') {
+    return { ...EMPTY, ran: true, kind: 'zones', message: 'Only HQ can add zones.' };
+  }
+
+  const { data: existing } = await supabase.from('zones' as never)
+    .select('code, name_en').limit(200);
+  const known = new Set(
+    ((existing as unknown as { name_en: string }[]) ?? []).map((z) => key(z.name_en)),
+  );
+
+  const toCreate: ImportResult['toCreate'] = [];
+  const toUpdate: ImportResult['toUpdate'] = [];
+  const issues: ImportIssue[] = [];
+  const seen = new Set<string>();
+  const planned: { line: number; name: string }[] = [];
+
+  rows.forEach((row, i) => {
+    const line = i + 2;
+    // A zone list often has the zone in a column called "zone" rather than
+    // "name", so either will do.
+    const name = (valueOf(row, map, 'name') || valueOf(row, map, 'zone'))
+      .replace(/\s*zone\s*$/i, '').trim();
+
+    if (name.length < 2) {
+      issues.push({ line, name: name || '(blank)', problem: 'No zone name in this row.' });
+      return;
+    }
+    if (seen.has(key(name))) {
+      issues.push({ line, name, problem: 'The same zone appears earlier in this file.' });
+      return;
+    }
+    seen.add(key(name));
+
+    if (known.has(key(name))) toUpdate.push({ line, name, detail: 'already exists' });
+    else { toCreate.push({ line, name, detail: 'new zone' }); planned.push({ line, name }); }
+  });
+
+  if (!commit) {
+    return {
+      ran: true, preview: true, kind: 'zones', mapping: describe(map),
+      toCreate, toUpdate, issues, ok: true,
+      message: `${toCreate.length} zones to add, ${toUpdate.length} already here, ${issues.length} skipped. Nothing has been written yet.`,
+    };
+  }
+
+  let created = 0;
+  const failures: ImportIssue[] = [...issues];
+
+  for (const item of planned) {
+    const code = item.name.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '');
+
+    const { error: addError } = await supabase.rpc('zone_add_value' as never, { p_code: code } as never);
+    if (addError) { failures.push({ line: item.line, name: item.name, problem: addError.message }); continue; }
+
+    const { error: regError } = await supabase.rpc('zone_register' as never, {
+      p_code: code, p_name_en: item.name, p_name_sw: item.name,
+    } as never);
+    if (regError) failures.push({ line: item.line, name: item.name, problem: regError.message });
+    else created += 1;
+  }
+
+  revalidatePath('/', 'layout');
+  return {
+    ran: true, preview: false, kind: 'zones', mapping: describe(map),
+    toCreate: [], toUpdate: [], issues: failures, ok: true,
+    message: `Done. ${created} zones added${failures.length ? `, ${failures.length} skipped` : ''}.`,
+  };
 }
 
 async function importBranches(

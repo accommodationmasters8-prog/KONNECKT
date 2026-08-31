@@ -162,13 +162,33 @@ export async function deleteCategory(
     return { ok: false, message: 'Type the category name exactly to remove it.' };
   }
 
-  const { error } = await gate.supabase
-    .from('tracker_categories' as never)
-    .delete()
-    .eq('id', id);
+  // The count the screen showed when they typed the name. If it has changed
+  // since, somebody added stations while they were reading and the delete
+  // stops rather than taking more than was agreed to.
+  const expectedStations = Number(form.get('expected_stations') ?? 0);
 
-  if (error) return { ok: false, message: error.message };
+  const { data, error } = await gate.supabase.rpc('delete_category' as never, {
+    p_id: id,
+    p_expected_stations: Number.isFinite(expectedStations) ? expectedStations : 0,
+  } as never);
+
+  if (error) {
+    return {
+      ok: false,
+      message: error.message.includes('violates foreign key')
+        ? 'Something outside this category still points at it. Nothing was deleted.'
+        : error.message,
+    };
+  }
+
+  const result = (data as unknown as
+    { name: string; stations: number; reports: number }) ?? null;
 
   revalidatePath('/', 'layout');
-  return { ok: true, message: `${expected} removed, with every station in it.` };
+  return {
+    ok: true,
+    message: result
+      ? `${result.name} removed, along with ${result.stations} stations and ${result.reports} filed reports. Loan and account types that were scoped to it are now offered everywhere.`
+      : `${expected} removed.`,
+  };
 }

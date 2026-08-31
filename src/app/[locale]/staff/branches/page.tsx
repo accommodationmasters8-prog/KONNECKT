@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
-import { Panel, PanelEmpty } from '@/components/staff/Panel';
+import { FoldPanel, Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
 import { AddBranchToZone, AddZone } from '@/components/staff/ZoneForms';
+import { ImportForm } from '@/components/staff/ImportForm';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getBranchTree } from '@/lib/network';
@@ -100,16 +101,9 @@ export default async function BranchesPage({
       scopeLabel={`${count(zones.length, locale)} zones · ${count(totalBranches, locale)} branches · ${count(totalStations, locale)} stations`}
       user={session.user}
       actions={
-        <>
-          {session.role === 'hq' || session.role === 'zone' ? (
-            <Link href={`/${locale}/staff/import?kind=branches`} className={styles.link}>
-              Import a list
-            </Link>
-          ) : null}
-          <Link href={`/${locale}/staff/stations`} className={styles.link}>
-            Find a station →
-          </Link>
-        </>
+        <Link href={`/${locale}/staff/stations`} className={styles.link}>
+          Find a station →
+        </Link>
       }
     >
       <div className={styles.metrics}>
@@ -224,10 +218,24 @@ export default async function BranchesPage({
       {canAddZone ? (
         <Panel
           title="Add a zone"
-          description="A zone is the top of the tree: it owns branches, and branches own stations. Adding one here makes it available to every branch form, every access code and every report from the moment it is saved."
+          description="The top of the tree: a zone owns branches, and branches own stations."
         >
           <AddZone />
         </Panel>
+      ) : null}
+
+      {/* The bulk door, on the screen the tree lives on. Folded, because most
+          visits here are to read the tree rather than to rebuild it. */}
+      {session.role === 'hq' || session.role === 'zone' ? (
+        <FoldPanel
+          title="Import a list"
+          note="Branches, or zones, from Excel or CSV"
+        >
+          <ImportForm
+            canChooseZone={session.role === 'hq'}
+            initialKind="branches"
+          />
+        </FoldPanel>
       ) : null}
     </StaffShell>
   );

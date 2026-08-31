@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
-import { Panel, PanelEmpty } from '@/components/staff/Panel';
+import { FoldPanel, Panel, PanelEmpty } from '@/components/staff/Panel';
 import { BarTable, PieChart } from '@/components/staff/Charts';
 import { CategoryForm } from '@/components/staff/CategoryForms';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
@@ -95,9 +95,10 @@ export default async function CategoriesPage({
             })}
           </div>
 
-          <Panel
+          <FoldPanel
             title="Coverage, side by side"
-            description="The same categories ranked against each other. A category with 40,000 accounts and 2% coverage is a bigger opportunity than one with 8,000 and 60%."
+            count={totals.length}
+            note="Ranked against each other"
           >
             {totals.length === 0 ? (
               <PanelEmpty>No categories yet.</PanelEmpty>
@@ -114,10 +115,12 @@ export default async function CategoriesPage({
                 }))}
               />
             )}
-          </Panel>
-          <Panel
+          </FoldPanel>
+
+          <FoldPanel
             title="Channels by category"
-            description="SimBanking, Lipa Hapa, cards and loans, from the newest report each station filed. An account opened and never activated is not a customer — this is the column that says which."
+            count={totals.length}
+            note="SimBanking, Lipa Hapa, cards and loans"
           >
             {totals.length === 0 ? (
               <PanelEmpty>No categories yet.</PanelEmpty>
@@ -174,7 +177,7 @@ export default async function CategoriesPage({
                 </table>
               </div>
             )}
-          </Panel>
+          </FoldPanel>
 
           {session.role === 'hq' ? (
             <Panel
