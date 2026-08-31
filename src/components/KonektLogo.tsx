@@ -51,6 +51,23 @@ export const LOGO_TRI_UP = 'M26 44 L96 76 L26 108 Z';
 export const LOGO_TRI_DOWN = 'M26 192 L96 224 L26 256 Z';
 export const LOGO_CHEVRON = 'M150 37 L20 150 L150 263 L150 205 L78 150 L150 95 Z';
 
+/**
+ * The official artwork, if it has been supplied.
+ *
+ * Everything below this line is a reconstruction — the wordmark redrawn as
+ * outlines from a picture of the logo, because the artwork itself was never in
+ * the repository. It is close, and close is not the same file. Drop the real
+ * export at `public/brand/konekt-official.svg` and set this to its path, and
+ * every logo in the product switches at once: the nav, both auth screens, the
+ * console rail, the footer, the printed reports and the empty states all render
+ * through this one component.
+ *
+ * SVG is the format to supply. A PNG works — change the extension here — but it
+ * is the same picture at every size, and this mark is drawn at 24px in the rail
+ * and 260px on the sign-in panel.
+ */
+const OFFICIAL_ARTWORK: string | null = null;
+
 export function KonektLogo({
   /**
    * Accessible name. Defaults to the brand as it is written in the artwork.
@@ -69,6 +86,23 @@ export function KonektLogo({
   className?: string;
 }) {
   const decorative = label === '';
+
+  if (OFFICIAL_ARTWORK) {
+    // Deliberately a plain <img>, not next/image: the mark appears on every
+    // screen at a dozen sizes, and the optimiser would fetch a dozen variants
+    // of a file that is already a few kilobytes.
+    // eslint-disable-next-line @next/next/no-img-element
+    return (
+      <img
+        src={OFFICIAL_ARTWORK}
+        alt={decorative ? '' : label}
+        aria-hidden={decorative ? true : undefined}
+        className={className}
+        draggable={false}
+      />
+    );
+  }
+
   return (
     <svg
       // Cropping the viewBox rather than hiding the line keeps the wordmark
