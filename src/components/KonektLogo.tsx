@@ -63,12 +63,8 @@ export const LOGO_CHEVRON = 'M150 37 L20 150 L150 263 L150 205 L78 150 L150 95 Z
  * The fallback below it is the older reconstruction, kept only so the component
  * still draws something if the file is ever missing.
  */
-const OFFICIAL_ARTWORK: string | null = '/brand/konekt-official.svg';
+const OFFICIAL_ARTWORK: string | null = '/brand/konekt-official.png';
 
-/* The same mark without the "Na CRDB" line. In the console rail the lockup is
-   about 110px wide, and at that size the parent line is four pixels tall and
-   reads as a smudge — worse than absent. Tight chrome gets this one. */
-const OFFICIAL_ARTWORK_COMPACT = '/brand/konekt-official-compact.svg';
 
 export function KonektLogo({
   /**
@@ -77,15 +73,12 @@ export function KonektLogo({
    * is already in the text beside it.
    */
   label = 'KONEKT Na CRDB',
-  /** Sit the mark on a white plate. For dark surfaces only — see below. */
-  plate = false,
   /** Drop "Na CRDB" and crop to the wordmark. For tight chrome only. */
   parent = true,
   animate = false,
   className,
 }: {
   label?: string;
-  plate?: boolean;
   parent?: boolean;
   animate?: boolean;
   className?: string;
@@ -93,27 +86,22 @@ export function KonektLogo({
   const decorative = label === '';
 
   if (OFFICIAL_ARTWORK) {
-    /* The artwork is drawn for paper: the wordmark is CRDB green and the mark
-       a green-teal, and on the ink surfaces — the sign-in panel, the footer —
-       green on dark green is close to invisible. Recolouring somebody's logo
-       to suit a background is not ours to do, so the background gives instead
-       and the mark sits on a white plate, which is how it appears on CRDB's
-       own dark collateral. */
+    /* The supplied PNG, transparent, used at every size. It is not redrawn
+       or recoloured anywhere — the only thing that changes between the rail
+       and the sign-in panel is how wide it is told to be. */
     // Deliberately a plain <img>, not next/image: the mark appears on every
     // screen at a dozen sizes, and the optimiser would fetch a dozen variants
     // of a file that is already a few kilobytes.
     // eslint-disable-next-line @next/next/no-img-element
-    const mark = (
+    return (
       <img
-        src={parent ? OFFICIAL_ARTWORK : OFFICIAL_ARTWORK_COMPACT}
+        src={OFFICIAL_ARTWORK}
         alt={decorative ? '' : label}
         aria-hidden={decorative ? true : undefined}
-        className={plate ? styles.plateImage : className}
+        className={className}
         draggable={false}
       />
     );
-
-    return plate ? <span className={`${styles.plate} ${className ?? ''}`}>{mark}</span> : mark;
   }
 
   return (

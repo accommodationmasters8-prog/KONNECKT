@@ -57,6 +57,13 @@ export function FoldPanel({
         <span className={styles.foldTitle}>{title}</span>
         {count !== undefined ? <span className={styles.foldCount}>{count}</span> : null}
         {note ? <span className={styles.foldNote}>{note}</span> : null}
+        {/* A summary looks like a heading until you hover it. This says out
+            loud that the row is a control, and swaps to "Close" once open so
+            it never invites a click that does the opposite of what it says. */}
+        <span className={styles.foldHint} aria-hidden="true">
+          <span className={styles.hintOpen}>Click to open</span>
+          <span className={styles.hintClose}>Click to close</span>
+        </span>
         <span className={styles.foldChevron} aria-hidden="true">
           <svg viewBox="0 0 16 16" width="13" height="13" fill="none">
             <path d="M4 6l4 4 4-4" stroke="currentColor" strokeWidth="1.75"

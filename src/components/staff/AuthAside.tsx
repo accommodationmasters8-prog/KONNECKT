@@ -26,7 +26,7 @@ export function AuthAside({
       <span className={styles.wash} aria-hidden="true" />
 
       <Link href={`/${locale}`} className={`${styles.brand} ${styles.a1}`}>
-        <KonektLogo label="KONEKT Na CRDB" plate className={styles.logo} />
+        <KonektLogo label="KONEKT Na CRDB" className={styles.logo} />
       </Link>
 
       <div className={`${styles.pitch} ${styles.a2}`}>

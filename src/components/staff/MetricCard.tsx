@@ -33,6 +33,7 @@ export function MetricCard({
   icon,
   href,
   hint = 'Open',
+  cardKey,
 }: {
   label: string;
   value: string;
@@ -44,6 +45,8 @@ export function MetricCard({
   /** Makes the whole card a link to the screen behind the figure. */
   href?: string;
   hint?: string;
+  /** Stable id, so CardChooser can show and hide this one. */
+  cardKey?: string;
 }) {
   const body = (
     <>
@@ -65,11 +68,19 @@ export function MetricCard({
 
   if (href) {
     return (
-      <Link href={href} className={`${styles.card} ${styles.cardLink} ${styles[tone]}`}>
+      <Link
+        href={href}
+        data-card={cardKey}
+        className={`${styles.card} ${styles.cardLink} ${styles[tone]}`}
+      >
         {body}
       </Link>
     );
   }
 
-  return <article className={`${styles.card} ${styles[tone]}`}>{body}</article>;
+  return (
+    <article data-card={cardKey} className={`${styles.card} ${styles[tone]}`}>
+      {body}
+    </article>
+  );
 }

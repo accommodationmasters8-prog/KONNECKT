@@ -113,3 +113,28 @@
   .foldBody { display: block !important; }
   .foldChevron { display: none; }
 }
+
+/* --- "Click to open" ----------------------------------------------------
+   A <summary> styled as a panel header reads as a heading, and a heading is
+   not something anybody tries clicking. The hint sits to the right of the
+   title and flips its wording with the panel's state.
+   ---------------------------------------------------------------------- */
+.foldHint {
+  margin-inline-start: auto;
+  font-size: var(--size-nano);
+  color: var(--text-body);
+  white-space: nowrap;
+  opacity: 0.75;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+
+.foldHead:hover .foldHint { opacity: 1; }
+
+.hintClose { display: none; }
+
+.fold[open] .hintOpen { display: none; }
+.fold[open] .hintClose { display: inline; }
+
+/* The chevron already sat hard right via margin-inline-start:auto; with the
+   hint taking that role it just needs the gap. */
+.foldChevron { margin-inline-start: var(--space-xs); }

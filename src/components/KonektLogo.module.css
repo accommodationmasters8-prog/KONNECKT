@@ -91,14 +91,3 @@
     transform: none;
   }
 }
-
-/* The mark on ink. White plate, because the artwork's greens are drawn for
-   paper and vanish on a dark ground. */
-.plate {
-  display: inline-flex;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  background: #fff;
-}
-
-.plateImage { display: block; inline-size: 100%; block-size: auto; }

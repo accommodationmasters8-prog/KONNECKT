@@ -5,6 +5,7 @@ import { MetricCard } from '@/components/staff/MetricCard';
 import { BarTable } from '@/components/staff/Charts';
 import { FoldPanel, Panel, PanelEmpty } from '@/components/staff/Panel';
 import { FilingBar } from '@/components/staff/FilingBar';
+import { CardChooser } from '@/components/staff/CardChooser';
 import {
   AccountsIcon, CategoriesIcon, EventsIcon, StationsIcon,
 } from '@/components/staff/StaffIcons';
@@ -42,6 +43,20 @@ export default async function TrackerOverview({
   const data = await getTrackerOverview();
 
   const nothingYet = data.stations === 0;
+
+  /* One list, used by both the picker and the cards below, so the menu can
+     never offer a card that is not there or miss one that is. */
+  const CARDS = [
+    { key: 'portfolio', label: 'Total portfolio' },
+    { key: 'accounts', label: 'Accounts opened' },
+    { key: 'deposits', label: 'Deposits mobilised' },
+    { key: 'active', label: 'Active accounts' },
+    { key: 'dormant', label: 'Dormant accounts' },
+    { key: 'simbanking', label: 'SimBanking' },
+    { key: 'lipahapa', label: 'Lipa Hapa' },
+    { key: 'loans', label: 'Loans disbursed' },
+    { key: 'bookings', label: 'Institutions booked' },
+  ];
   const dash = (v: number) => (nothingYet || v === 0 ? '—' : count(v, locale));
 
   return (
@@ -55,6 +70,8 @@ export default async function TrackerOverview({
       user={session.user}
       actions={
         session.signedIn ? (
+          <>
+          <CardChooser options={CARDS} />
           <Link
             href={
               session.role === 'branch' && session.branchId
@@ -65,6 +82,7 @@ export default async function TrackerOverview({
           >
             {session.role === 'branch' ? 'My branch' : 'Branches'}
           </Link>
+          </>
         ) : null
       }
     >
@@ -85,6 +103,7 @@ export default async function TrackerOverview({
           <div className={styles.metrics}>
             <MetricCard
               tone="teal"
+              cardKey="portfolio"
               label="Total portfolio"
               value={dash(data.portfolio)}
               icon={<StationsIcon />}
@@ -93,6 +112,7 @@ export default async function TrackerOverview({
             />
             <MetricCard
               tone="green"
+              cardKey="accounts"
               label="Accounts opened"
               value={dash(data.accountsOpened)}
               note={data.coveragePct === null ? undefined : `${data.coveragePct}% of portfolio`}
@@ -102,6 +122,7 @@ export default async function TrackerOverview({
             />
             <MetricCard
               tone="gold"
+              cardKey="deposits"
               label="Deposits mobilised"
               value={nothingYet || data.deposits === 0 ? '—' : money(data.deposits, locale, true)}
               icon={<CategoriesIcon />}
@@ -110,33 +131,39 @@ export default async function TrackerOverview({
             />
             <MetricCard
               tone="teal"
+              cardKey="active"
               label="Active accounts"
               value={dash(data.activeAccounts)}
             />
             <MetricCard
               tone="pink"
+              cardKey="dormant"
               label="Dormant accounts"
               value={dash(data.dormantAccounts)}
               note={data.dormancyPct === null ? undefined : `${data.dormancyPct}% dormant`}
             />
             <MetricCard
               tone="ink"
+              cardKey="simbanking"
               label="SimBanking"
               value={dash(data.simbanking)}
             />
             <MetricCard
               tone="green"
+              cardKey="lipahapa"
               label="Lipa Hapa"
               value={dash(data.lipaHapa)}
             />
             <MetricCard
               tone="gold"
+              cardKey="loans"
               label="Loans disbursed"
               value={nothingYet || data.loansValue === 0 ? '—' : money(data.loansValue, locale, true)}
               note={data.loansCount > 0 ? `${count(data.loansCount, locale)} loans` : undefined}
             />
             <MetricCard
               tone="teal"
+              cardKey="bookings"
               label="Institutions booked"
               value={data.bookings === 0 ? '—' : count(data.bookings, locale)}
               note={
