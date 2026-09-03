@@ -1,65 +1,91 @@
 # Demonstration data
 
-Seeded 25 August 2026 for the walkthrough. **None of it is real.** The
-institution names are real Tanzanian institutions; every figure attached to
-them was generated.
+**None of the figures in this database are real.** The institutions are real
+— they come from CRDB's own registers — but every account, deposit, visit and
+event attached to them was generated to give the console something to show.
 
-Each seeded row carries this marker in its `notes` column:
+Last regenerated 3 September 2026.
 
-```
-DEMO — sample data for the August 2026 walkthrough. Safe to delete.
-```
+## What is real, and what is not
 
-## What was seeded
+| | Real | Generated |
+|---|---|---|
+| Institutions | 21,685 from the registers | 638 informal-sector ones (below) |
+| Branches | 252, from the branch register | their zone assignment (below) |
+| Reports | — | 52,182, across 8,378 institutions |
+| Visits | — | 3,528, one run per branch |
+| Events | — | 772, two to four per branch |
 
-| What | Count |
-|---|---|
-| Stations | 12, across all five categories |
-| Monthly reports | 72 — six months each |
-| Account-type splits | 48, on the newest month |
-| Loan-type splits | 36, on the newest month |
-| Events | 7 — four past, three upcoming |
+The generated institutions are the ones no national register lists: boda
+stands, barbershops, salons, health centres and creator hubs. A branch visits
+them, so the categories exist in the tracker and had nothing in them; there
+is one to five per branch and they are marked like everything else here.
 
-Spread across three branches so the roll-up is visible: Dodoma (Central),
-Mwanza and Geita (Lake), Arusha (Northern).
+Reports run monthly from April to September 2026, plus twelve weeks of weekly
+filing for the boda stands and barbershops — the two categories whose
+`reporting_kind` is `weekly`, which is what makes the reports screen's
+"filed as" filter show anything.
+
+## The markers
+
+Each generated row says so in its own text column:
+
+| Table | Column | Marker |
+|---|---|---|
+| `station_reports` | `note` | `Sample figure` |
+| `engagements` | `notes` | `DEMO engagement` |
+| `tracked_events` | `notes` | `DEMO event` |
+| `stations` | `notes` | `DEMO informal-sector institution` |
 
 ## Removing it — from the console
 
 HQ → **Settings** → **Sample data is loaded** → type `CLEAR`. That removes
-every seeded figure and leaves the 69 stations loaded from the CRDB register
-in place with nothing filed against them, which is the honest starting point
-for going live. The panel disappears once there is nothing left to clear.
+every generated figure and leaves the institutions from the registers in
+place with nothing filed against them, which is the honest starting point for
+going live. The panel disappears once there is nothing left to clear.
 
 ## Removing it — by hand
 
-Deleting the stations is enough. `station_reports` cascades from `stations`,
-and the account and loan splits cascade from `station_reports`, so one
-statement clears the lot:
-
 ```sql
-delete from konekt.tracked_events
-where notes like 'DEMO —%';
-
-delete from konekt.stations
-where notes like 'DEMO —%';
+delete from konekt.tracked_events where notes like 'DEMO %';
+delete from konekt.station_reports where note like 'Sample figure%';
+delete from konekt.engagements   where notes like 'DEMO%';
+delete from konekt.stations      where notes like 'DEMO %';
 ```
 
-Run the events delete first: an event may reference a station, and the
-reference is `on delete set null` rather than cascade, so deleting stations
-first would leave the demo events behind with their station link blanked.
+Events first: an event's station reference is `on delete set null` rather
+than a cascade, so clearing stations first would leave the demo events behind
+with their link blanked. Reports cascade from stations, but they are deleted
+explicitly because most of them hang off *register* institutions that stay.
 
-Nothing else was touched. In particular the fifteen branches that were given a
-`zone_code` are **not** demo data — those are real assignments, made where the
-branch name is exactly a region name, and they should be kept. The remaining
-237 branches are still unzoned and need someone at CRDB to assign them in
-Settings → Branches and their zones.
+## What is NOT demonstration data, and must be kept
+
+**Zone and branch on every institution.** Each of the 21,685 institutions now
+carries a `zone_code` derived from the region the register puts it in, and a
+`branch_id`. 13,245 of those branch assignments are a real match — the
+institution's district is the branch's own name. The rest were spread evenly
+across the branches of the same zone so that the zone and branch scoreboards
+have something to rank; they are a placeholder for the real
+institution-to-branch mapping, not an invention that needs deleting.
+
+**Zone on every branch.** All 252 branches were zoned by name against the
+eight zones in `konekt.zones`. This was done from the branch names and is
+**provisional** — six or so of them (Majengo, Mbuyuni, Mapato, Soko Kuu, Kwa
+Mromboo, Mandela) are place names that occur in more than one region and were
+placed on the balance of probability. Somebody at CRDB should check the list
+against the official zoning; Settings → Branches is where to correct it.
+
+Neither survives a `CLEAR`, because neither is removed by it: clearing sample
+data takes figures away, not the shape of the network.
 
 ## Verifying it is gone
 
 ```sql
-select count(*) from konekt.stations where notes like 'DEMO —%';
-select count(*) from konekt.tracked_events where notes like 'DEMO —%';
+select count(*) from konekt.station_reports where note like 'Sample figure%';
+select count(*) from konekt.engagements    where notes like 'DEMO%';
+select count(*) from konekt.tracked_events where notes like 'DEMO %';
+select count(*) from konekt.stations       where notes like 'DEMO %';
 ```
 
-Both should return 0, and the console's overview should go back to showing
-em-dashes rather than figures.
+All four should return 0, and the console's overview should go back to
+showing em-dashes rather than figures.
