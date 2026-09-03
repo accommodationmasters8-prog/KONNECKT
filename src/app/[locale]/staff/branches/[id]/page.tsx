@@ -167,7 +167,7 @@ export default async function BranchPage({
     >
       <FilingBar
         locale={locale}
-        due={due}
+        dueCount={due.length}
         period={formatPeriod(new Date().toISOString(), locale)}
         total={stations.length}
       />

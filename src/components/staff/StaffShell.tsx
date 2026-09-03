@@ -14,6 +14,7 @@ import styles from './StaffShell.module.css';
 
 export type StaffSection =
   | 'overview' | 'network' | 'branches' | 'categories' | 'stations' | 'events'
+  | 'engagements'
   | 'access' | 'reports' | 'settings' | 'audit' | 'manual' | 'import'
   // Sections from the earlier build, still routable while they are retired.
   | 'checkin' | 'accounts' | 'verification' | 'sponsorship' | 'members'
@@ -42,6 +43,7 @@ const ICONS: Record<StaffSection, (p: { className?: string }) => ReactNode> = {
   stations: StationsIcon,
   access: AccessIcon,
   events: EventsIcon,
+  engagements: CheckinIcon,
   checkin: CheckinIcon,
   accounts: AccountsIcon,
   verification: VerificationIcon,

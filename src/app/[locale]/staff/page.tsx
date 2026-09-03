@@ -19,21 +19,18 @@ export function generateStaticParams() {
 }
 
 export const metadata: Metadata = {
-  title: 'Overview — Konekt tracker',
+  title: 'Overview — Konekt',
   robots: { index: false, follow: false },
 };
 
 /**
  * The overview.
  *
- * One screen that answers, in order: how much are we tracking, how much of it
- * have we actually reached, is it growing, and what has moved lately. Scope is
- * the database's — a branch officer opening this sees their branch's figures
- * from the same code that shows HQ the country's.
- *
- * Nothing here is a target or a projection. Every figure is the sum of what
- * branches have reported, and where nothing has been reported the card says so
- * rather than showing a zero that reads like a measurement.
+ * Nine figures and the outstanding count. This screen used to carry three
+ * paragraphs explaining what the figures were; the people who open it run the
+ * bank's youth portfolio and already know. Every number is the sum of what
+ * branches have filed, and a dash means nothing has been filed rather than a
+ * measured zero.
  */
 export default async function TrackerOverview({
   params,
@@ -45,13 +42,7 @@ export default async function TrackerOverview({
   const data = await getTrackerOverview();
 
   const nothingYet = data.stations === 0;
-
-  /* Stations on the map and nothing filed against them is the ordinary state
-     on a first day, and it is not the same as an empty database. A zero here
-     would read as a measurement — "no people, no deposits" — when the truth is
-     that nobody has reported yet. Every card says which of the two it is. */
-  const nothingReported =
-    data.portfolio === 0 && data.accountsOpened === 0 && data.deposits === 0;
+  const dash = (v: number) => (nothingYet || v === 0 ? '—' : count(v, locale));
 
   return (
     <StaffShell
@@ -60,17 +51,10 @@ export default async function TrackerOverview({
       active="overview"
       nav={staffNav(locale, STAFF_LABELS)}
       title="Overview"
-      scopeLabel={
-        session.signedIn
-          ? `${session.scopeLabel} · reported figures only`
-          : session.scopeLabel
-      }
+      scopeLabel={session.scopeLabel}
       user={session.user}
       actions={
         session.signedIn ? (
-          /* A branch officer owns exactly one branch, so sending them to a
-             tree of eight zones to find it is three clicks of a question they
-             already know the answer to. Everyone above them needs the tree. */
           <Link
             href={
               session.role === 'branch' && session.branchId
@@ -79,58 +63,39 @@ export default async function TrackerOverview({
             }
             className="btn btn--primary btn--sm"
           >
-            {session.role === 'branch' ? 'My branch' : 'Zones and branches'}
+            {session.role === 'branch' ? 'My branch' : 'Branches'}
           </Link>
         ) : null
       }
     >
       {!session.signedIn ? (
-        <Panel title="Sign in to see your figures">
-          <PanelEmpty>
-            The tracker shows what your branch, your zone or the whole country
-            has reported, depending on the account you sign in with. Nothing is
-            visible until you do.
-          </PanelEmpty>
+        <Panel title="Sign in">
+          <PanelEmpty>Nothing is visible until you sign in.</PanelEmpty>
         </Panel>
       ) : (
         <>
-          {/* The job before the summary. A branch officer opens this screen to
-              file, not to read four totals about the filing they have not
-              done — so the outstanding stations come first, named and linked. */}
           <FilingBar
             locale={locale}
-            due={data.due}
+            dueCount={data.dueCount}
             period={formatPeriod(new Date().toISOString(), locale)}
             total={data.activeStations}
           />
 
+          {/* The nine the bank tracks, in the order it reads them. */}
           <div className={styles.metrics}>
             <MetricCard
               tone="teal"
-              label="People in the portfolio"
-              value={nothingYet || data.portfolio === 0 ? '—' : count(data.portfolio, locale)}
-              note={
-                nothingYet
-                  ? 'No stations yet'
-                  : data.portfolio === 0
-                    ? `${count(data.activeStations, locale)} stations on the map, none reporting yet`
-                    : `across ${count(data.activeStations, locale)} active stations`
-              }
+              label="Total portfolio"
+              value={dash(data.portfolio)}
               icon={<StationsIcon />}
               href={`/${locale}/staff/stations`}
-              hint="Every station"
+              hint="Stations"
             />
             <MetricCard
               tone="green"
               label="Accounts opened"
-              value={nothingYet || data.accountsOpened === 0 ? '—' : count(data.accountsOpened, locale)}
-              note={
-                data.accountsOpened === 0
-                  ? 'Nothing filed yet'
-                  : data.coveragePct === null
-                    ? 'Coverage needs a portfolio figure'
-                    : `${data.coveragePct}% of the portfolio reached`
-              }
+              value={dash(data.accountsOpened)}
+              note={data.coveragePct === null ? undefined : `${data.coveragePct}% of portfolio`}
               icon={<AccountsIcon />}
               href={`/${locale}/staff/categories`}
               hint="By category"
@@ -139,45 +104,55 @@ export default async function TrackerOverview({
               tone="gold"
               label="Deposits mobilised"
               value={nothingYet || data.deposits === 0 ? '—' : money(data.deposits, locale, true)}
-              note={
-                data.loansValue > 0
-                  ? `${money(data.loansValue, locale, true)} in loans`
-                  : data.deposits === 0
-                    ? 'No deposits reported yet'
-                    : 'No loans reported yet'
-              }
               icon={<CategoriesIcon />}
               href={`/${locale}/staff/network`}
-              hint="Who is producing it"
+              hint="By zone"
+            />
+            <MetricCard
+              tone="teal"
+              label="Active accounts"
+              value={dash(data.activeAccounts)}
+            />
+            <MetricCard
+              tone="pink"
+              label="Dormant accounts"
+              value={dash(data.dormantAccounts)}
+              note={data.dormancyPct === null ? undefined : `${data.dormancyPct}% dormant`}
             />
             <MetricCard
               tone="ink"
-              label="Events tracked"
-              value={count(data.events.total, locale)}
+              label="SimBanking"
+              value={dash(data.simbanking)}
+            />
+            <MetricCard
+              tone="green"
+              label="Lipa Hapa"
+              value={dash(data.lipaHapa)}
+            />
+            <MetricCard
+              tone="gold"
+              label="Loans disbursed"
+              value={nothingYet || data.loansValue === 0 ? '—' : money(data.loansValue, locale, true)}
+              note={data.loansCount > 0 ? `${count(data.loansCount, locale)} loans` : undefined}
+            />
+            <MetricCard
+              tone="teal"
+              label="Institutions booked"
+              value={data.bookings === 0 ? '—' : count(data.bookings, locale)}
               note={
-                data.events.total === 0
-                  ? 'Nothing recorded yet'
-                  : `${data.events.past} past · ${data.events.upcoming} upcoming`
+                data.bookings === 0
+                  ? undefined
+                  : `${count(data.leadsGot, locale)} of ${count(data.leadsExpected, locale)} leads`
               }
               icon={<EventsIcon />}
-              href={`/${locale}/staff/events`}
-              hint="Every event"
+              href={`/${locale}/staff/engagements`}
+              hint="Engagements"
             />
           </div>
 
-
-          <FoldPanel
-            title="Coverage by category"
-            count={data.categories.length}
-            note="How much of each category actually banks with CRDB"
-          >
+          <FoldPanel title="Coverage by category" count={data.categories.length}>
             {data.categories.length === 0 ? (
-              <PanelEmpty>No categories yet.</PanelEmpty>
-            ) : nothingReported ? (
-              <PanelEmpty>
-                Nothing has been filed against any category yet. The first
-                monthly figures a branch files fill this in.
-              </PanelEmpty>
+              <PanelEmpty>No categories.</PanelEmpty>
             ) : (
               <BarTable
                 caption="Coverage by category"
@@ -187,8 +162,8 @@ export default async function TrackerOverview({
                   value: category.accounts_opened,
                   secondary:
                     category.portfolio > 0
-                      ? `${category.coverage_pct ?? 0}% of ${count(category.portfolio, locale)} · ${category.stations} stations`
-                      : `${category.stations} stations · no portfolio reported`,
+                      ? `${category.coverage_pct ?? 0}% · ${count(category.stations, locale)}`
+                      : `${count(category.stations, locale)} stations`,
                 }))}
               />
             )}
@@ -196,18 +171,14 @@ export default async function TrackerOverview({
 
           <Panel
             title="Events"
-            description="The next three and the last three. Click one to open it; everything else is on the events screen."
             action={
               <Link href={`/${locale}/staff/events`} className={styles.panelLink}>
-                All events →
+                All →
               </Link>
             }
           >
             {data.eventList.length === 0 ? (
-              <PanelEmpty>
-                Nothing recorded yet. An event added by any branch you can
-                reach appears here.
-              </PanelEmpty>
+              <PanelEmpty>None recorded.</PanelEmpty>
             ) : (
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
@@ -253,34 +224,27 @@ export default async function TrackerOverview({
             )}
           </Panel>
 
-
-          <Panel
-            title="What has moved"
-              description="Every station added, every report filed, every event recorded — newest first."
-            >
-              {data.recent.length === 0 ? (
-                <PanelEmpty>
-                  Nothing yet. Adding a station or filing a report puts it here,
-                  and in the audit log.
-                </PanelEmpty>
-              ) : (
-                <ol className={styles.activity}>
-                  {data.recent.map((item) => (
-                    <li key={`${item.kind}-${item.id}`} className={styles.activityItem}>
-                      <span className={`${styles.activityDot} ${styles[item.kind]}`} aria-hidden="true" />
-                      <span className={styles.activityText}>
-                        <strong>{item.title}</strong> {item.detail}
-                      </span>
-                      <time className={styles.activityAt} dateTime={item.at}>
-                        {new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', {
-                          day: 'numeric', month: 'short',
-                        }).format(new Date(item.at))}
-                      </time>
-                    </li>
-                  ))}
-                </ol>
+          <FoldPanel title="Recent" count={data.recent.length}>
+            {data.recent.length === 0 ? (
+              <PanelEmpty>Nothing yet.</PanelEmpty>
+            ) : (
+              <ol className={styles.activity}>
+                {data.recent.map((item) => (
+                  <li key={`${item.kind}-${item.id}`} className={styles.activityItem}>
+                    <span className={`${styles.activityDot} ${styles[item.kind]}`} aria-hidden="true" />
+                    <span className={styles.activityText}>
+                      <strong>{item.title}</strong> {item.detail}
+                    </span>
+                    <time className={styles.activityAt} dateTime={item.at}>
+                      {new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', {
+                        day: 'numeric', month: 'short',
+                      }).format(new Date(item.at))}
+                    </time>
+                  </li>
+                ))}
+              </ol>
             )}
-          </Panel>
+          </FoldPanel>
         </>
       )}
     </StaffShell>

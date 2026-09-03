@@ -151,9 +151,20 @@ export interface TrackerOverview {
   simbanking: number;
   cardsIssued: number;
   lipaHapa: number;
-  /** Named, not counted: a count is a status, a name is the next click. */
+  /** What branches booked, and what came of it. */
+  bookings: number;
+  leadsExpected: number;
+  leadsGot: number;
+  /** How many stations still owe this month's figures. */
+  dueCount: number;
+  /* A handful of names for the bar; the count above is the real figure. With
+     sixteen thousand institutions, naming them all was the page's slowest
+     part and nobody read past the first line of it. */
   due: { id: string; name: string; lastReport: string | null }[];
-  events: { total: number; past: number; upcoming: number; participants: number; budget: number };
+  events: {
+    total: number; past: number; upcoming: number;
+    participants: number; budget: number; spend: number;
+  };
   /** The next few and the last few, for the overview's own panel. */
   eventList: OverviewEvent[];
   recent: ActivityItem[];
@@ -183,10 +194,12 @@ const EMPTY: TrackerOverview = {
   accountsOpened: 0, activeAccounts: 0, dormantAccounts: 0,
   deposits: 0, loansValue: 0, loansCount: 0,
   coveragePct: null, dormancyPct: null,
-  categories: [], trend: [], reportedThisMonth: 0, awaitingReport: 0, due: [],
+  categories: [], trend: [], reportedThisMonth: 0, awaitingReport: 0,
+  dueCount: 0, due: [],
   totalCategories: 0, totalBranches: 0, branchesReporting: 0, zonesCovered: 0,
   simbanking: 0, cardsIssued: 0, lipaHapa: 0,
-  events: { total: 0, past: 0, upcoming: 0, participants: 0, budget: 0 },
+  bookings: 0, leadsExpected: 0, leadsGot: 0,
+  events: { total: 0, past: 0, upcoming: 0, participants: 0, budget: 0, spend: 0 },
   eventList: [],
   recent: [],
 };
@@ -263,103 +276,88 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
   const since = new Date();
   since.setMonth(since.getMonth() - 11);
   const from = `${since.getFullYear()}-${String(since.getMonth() + 1).padStart(2, '0')}-01`;
+  const period = currentPeriod();
 
-  const [stationsRes, latestRes, categoryRes, trendRes, eventsRes, recentReportsRes] =
-    await Promise.all([
-      supabase.from('stations' as never)
-        .select('id, name, status, category_id, branch_id, zone_code, created_at')
-        .limit(2000),
-      supabase.from('station_latest' as never).select('*').limit(2000),
-      supabase.from('category_totals' as never).select('*'),
-      supabase.from('station_reports' as never)
-        .select('period_month, deposits_tzs, accounts_opened, station_id')
-        .gte('period_month', from)
-        .limit(5000),
-      supabase.from('tracked_events' as never)
-        .select('id, name, event_date, participants, budget_tzs, accounts_opened, venue, created_at')
-        .order('event_date', { ascending: false })
-        .limit(500),
-      supabase.from('station_reports' as never)
-        .select('id, station_id, period_month, submitted_at, deposits_tzs, accounts_opened')
-        .order('submitted_at', { ascending: false })
-        .limit(10),
-    ]);
+  /* Every total is summed in Postgres and comes back as one row. Pulling the
+     rows and adding them up here worked at ninety institutions and broke at
+     sixteen thousand: the row limits truncated the answer, so the screen was
+     showing the sum of whatever came back first. */
+  const [
+    totalsRes, countsRes, engagementRes, categoryRes, trendRes,
+    eventsRes, dueRes, recentStationsRes, recentReportsRes,
+  ] = await Promise.all([
+    supabase.from('overview_totals' as never).select('*').maybeSingle(),
+    supabase.from('station_counts' as never).select('*').maybeSingle(),
+    supabase.from('engagement_totals' as never).select('*').maybeSingle(),
+    supabase.from('category_totals' as never).select('*'),
+    supabase.from('monthly_totals' as never)
+      .select('period_month, deposits_tzs, accounts_opened, stations')
+      .gte('period_month', from)
+      .order('period_month', { ascending: true }),
+    supabase.from('tracked_events' as never)
+      .select('id, name, event_date, participants, budget_tzs, actual_spend_tzs, accounts_opened, venue, created_at')
+      .order('event_date', { ascending: false })
+      .limit(200),
+    /* Five names, not sixteen thousand. The count comes from the view; this
+       is only what the bar shows before the link takes over. */
+    supabase.from('stations' as never)
+      .select('id, name, last_report_month')
+      .eq('status', 'active')
+      .or(`last_report_month.is.null,last_report_month.neq.${period}`)
+      .order('last_report_month', { ascending: true, nullsFirst: true })
+      .limit(5),
+    supabase.from('stations' as never)
+      .select('id, name, created_at')
+      .order('created_at', { ascending: false })
+      .limit(6),
+    supabase.from('station_reports' as never)
+      .select('id, station_id, period_month, submitted_at')
+      .order('submitted_at', { ascending: false })
+      .limit(6),
+  ]);
 
-  const stations = (stationsRes.data as unknown as
-    { id: string; name: string; status: string; category_id: string;
-      branch_id: string; zone_code: string | null; created_at: string }[]) ?? [];
-  const latest = (latestRes.data as unknown as StationLatest[]) ?? [];
+  const n = (v: unknown) => Number(v ?? 0);
+  const totals = (totalsRes.data ?? {}) as Record<string, unknown>;
+  const counts = (countsRes.data ?? {}) as Record<string, unknown>;
+  const eng = (engagementRes.data ?? {}) as Record<string, unknown>;
   const categories = (categoryRes.data as unknown as CategoryTotals[]) ?? [];
-  const trendRows = (trendRes.data as unknown as
-    { period_month: string; deposits_tzs: number; accounts_opened: number; station_id: string }[]) ?? [];
+
   const events = (eventsRes.data as unknown as
     { id: string; name: string; event_date: string; participants: number | null;
-      budget_tzs: number | null; accounts_opened: number | null; venue: string;
-      created_at: string }[]) ?? [];
+      budget_tzs: number | null; actual_spend_tzs: number | null;
+      accounts_opened: number | null; venue: string; created_at: string }[]) ?? [];
 
-  const sum = (pick: (row: StationLatest) => number) =>
-    latest.reduce((total, row) => total + Number(pick(row) ?? 0), 0);
-
-  const portfolio = sum((r) => r.portfolio);
-  const accountsOpened = sum((r) => r.accounts_opened);
-  const dormantAccounts = sum((r) => r.dormant_accounts);
-
-  // One month, one point. Deposits are a level rather than a flow, so the
-  // month's figure is the sum of that month's reports, not a running total.
-  const byMonth = new Map<string, { deposits: number; accounts: number; stations: Set<string> }>();
-  for (const row of trendRows) {
-    const key = row.period_month.slice(0, 7);
-    const bucket = byMonth.get(key) ?? { deposits: 0, accounts: 0, stations: new Set<string>() };
-    bucket.deposits += Number(row.deposits_tzs ?? 0);
-    bucket.accounts += Number(row.accounts_opened ?? 0);
-    bucket.stations.add(row.station_id);
-    byMonth.set(key, bucket);
-  }
-
-  const trend = [...byMonth.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, v]) => ({
-      month, deposits: v.deposits, accounts: v.accounts, stations: v.stations.size,
+  const trend = ((trendRes.data as unknown as
+    { period_month: string; deposits_tzs: number; accounts_opened: number; stations: number }[]) ?? [])
+    .map((r) => ({
+      month: r.period_month.slice(0, 7),
+      deposits: n(r.deposits_tzs),
+      accounts: n(r.accounts_opened),
+      stations: n(r.stations),
     }));
 
-  const period = currentPeriod();
-  const reportedThisMonth = latest.filter((r) => r.period_month === period).length;
+  const portfolio = n(totals.portfolio);
+  const accountsOpened = n(totals.accounts_opened);
+  const dormantAccounts = n(totals.dormant_accounts);
+  const activeStations = n(counts.active_stations);
 
-  const today = new Date().toISOString().slice(0, 10);
-  const stationName = new Map(stations.map((s) => [s.id, s.name]));
+  const due = ((dueRes.data as unknown as
+    { id: string; name: string; last_report_month: string | null }[]) ?? [])
+    .map((s) => ({ id: s.id, name: s.name, lastReport: s.last_report_month }));
 
-  // Active stations with nothing filed for the current period. Named rather
-  // than counted, because the next thing anybody does with this list is open
-  // one of them.
-  const filedThisPeriod = new Set(
-    latest.filter((r) => r.period_month === period).map((r) => r.station_id),
+  const stationName = new Map(
+    ((recentStationsRes.data as unknown as { id: string; name: string }[]) ?? [])
+      .map((s) => [s.id, s.name] as const),
   );
-  const lastReportOf = new Map(latest.map((r) => [r.station_id, r.period_month]));
-
-  const due = stations
-    .filter((s) => s.status === 'active' && !filedThisPeriod.has(s.id))
-    .map((s) => ({
-      id: s.id,
-      name: s.name,
-      lastReport: lastReportOf.get(s.id) ?? null,
-    }))
-    // Never-filed first: those are the ones nobody is watching.
-    .sort((a, b) => {
-      if (!a.lastReport && b.lastReport) return -1;
-      if (a.lastReport && !b.lastReport) return 1;
-      return (a.lastReport ?? '').localeCompare(b.lastReport ?? '');
-    });
 
   const recent: ActivityItem[] = [
-    ...stations
-      .slice()
-      .sort((a, b) => b.created_at.localeCompare(a.created_at))
-      .slice(0, 6)
+    ...((recentStationsRes.data as unknown as
+      { id: string; name: string; created_at: string }[]) ?? [])
       .map((s) => ({
         kind: 'station' as const,
         id: s.id,
         title: s.name,
-        detail: 'added to the tracker',
+        detail: 'added',
         at: s.created_at,
       })),
     ...((recentReportsRes.data as unknown as
@@ -382,48 +380,48 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
     .sort((a, b) => b.at.localeCompare(a.at))
     .slice(0, 12);
 
+  const now = Date.now();
+
   return {
     configured: true,
-    stations: stations.length,
-    activeStations: stations.filter((s) => s.status === 'active').length,
+    stations: n(counts.stations),
+    activeStations,
     portfolio,
     accountsOpened,
-    activeAccounts: sum((r) => r.active_accounts),
+    activeAccounts: n(totals.active_accounts),
     dormantAccounts,
-    deposits: sum((r) => Number(r.deposits_tzs)),
-    loansValue: sum((r) => Number(r.loans_value_tzs)),
-    loansCount: sum((r) => r.loans_count),
+    deposits: n(totals.deposits_tzs),
+    loansValue: n(totals.loans_value_tzs),
+    loansCount: n(totals.loans_count),
     coveragePct: portfolio > 0 ? Math.round((accountsOpened / portfolio) * 1000) / 10 : null,
     dormancyPct: accountsOpened > 0
       ? Math.round((dormantAccounts / accountsOpened) * 1000) / 10
       : null,
     categories,
     trend,
-    reportedThisMonth,
+    reportedThisMonth: n(counts.reported_this_period),
+    awaitingReport: n(counts.due_this_period),
+    dueCount: n(counts.due_this_period),
     due,
     totalCategories: categories.length,
-    // Branches and zones that actually have something in them: a count of
-    // every branch in the register would say 252 and mean nothing.
-    totalBranches: new Set(stations.map((s) => s.branch_id)).size,
-    branchesReporting: new Set(
-      latest
-        .filter((r) => r.period_month === period)
-        .map((r) => stations.find((s) => s.id === r.station_id)?.branch_id)
-        .filter(Boolean),
-    ).size,
-    zonesCovered: new Set(stations.map((s) => s.zone_code).filter(Boolean)).size,
-    simbanking: latest.reduce((a, r) => a + Number(
-      (r as unknown as { simbanking_activated?: number }).simbanking_activated ?? 0), 0),
-    cardsIssued: latest.reduce((a, r) => a + Number(
-      (r as unknown as { cards_issued?: number }).cards_issued ?? 0), 0),
-    lipaHapa: latest.reduce((a, r) => a + Number(
-      (r as unknown as { lipa_hapa_registered?: number }).lipa_hapa_registered ?? 0), 0),
-    awaitingReport: Math.max(stations.filter((s) => s.status === 'active').length - reportedThisMonth, 0),
-    // The three closest on each side of today: what just happened and what is
-    // about to. A list ordered purely by date puts next year's event above
-    // last week's, which is the wrong end of the diary to lead with.
+    totalBranches: n(counts.branches),
+    branchesReporting: n(counts.branches),
+    zonesCovered: n(counts.zones),
+    simbanking: n(totals.simbanking_activated),
+    cardsIssued: n(totals.cards_issued),
+    lipaHapa: n(totals.lipa_hapa_registered),
+    bookings: n(eng.bookings),
+    leadsExpected: n(eng.leads_expected),
+    leadsGot: n(eng.leads_got),
+    events: {
+      total: events.length,
+      past: events.filter((e) => new Date(e.event_date).getTime() < now).length,
+      upcoming: events.filter((e) => new Date(e.event_date).getTime() >= now).length,
+      participants: events.reduce((a, e) => a + n(e.participants), 0),
+      budget: events.reduce((a, e) => a + n(e.budget_tzs), 0),
+      spend: events.reduce((a, e) => a + n(e.actual_spend_tzs), 0),
+    },
     eventList: (() => {
-      const now = Date.now();
       const shape = (e: typeof events[number]) => ({
         id: e.id, name: e.name, event_date: e.event_date, venue: e.venue,
         participants: e.participants, accounts_opened: e.accounts_opened,
@@ -438,13 +436,6 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
         .slice(0, 3);
       return [...upcoming, ...past].map(shape);
     })(),
-    events: {
-      total: events.length,
-      past: events.filter((e) => e.event_date < today).length,
-      upcoming: events.filter((e) => e.event_date >= today).length,
-      participants: events.reduce((n, e) => n + Number(e.participants ?? 0), 0),
-      budget: events.reduce((n, e) => n + Number(e.budget_tzs ?? 0), 0),
-    },
     recent,
   };
 }

@@ -14,6 +14,7 @@ export const STAFF_LABELS = {
   branches: 'Branches',
   categories: 'Categories',
   stations: 'Stations',
+  engagements: 'Engagements',
   events: 'Events',
   reports: 'Reports',
   access: 'Access',
@@ -34,6 +35,8 @@ export function staffNav(locale: Locale, labels: Record<string, string>): StaffN
     // The tree: a zone owns branches, a branch owns stations. One hierarchy,
     // and the only place structure is changed.
     { key: 'branches', href: to('/branches'), label: labels.branches, roles: ['hq', 'zone', 'branch'] },
+    // Visits a branch books, and the leads they came back with.
+    { key: 'engagements', href: to('/engagements'), label: labels.engagements, roles: ['hq', 'zone', 'branch'] },
     { key: 'events', href: to('/events'), label: labels.events, roles: ['hq', 'zone', 'branch'] },
     // Take it away with you.
     { key: 'reports', href: to('/reports'), label: labels.reports, roles: ['hq', 'zone', 'branch'] },

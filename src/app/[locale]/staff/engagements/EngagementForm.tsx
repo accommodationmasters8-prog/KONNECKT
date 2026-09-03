@@ -1,0 +1,108 @@
+'use client';
+
+import { useActionState } from 'react';
+import { recordEngagement, type EngagementResult } from './actions';
+import styles from './engagements.module.css';
+
+/** The visit form. Nine boxes, no prose. */
+export function EngagementForm({
+  branches,
+  categories,
+  fixedBranch,
+}: {
+  branches: { id: string; name: string }[];
+  categories: { id: string; name_en: string }[];
+  fixedBranch: string | null;
+}) {
+  const [state, action, pending] = useActionState<EngagementResult | null, FormData>(
+    recordEngagement,
+    null,
+  );
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  return (
+    <form action={action} className={styles.form}>
+      <div className={styles.row}>
+        <label className={styles.field} style={{ gridColumn: 'span 2' }}>
+          <span>Institution</span>
+          <input name="institution" required maxLength={200} autoComplete="off" />
+        </label>
+
+        <label className={styles.field}>
+          <span>Date</span>
+          <input type="date" name="engaged_on" required defaultValue={today} />
+        </label>
+
+        {fixedBranch ? (
+          <input type="hidden" name="branch_id" value={fixedBranch} />
+        ) : (
+          <label className={styles.field}>
+            <span>Branch</span>
+            <select name="branch_id" required defaultValue="">
+              <option value="" disabled>Pick one</option>
+              {branches.map((b) => (
+                <option key={b.id} value={b.id}>{b.name}</option>
+              ))}
+            </select>
+          </label>
+        )}
+
+        <label className={styles.field}>
+          <span>Category</span>
+          <select name="category_id" defaultValue="">
+            <option value="">—</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>{c.name_en}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <div className={styles.row}>
+        <label className={styles.field}>
+          <span>Leads expected</span>
+          <input type="number" name="leads_expected" min={0} inputMode="numeric" defaultValue={0} />
+        </label>
+        <label className={styles.field}>
+          <span>Leads got</span>
+          <input type="number" name="leads_got" min={0} inputMode="numeric" defaultValue={0} />
+        </label>
+        <label className={styles.field}>
+          <span>Accounts opened</span>
+          <input type="number" name="accounts_opened" min={0} inputMode="numeric" defaultValue={0} />
+        </label>
+        <label className={styles.field}>
+          <span>Accounts activated</span>
+          <input type="number" name="accounts_activated" min={0} inputMode="numeric" defaultValue={0} />
+        </label>
+        <label className={styles.field}>
+          <span>SimBanking</span>
+          <input type="number" name="simbanking_activated" min={0} inputMode="numeric" defaultValue={0} />
+        </label>
+        <label className={styles.field}>
+          <span>Lipa Hapa</span>
+          <input type="number" name="lipa_hapa_registered" min={0} inputMode="numeric" defaultValue={0} />
+        </label>
+        <label className={styles.field}>
+          <span>Deposits (TSh)</span>
+          <input type="number" name="deposits_tzs" min={0} step="0.01" inputMode="decimal" defaultValue={0} />
+        </label>
+      </div>
+
+      <label className={styles.field}>
+        <span>Notes</span>
+        <input name="notes" maxLength={500} autoComplete="off" />
+      </label>
+
+      <div className={styles.actions}>
+        <button type="submit" className="btn btn--primary btn--sm" disabled={pending}>
+          {pending ? 'Saving…' : 'Record visit'}
+        </button>
+        {state ? (
+          <p className={state.ok ? styles.ok : styles.bad} role="status">{state.message}</p>
+        ) : null}
+      </div>
+    </form>
+  );
+}

@@ -1,0 +1,31 @@
+.form { display: grid; gap: var(--space-md); }
+
+.row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--space-sm);
+}
+
+.field { display: grid; gap: 4px; font-size: var(--size-caption); color: var(--text-body); }
+
+.field input,
+.field select {
+  inline-size: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text-strong);
+  font: inherit;
+}
+
+.field input:focus-visible,
+.field select:focus-visible {
+  outline: 2px solid var(--konekt-teal);
+  outline-offset: 1px;
+}
+
+.actions { display: flex; align-items: center; gap: var(--space-sm); flex-wrap: wrap; }
+
+.ok { color: var(--konekt-green); font-size: var(--size-caption); }
+.bad { color: var(--konekt-pink); font-size: var(--size-caption); }
