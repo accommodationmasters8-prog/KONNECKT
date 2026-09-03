@@ -130,7 +130,6 @@ export default async function StaffSettings({
       {sampleReports > 0 ? (
         <Panel
           title="Sample data is loaded"
-          description="Figures seeded for the walkthrough. Real institutions, invented numbers — clear them before anyone treats a chart here as a measurement."
         >
           <ClearDemoData sampleReports={sampleReports} />
         </Panel>
@@ -139,11 +138,6 @@ export default async function StaffSettings({
       {/* First, because it is the one list that decides who can see what. */}
       <Panel
         title="Branches and their zones"
-        description={
-          unzoned > 0
-            ? `${unzoned} of ${branches.length} branches have no zone yet. A branch with no zone is invisible to its zone manager, and so is every station reporting through it — the CRDB register carries no zone for any branch, so this is the only place the fact gets recorded.`
-            : `All ${branches.length} branches are assigned to a zone.`
-        }
       >
         {branches.length === 0 ? (
           <PanelEmpty>No branches loaded.</PanelEmpty>
@@ -154,7 +148,6 @@ export default async function StaffSettings({
 
       <Panel
         title="Account types"
-        description="What a station's accounts can be broken down into when a month is filed. Retiring one takes it off the entry form; the months already filed against it keep their figures."
       >
         {accounts.length === 0 ? (
           <PanelEmpty>No account types yet.</PanelEmpty>
@@ -169,7 +162,6 @@ export default async function StaffSettings({
 
       <Panel
         title="Loan types"
-        description="The categories a station's loans are split into."
       >
         {loans.length === 0 ? (
           <PanelEmpty>No loan types yet.</PanelEmpty>
@@ -184,7 +176,6 @@ export default async function StaffSettings({
 
       <Panel
         title="Add a branch"
-        description="For a branch the register does not carry. Editing an existing one is done from its row above."
       >
         <BranchForm zones={zones} />
       </Panel>

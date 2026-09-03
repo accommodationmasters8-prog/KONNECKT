@@ -105,7 +105,6 @@ export default async function StationsPage({
 
           <Panel
             title="Every station you can reach"
-            description="One flat list for when you know the name but not the branch. The tree — zone, branch, station — is under Branches."
           >
             {stations.length === 0 ? (
               <PanelEmpty>

@@ -87,7 +87,6 @@ export default async function ReportsPage({
     >
       <Panel
         title="Build a report"
-        description="Choose what goes in it and how far back. Nothing is capped — leave the dates empty and the whole history comes out."
       >
         <ReportBuilder
           locale={locale}

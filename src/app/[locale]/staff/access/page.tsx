@@ -110,14 +110,12 @@ export default async function AccessPage({
 
       <Panel
         title="Issue a code"
-        description="Pick the level, pick the scope, and hand the code over. What it can reach is fixed when it is issued — a redeemed code cannot be moved to another branch, only revoked and replaced."
       >
         <IssueAccessForm branches={branches} />
       </Panel>
 
       <Panel
         title="Every code issued"
-        description="Newest first. Revoking one that is in use signs that account out on its next request."
       >
         {grants.length === 0 ? (
           <PanelEmpty>

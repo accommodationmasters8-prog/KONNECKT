@@ -73,7 +73,6 @@ export default async function ImportPage({
     >
       <Panel
         title="Upload branches or stations"
-        description="Excel or CSV. Nothing is written until you have checked it."
       >
         <ImportForm
           canChooseZone={session.role === 'hq'}

@@ -81,7 +81,6 @@ export default async function StaffActivity({
         <>
           <Panel
             title="What&rsquo;s new"
-            description="Every change a person has made, newest first. Adding, updating and removing are marked, and nothing can be edited out of this list afterwards."
           >
             {activity.items.length === 0 ? (
               <PanelEmpty>
@@ -106,7 +105,6 @@ export default async function StaffActivity({
 
           <Panel
             title="Who has been in"
-            description="Every account, and when it last had the console open. An account that has never been in is one somebody was given a code for and never used."
           >
             {staff.length === 0 ? (
               <PanelEmpty>No accounts yet.</PanelEmpty>

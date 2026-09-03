@@ -182,7 +182,6 @@ export default async function CategoriesPage({
           {session.role === 'hq' ? (
             <Panel
               title="Add a category"
-              description="A new kind of place to track. Stations are filed under it from the moment it exists, and its own loan types are added inside it."
             >
               <CategoryForm />
             </Panel>

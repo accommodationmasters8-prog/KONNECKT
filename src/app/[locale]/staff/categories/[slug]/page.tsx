@@ -356,7 +356,6 @@ export default async function CategoryPage({
 
       <Panel
         title={`Add a station to ${category.name_en}`}
-        description="It is filed under this category from the moment it is added, and starts reporting on whatever rhythm suits it."
       >
         <StationForm
           locale={locale}
@@ -374,7 +373,6 @@ export default async function CategoryPage({
       {session.role === 'hq' || session.role === 'zone' ? (
         <Panel
           title={`Add many ${category.name_en.toLowerCase()} at once`}
-          description="Excel or CSV. Nothing is written until you have checked it."
         >
           <ImportForm
             canChooseZone={session.role === 'hq'}
@@ -430,7 +428,6 @@ export default async function CategoryPage({
       {session.role === 'hq' ? (
         <Panel
           title="Remove this category"
-          description="Everything filed under it goes too. Retiring the stations one by one is almost always the better move."
         >
           <DeleteCategory
             id={category.id}

@@ -252,7 +252,6 @@ export default async function StationPage({
       <div className={styles.split}>
         <Panel
           title="Deposits over time"
-          description="Every month this station has reported."
         >
           <BarChart
             points={series.map((r) => ({ label: label(r.period_month), value: Number(r.deposits_tzs) }))}
@@ -264,7 +263,6 @@ export default async function StationPage({
 
         <Panel
           title="Coverage"
-          description="How much of this place actually banks with CRDB."
         >
           {!newest || newest.portfolio === 0 ? (
             <PanelEmpty>A headcount is needed before coverage means anything.</PanelEmpty>
@@ -286,7 +284,6 @@ export default async function StationPage({
 
       <Panel
         title={newest ? 'File or correct a month' : 'File the first month'}
-        description="One record per month. Saving a month that is already on record corrects it, and the audit log keeps what it said before."
       >
         <ReportForm
           stationId={station.id}
@@ -317,7 +314,6 @@ export default async function StationPage({
         <>
           <Panel
             title={`Accounts by type — ${formatPeriod(newest.period_month, locale)}`}
-            description="Which products the accounts at this station actually are. Optional: the month's totals above stand on their own, and this says how they divide."
           >
             {accountOptions.length === 0 ? (
               <PanelEmpty>No account types are set up yet.</PanelEmpty>
@@ -339,7 +335,6 @@ export default async function StationPage({
 
           <Panel
             title={`Loans by type — ${formatPeriod(newest.period_month, locale)}`}
-            description="Which kinds of loan the month's figure is made of."
           >
             {loanOptions.length === 0 ? (
               <PanelEmpty>No loan types are set up yet.</PanelEmpty>
@@ -361,7 +356,6 @@ export default async function StationPage({
 
       <Panel
         title="Every month on record"
-        description="Newest first. Open a month in the form above by choosing it there."
       >
         {reports.length === 0 ? (
           <PanelEmpty>Nothing filed yet.</PanelEmpty>
@@ -406,7 +400,6 @@ export default async function StationPage({
 
       <Panel
         title="The station itself"
-        description="Who it is, where it is, and who to call. Changing these does not touch any month already filed."
       >
         <StationForm
           locale={locale}
@@ -419,7 +412,6 @@ export default async function StationPage({
 
       <Panel
         title="Remove this station"
-        description="Only when it should never have been added. A station that has closed is better set to Closed above — that keeps its history readable."
       >
         <DeleteStation id={station.id} name={station.name} />
       </Panel>

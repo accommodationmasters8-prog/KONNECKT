@@ -185,7 +185,6 @@ export default async function EventPage({
 
       <Panel
         title="Pictures"
-        description={`${images.length} of 10 attached. The album link on the event carries everything beyond ten.`}
       >
         {images.length === 0 ? (
           <PanelEmpty>
@@ -223,7 +222,6 @@ export default async function EventPage({
 
       <Panel
         title="What happened"
-        description="Turnout, spend and accounts opened are filled in after the event. Saving here updates the record rather than creating a second one."
       >
         <EventForm
           event={event}

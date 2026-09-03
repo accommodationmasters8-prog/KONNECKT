@@ -131,11 +131,6 @@ export default async function BranchesPage({
           <Panel
             key={zone.zone}
             title={zone.label}
-            description={
-              zone.zone === 'UNASSIGNED'
-                ? 'These branches have no zone, so no zone manager can see them — or anything reporting through them. Assign one in Settings.'
-                : `${count(zone.branches.length, locale)} branches · ${count(zone.stations, locale)} stations · ${money(zone.deposits, locale, true)}`
-            }
             action={
               zone.zone === 'UNASSIGNED' ? (
                 <Link href={`/${locale}/staff/settings`} className={styles.panelLink}>
@@ -218,7 +213,6 @@ export default async function BranchesPage({
       {canAddZone ? (
         <Panel
           title="Add a zone"
-          description="The top of the tree: a zone owns branches, and branches own stations."
         >
           <AddZone />
         </Panel>

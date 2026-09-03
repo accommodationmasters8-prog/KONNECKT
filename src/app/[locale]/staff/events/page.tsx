@@ -153,7 +153,6 @@ export default async function EventsPage({
           {upcoming.length > 0 ? (
             <Panel
               title="Coming up"
-              description="Dated today or later. Click any event to open it and set the budget or the venue."
             >
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
@@ -188,7 +187,6 @@ export default async function EventsPage({
 
           <Panel
             title="Performance"
-            description="Events held, ranked by what they produced. An event with no accounts recorded sits at the bottom — that is information too."
           >
             {past.length === 0 ? (
               <PanelEmpty>No events held yet.</PanelEmpty>
@@ -220,7 +218,6 @@ export default async function EventsPage({
               biggest difference on the screen. */}
           <Panel
             title="Held"
-            description={`${count(past.length, locale)} recorded. Click any event to open it and add pictures or fill in what happened.`}
           >
             {past.length === 0 ? (
               <PanelEmpty>
@@ -280,7 +277,6 @@ export default async function EventsPage({
 
           <Panel
             title="Record an event"
-            description="Held or planned — the date decides which. What it cost and what it produced are what make one event comparable with another."
           >
             <EventForm
               stations={stations.map((s) => ({ id: s.id, name: s.name }))}

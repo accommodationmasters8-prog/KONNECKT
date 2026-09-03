@@ -118,35 +118,30 @@ export default async function NetworkPage({
         ) : null
       }
     >
+      {/* Portfolio first, then what came out of it, then the two channels,
+          then who is doing it best. */}
       <div className={styles.metrics}>
-        <MetricCard
-          tone="teal"
-          label="Deposits mobilised"
-          value={view.totals ? money(view.totals.deposits, locale, true) : '—'}
-          note={view.latestMonth ? formatPeriod(view.latestMonth, locale) : 'Nothing reported'}
-        />
-        <MetricCard
-          tone="green"
-          label={`Best ${noun}`}
+        <MetricCard tone="teal" label="Total portfolio"
+          value={view.totals && view.totals.portfolio > 0 ? count(view.totals.portfolio, locale) : '—'} />
+        <MetricCard tone="green" label="Accounts opened"
+          value={view.totals && view.totals.accountsOpened > 0 ? count(view.totals.accountsOpened, locale) : '—'}
+          note={view.totals?.coveragePct === null || view.totals === null ? undefined : `${view.totals.coveragePct}%`} />
+        <MetricCard tone="teal" label="Active accounts"
+          value={view.totals && view.totals.activeAccounts > 0 ? count(view.totals.activeAccounts, locale) : '—'} />
+        <MetricCard tone="pink" label="Dormant accounts"
+          value={view.totals && view.totals.dormantAccounts > 0 ? count(view.totals.dormantAccounts, locale) : '—'} />
+        <MetricCard tone="gold" label="Deposits mobilised"
+          value={view.totals && view.totals.deposits > 0 ? money(view.totals.deposits, locale, true) : '—'} />
+        <MetricCard tone="green" label="Lipa Hapa"
+          value={view.totals && view.totals.lipaHapa > 0 ? count(view.totals.lipaHapa, locale) : '—'} />
+        <MetricCard tone="ink" label="SimBanking"
+          value={view.totals && view.totals.simbanking > 0 ? count(view.totals.simbanking, locale) : '—'} />
+        <MetricCard tone="teal" label={`Best ${noun}`}
           value={best ? best.name : '—'}
-          note={best ? money(best.deposits, locale, true) : 'Nothing to rank'}
-        />
-        <MetricCard
-          tone="gold"
-          label="Best coverage"
+          note={best ? money(best.deposits, locale, true) : undefined} />
+        <MetricCard tone="gold" label="Best coverage"
           value={bestCoverage ? `${bestCoverage.coveragePct}%` : '—'}
-          note={bestCoverage ? bestCoverage.name : 'Needs a headcount'}
-        />
-        <MetricCard
-          tone="ink"
-          label="Yet to report"
-          value={count(gap, locale)}
-          note={
-            view.totals
-              ? `of ${count(view.totals.stations, locale)} stations`
-              : 'No stations'
-          }
-        />
+          note={bestCoverage ? bestCoverage.name : undefined} />
       </div>
 
       {view.rows.length === 0 ? (
@@ -161,7 +156,6 @@ export default async function NetworkPage({
           <div className={styles.split}>
             <Panel
               title={`Deposits by ${noun}`}
-              description="Newest month reported. The bar is the book; the table below adds coverage, which often disagrees."
             >
               <BarChart
                 title={`Deposits mobilised by ${noun}`}
@@ -176,7 +170,6 @@ export default async function NetworkPage({
 
             <Panel
               title="How the book divides"
-              description={`Share of deposits across every ${noun} that reported.`}
             >
               <PieChart
                 title={`Share of deposits by ${noun}`}
@@ -192,11 +185,6 @@ export default async function NetworkPage({
 
           <Panel
             title={isZoneTable ? 'Every zone' : 'Every branch'}
-            description={
-              isZoneTable
-                ? 'Ranked by deposits. Click a zone to open the branches inside it.'
-                : 'Ranked by deposits. Coverage is what is left to win.'
-            }
             /* Performance ranks; the tree changes. Missing a zone or a branch
                here means it does not exist yet, and this is the one click to
                where it is created — rather than a second create form sitting
@@ -216,7 +204,10 @@ export default async function NetworkPage({
                     <th scope="col" className={styles.num}>Reported</th>
                     <th scope="col" className={styles.num}>People</th>
                     <th scope="col" className={styles.num}>Accounts</th>
-                    <th scope="col" className={styles.num}>Coverage</th>
+                    <th scope="col" className={styles.num}>Active</th>
+                    <th scope="col" className={styles.num}>Dormant</th>
+                    <th scope="col" className={styles.num}>SimBanking</th>
+                    <th scope="col" className={styles.num}>Lipa Hapa</th>
                     <th scope="col" className={styles.num}>Deposits</th>
                     <th scope="col" className={styles.num}>vs last month</th>
                   </tr>
@@ -258,9 +249,10 @@ export default async function NetworkPage({
                       </td>
                       <td className={styles.num}>{count(row.portfolio, locale)}</td>
                       <td className={styles.num}>{count(row.accountsOpened, locale)}</td>
-                      <td className={styles.num}>
-                        {row.coveragePct === null ? '—' : `${row.coveragePct}%`}
-                      </td>
+                      <td className={styles.num}>{count(row.activeAccounts, locale)}</td>
+                      <td className={styles.num}>{count(row.dormantAccounts, locale)}</td>
+                      <td className={styles.num}>{count(row.simbanking, locale)}</td>
+                      <td className={styles.num}>{count(row.lipaHapa, locale)}</td>
                       <td className={styles.num}>{money(row.deposits, locale, true)}</td>
                       <td className={styles.num}>
                         {row.momPct === null ? '—' : (
@@ -282,9 +274,10 @@ export default async function NetworkPage({
                       </td>
                       <td className={styles.num}>{count(view.totals.portfolio, locale)}</td>
                       <td className={styles.num}>{count(view.totals.accountsOpened, locale)}</td>
-                      <td className={styles.num}>
-                        {view.totals.coveragePct === null ? '—' : `${view.totals.coveragePct}%`}
-                      </td>
+                      <td className={styles.num}>{count(view.totals.activeAccounts, locale)}</td>
+                      <td className={styles.num}>{count(view.totals.dormantAccounts, locale)}</td>
+                      <td className={styles.num}>{count(view.totals.simbanking, locale)}</td>
+                      <td className={styles.num}>{count(view.totals.lipaHapa, locale)}</td>
                       <td className={styles.num}>{money(view.totals.deposits, locale, true)}</td>
                       <td className={styles.num}>—</td>
                     </tr>
@@ -297,7 +290,6 @@ export default async function NetworkPage({
           {branch && branchStations.length > 0 ? (
             <Panel
               title={`Stations in ${openBranch?.name ?? 'this branch'}`}
-              description="Every place this branch reports on, ranked by deposits. Click one to open its full history or file a period."
             >
               <div className={styles.tableWrap}>
                 <table className={styles.table}>
@@ -344,7 +336,6 @@ export default async function NetworkPage({
           {byCategory.length > 0 ? (
             <Panel
               title="By category"
-              description="What the book here is actually made of. A branch with most of its deposits in one category is a different problem from one spread evenly, and the ranking above cannot tell them apart."
             >
               <div className={styles.split}>
                 <PieChart
@@ -392,7 +383,6 @@ export default async function NetworkPage({
           {worst ? (
             <Panel
               title="Where the attention goes"
-              description="Not a league table for its own sake — the bottom of it is the plan."
             >
               <p className={styles.plainNote}>
                 <strong>{worst.name}</strong> is last on deposits with{' '}

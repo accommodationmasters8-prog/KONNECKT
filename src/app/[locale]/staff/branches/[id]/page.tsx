@@ -213,7 +213,6 @@ export default async function BranchPage({
 
       <Panel
         title="Accounts opened, by type"
-        description="What the total above is actually made of. A branch opening everything on one product has a different conversation ahead of it from one spread across five."
       >
         {byAccountType.length === 0 ? (
           <PanelEmpty>
@@ -267,7 +266,6 @@ export default async function BranchPage({
 
       <Panel
         title="Stations at this branch"
-        description="Everything this branch reports on. Click a station to open its history or file a period."
       >
         {stations.length === 0 ? (
           <PanelEmpty>
@@ -320,7 +318,6 @@ export default async function BranchPage({
       {byCategory.length > 0 ? (
         <Panel
           title="What this branch is made of"
-          description="Its stations by category. A branch with everything in one category is a different plan from one spread evenly."
         >
           <PieChart
             title={`Deposits by category at ${branch.name}`}
@@ -341,7 +338,6 @@ export default async function BranchPage({
       {session.role === 'hq' || session.role === 'zone' ? (
         <Panel
           title={`Add many stations to ${branch.name}`}
-          description="Excel or CSV. Nothing is written until you have checked it."
         >
           <ImportForm
             canChooseZone={session.role === 'hq'}
@@ -353,7 +349,6 @@ export default async function BranchPage({
       {canEdit ? (
         <Panel
           title={`Edit ${branch.name}`}
-          description="The branch's own details. Its zone is the field that matters most: a branch with no zone is invisible to every zone manager, and so is every station reporting through it."
         >
           <BranchForm
             branch={{
@@ -373,7 +368,6 @@ export default async function BranchPage({
 
       <Panel
         title={`Add a station to ${branch.name}`}
-        description="It belongs to this branch from the moment it is created, and everything it reports counts towards this branch, its zone and HQ."
       >
         <StationForm
           locale={locale}

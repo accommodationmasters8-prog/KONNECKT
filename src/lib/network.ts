@@ -28,6 +28,8 @@ export interface Performer {
   deposits: number;
   loansCount: number;
   loansValue: number;
+  simbanking: number;
+  lipaHapa: number;
   coveragePct: number | null;
   /** Change in deposits against the month before, as a percentage. */
   momPct: number | null;
@@ -85,7 +87,7 @@ export interface NetworkView {
 const EMPTY: Omit<Performer, 'key' | 'name'> = {
   branches: null, stations: 0, reporting: 0, portfolio: 0, accountsOpened: 0,
   activeAccounts: 0, dormantAccounts: 0, deposits: 0, loansCount: 0,
-  loansValue: 0, coveragePct: null, momPct: null,
+  loansValue: 0, simbanking: 0, lipaHapa: 0, coveragePct: null, momPct: null,
 };
 
 function finish(p: Performer): Performer {
@@ -122,99 +124,69 @@ export async function getNetwork(
     return { rows: [], level: groupByZone ? 'zone' : 'branch', latestMonth: null, previousMonth: null, totals: null };
   }
 
-  const since = new Date();
-  since.setMonth(since.getMonth() - 2);
-  const from = `${since.getFullYear()}-${String(since.getMonth() + 1).padStart(2, '0')}-01`;
-
-  const [stationRes, branchRes] = await Promise.all([
-    supabase.from('stations' as never)
-      .select('id, name, zone_code, branch_id, status')
-      .limit(5000),
-    supabase.from('branches' as never)
-      .select('id, name, zone_code')
-      .limit(1000),
+  /* Summed in Postgres. This used to read every station and then ask for the
+     reports of those stations by listing their ids in the query string, which
+     at sixteen thousand institutions is a URL no server will accept — quite
+     apart from being slow. */
+  const [boardRes, monthRes] = await Promise.all([
+    groupByZone
+      ? supabase.from('zone_scoreboard' as never).select('*')
+      : supabase.from('branch_scoreboard' as never).select('*'),
+    supabase.from('monthly_totals' as never)
+      .select('period_month')
+      .order('period_month', { ascending: false })
+      .limit(2),
   ]);
 
-  let stations = (stationRes.data as unknown as StationRow[]) ?? [];
-  const branches = (branchRes.data as unknown as
-    { id: string; name: string; zone_code: string | null }[]) ?? [];
+  const months = ((monthRes.data as unknown as { period_month: string }[]) ?? [])
+    .map((m) => m.period_month);
+  const latestMonth = months[0] ?? null;
+  const previousMonth = months[1] ?? null;
 
-  // The drill-down. Narrowing to a zone HQ may already reach is a display
-  // choice, not an authorisation one — RLS decided the set above.
-  if (zone) stations = stations.filter((s) => s.zone_code === zone);
+  const n = (v: unknown) => Number(v ?? 0);
 
-  const ids = stations.map((s) => s.id);
-  const { data: reportData } = ids.length
-    ? await supabase.from('station_reports' as never)
-        .select('station_id, period_month, portfolio, accounts_opened, active_accounts, dormant_accounts, deposits_tzs, loans_count, loans_value_tzs')
-        .in('station_id', ids)
-        .gte('period_month', from)
-        .limit(20000)
-    : { data: [] };
-
-  const reports = (reportData as unknown as ReportRow[]) ?? [];
-
-  const months = [...new Set(reports.map((r) => r.period_month))].sort();
-  const latestMonth = months.at(-1) ?? null;
-  const previousMonth = months.at(-2) ?? null;
-
-  const branchName = new Map(branches.map((b) => [b.id, b.name]));
-  const branchZone = new Map(branches.map((b) => [b.id, b.zone_code]));
-
-  const keyOf = (s: StationRow) =>
-    groupByZone ? (s.zone_code ?? branchZone.get(s.branch_id) ?? 'UNASSIGNED') : s.branch_id;
-  const nameOf = (s: StationRow) =>
-    groupByZone
-      ? zoneWording(s.zone_code ?? branchZone.get(s.branch_id) ?? 'Unassigned')
-      : (branchName.get(s.branch_id) ?? 'Unknown branch');
-
-  const rows = new Map<string, Performer>();
-  const branchesSeen = new Map<string, Set<string>>();
-  const prevDeposits = new Map<string, number>();
-
-  for (const station of stations) {
-    const key = keyOf(station);
-    if (!rows.has(key)) {
-      rows.set(key, { key, name: nameOf(station), ...EMPTY });
-      branchesSeen.set(key, new Set());
-    }
-    const row = rows.get(key)!;
-    row.stations += 1;
-    branchesSeen.get(key)!.add(station.branch_id);
+  interface Board {
+    zone_code?: string | null;
+    branch_id?: string;
+    branch?: string;
+    stations: number; branches?: number; reporting: number;
+    portfolio: number; accounts_opened: number; active_accounts: number;
+    dormant_accounts: number; deposits_tzs: number; loans_count: number;
+    loans_value_tzs: number; simbanking_activated: number;
+    lipa_hapa_registered: number; deposits_prev_tzs: number;
   }
 
-  const stationKey = new Map(stations.map((s) => [s.id, keyOf(s)]));
+  let board = (boardRes.data as unknown as Board[]) ?? [];
 
-  for (const report of reports) {
-    const key = stationKey.get(report.station_id);
-    if (!key) continue;
-    const row = rows.get(key);
-    if (!row) continue;
+  // The drill-down. Narrowing to one zone is a display choice; RLS already
+  // decided what is readable.
+  if (zone) board = board.filter((b) => b.zone_code === zone);
 
-    if (report.period_month === latestMonth) {
-      row.reporting += 1;
-      row.portfolio += Number(report.portfolio);
-      row.accountsOpened += Number(report.accounts_opened);
-      row.activeAccounts += Number(report.active_accounts);
-      row.dormantAccounts += Number(report.dormant_accounts);
-      row.deposits += Number(report.deposits_tzs);
-      row.loansCount += Number(report.loans_count);
-      row.loansValue += Number(report.loans_value_tzs);
-    } else if (report.period_month === previousMonth) {
-      prevDeposits.set(key, (prevDeposits.get(key) ?? 0) + Number(report.deposits_tzs));
-    }
-  }
-
-  const out = [...rows.values()].map((row) => {
-    const before = prevDeposits.get(row.key) ?? 0;
+  const out = board.map((b) => {
+    const deposits = n(b.deposits_tzs);
+    const before = n(b.deposits_prev_tzs);
     return finish({
-      ...row,
-      branches: groupByZone ? branchesSeen.get(row.key)!.size : null,
-      momPct: before > 0
-        ? Math.round(((row.deposits - before) / before) * 1000) / 10
-        : null,
+      key: groupByZone ? (b.zone_code ?? 'UNASSIGNED') : (b.branch_id ?? ''),
+      name: groupByZone ? zoneWording(b.zone_code ?? 'Unassigned') : (b.branch ?? 'Unknown branch'),
+      branches: groupByZone ? n(b.branches) : null,
+      stations: n(b.stations),
+      reporting: n(b.reporting),
+      portfolio: n(b.portfolio),
+      accountsOpened: n(b.accounts_opened),
+      activeAccounts: n(b.active_accounts),
+      dormantAccounts: n(b.dormant_accounts),
+      deposits,
+      loansCount: n(b.loans_count),
+      loansValue: n(b.loans_value_tzs),
+      simbanking: n(b.simbanking_activated),
+      lipaHapa: n(b.lipa_hapa_registered),
+      coveragePct: null,
+      momPct: before > 0 ? Math.round(((deposits - before) / before) * 1000) / 10 : null,
     });
-  }).sort((a, b) => b.deposits - a.deposits);
+  })
+    // A branch with nothing in it is not a performer, it is an empty row.
+    .filter((r) => r.stations > 0)
+    .sort((a, b) => b.deposits - a.deposits);
 
   const totals = out.length
     ? finish(out.reduce<Performer>((acc, r) => ({
@@ -228,6 +200,8 @@ export async function getNetwork(
         deposits: acc.deposits + r.deposits,
         loansCount: acc.loansCount + r.loansCount,
         loansValue: acc.loansValue + r.loansValue,
+        simbanking: acc.simbanking + r.simbanking,
+        lipaHapa: acc.lipaHapa + r.lipaHapa,
       }), { key: 'all', name: 'All', ...EMPTY }))
     : null;
 
