@@ -107,7 +107,7 @@
   display: grid;
   place-items: center;
   border-radius: var(--radius-pill);
-  background: var(--konekt-teal-deep);
+  background: var(--fill-accent);
   color: var(--text-on-inverse);
   font-family: var(--font-display);
   font-size: var(--size-micro);
@@ -133,14 +133,16 @@
   text-align: center;
   padding-block: var(--space-sm);
   border-radius: var(--radius-md);
-  background: var(--konekt-teal-deep);
+  background: var(--fill-accent);
   color: var(--text-on-inverse);
   font-weight: var(--weight-semibold);
   font-size: var(--size-caption);
   text-decoration: none;
 }
 
-.signIn:hover { background: var(--konekt-ink); }
+/* Darkening the fill rather than swapping in ink: ink is the page ground in
+   dark mode, so the old hover made the button disappear into the rail. */
+.signIn:hover { background: color-mix(in srgb, var(--fill-accent) 85%, var(--konekt-ink)); }
 
 /* --- Navigation --------------------------------------------------------- */
 
@@ -187,7 +189,7 @@
 /* The active section is a filled pill rather than a marker in the margin:
    at a glance, from across a desk, fill reads and a 5px triangle does not. */
 .navLink[aria-current='page'] {
-  background: var(--konekt-teal-deep);
+  background: var(--fill-accent);
   color: var(--text-on-inverse);
   font-weight: var(--weight-semibold);
 }
@@ -335,7 +337,8 @@
     margin-inline: auto;
   }
 
-  :global(html[data-rail='collapsed']) .railToggle {
+  :global(html[data-rail='collapsed']) .railToggle,
+  :global(html[data-rail='collapsed']) .themeToggle {
     justify-content: center;
     inline-size: 44px;
     margin-inline: auto;
@@ -346,7 +349,13 @@
 
 /* --- the control itself -------------------------------------------------- */
 
-.railToggle {
+/* Two controls, one shape: collapse the rail, and choose the appearance.
+   They are separate classes rather than one because only the chevron turns
+   around when the rail closes, and only the appearance control belongs on a
+   phone — where there is no rail to collapse but there is still a person
+   holding a bright screen in a dark room. */
+.railToggle,
+.themeToggle {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -362,13 +371,16 @@
   cursor: pointer;
 }
 
-.railToggle svg { flex: none; transition: rotate var(--dur-base) var(--ease-out); }
+.railToggle svg,
+.themeToggle svg { flex: none; transition: rotate var(--dur-base) var(--ease-out); }
 
 @media (hover: hover) {
-  .railToggle:hover { background: var(--konekt-mist); color: var(--konekt-teal-deep); }
+  .railToggle:hover,
+  .themeToggle:hover { background: var(--konekt-mist); color: var(--konekt-teal-deep); }
 }
 
-.railToggle:focus-visible { outline: 2px solid var(--konekt-teal); outline-offset: -2px; }
+.railToggle:focus-visible,
+.themeToggle:focus-visible { outline: 2px solid var(--konekt-teal); outline-offset: -2px; }
 
 /* On a phone the rail is already a chip row; there is nothing to collapse. */
 @media (max-width: 59.999rem) {

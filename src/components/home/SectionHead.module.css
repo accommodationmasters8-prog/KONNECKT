@@ -13,7 +13,7 @@
 .teal   { --accent-colour: var(--konekt-teal-deep); }
 .green  { --accent-colour: var(--konekt-green-deep); }
 .yellow { --accent-colour: var(--konekt-ink); }
-.pink   { --accent-colour: var(--konekt-pink); }
+.pink   { --accent-colour: var(--konekt-pink-deep); }
 
 /* On the ink canvas the deepened variants would disappear, so the pure brand
    colours take over — they clear AA on ink and fail on paper. */

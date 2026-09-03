@@ -314,7 +314,7 @@
 }
 
 .measureOn {
-  background: var(--konekt-teal-deep);
+  background: var(--fill-accent);
   color: var(--text-on-inverse);
   font-weight: var(--weight-semibold);
 }

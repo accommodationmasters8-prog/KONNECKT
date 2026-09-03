@@ -96,7 +96,7 @@
   border-radius: 0 6px 6px 0;
   background: linear-gradient(
     90deg,
-    color-mix(in srgb, var(--series-1) 62%, white) 0%,
+    color-mix(in srgb, var(--series-1) 62%, var(--surface-raised)) 0%,
     var(--series-1) 100%
   );
 }

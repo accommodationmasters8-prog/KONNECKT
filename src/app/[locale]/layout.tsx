@@ -10,6 +10,7 @@ import {
   localeTags,
   type Locale,
 } from '@/i18n';
+import { ThemeScript } from '@/components/staff/ThemeToggle';
 import { siteUrl } from '@/lib/site';
 import '@/styles/globals.css';
 
@@ -71,8 +72,14 @@ export function generateStaticParams() {
 export const dynamicParams = false;
 
 export const viewport: Viewport = {
-  themeColor: '#0E1F1C',
-  colorScheme: 'light',
+  // Two, keyed to the scheme: the browser paints its own chrome with this
+  // before any stylesheet is parsed, so a single light value gives anyone on
+  // a dark machine a pale bar above a dark page for the length of the load.
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#0E1F1C' },
+    { media: '(prefers-color-scheme: dark)', color: '#0B1614' },
+  ],
+  colorScheme: 'light dark',
   width: 'device-width',
   initialScale: 1,
   viewportFit: 'cover',
@@ -159,14 +166,18 @@ export default async function LocaleLayout({
     <html
       lang={localeTags[typed]}
       className={`${archivo.variable} ${jakarta.variable}`}
-      /* RailStateScript stamps data-rail on this element before first paint,
+      /* RailStateScript and ThemeScript stamp data-rail and data-theme on
+         this element before first paint,
          so the served HTML and the hydrating client necessarily disagree about
          it. That is the whole point of the script — without it the rail flashes
          open on every navigation for anyone who collapsed it — so the mismatch
          is expected and suppressed rather than a bug to chase. */
       suppressHydrationWarning
     >
-      <body>{children}</body>
+      <body>
+        <ThemeScript />
+        {children}
+      </body>
     </html>
   );
 }

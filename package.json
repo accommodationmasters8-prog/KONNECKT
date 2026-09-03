@@ -12,12 +12,13 @@
     "check:stats": "node scripts/verify-seed-stats.mjs",
     "check:tokens": "node scripts/check-no-raw-hex.mjs",
     "check:contrast": "node scripts/check-contrast.mjs",
+    "check:series": "node scripts/check-series.mjs",
     "db:seed": "node scripts/db/seed.mjs",
     "db:test": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -q -f supabase/tests/authorisation.sql",
     "map:build": "node scripts/geo/build-tanzania-map.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "budget": "node scripts/check-budget.mjs",
-    "verify": "npm run check:tokens && npm run check:stats && npm run typecheck && npm run build && npm run budget",
+    "verify": "npm run check:tokens && npm run check:series && npm run check:stats && npm run typecheck && npm run build && npm run budget",
     "db:bootstrap": "node scripts/db/bootstrap.mjs"
   },
   "dependencies": {

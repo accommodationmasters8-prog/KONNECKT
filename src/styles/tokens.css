@@ -33,6 +33,23 @@
   --konekt-teal-deep:  #226E62;
   --konekt-green-deep: #2E7524;
 
+  /* Brand pink is 3.78:1 on white and 4.42:1 on the dark card — it fails AA
+     for small text on both grounds, which is exactly where the section
+     eyebrows put it. Same treatment as teal and green: a darkened variant for
+     light grounds (5.44:1 on white, 5.00:1 on the console canvas) and, in
+     section 10, a lightened one for dark. The pure brand pink stays the event
+     colour it is declared to be in section 2 and keeps carrying text on ink,
+     where it measures 4.87:1 on its own.                                  */
+  --konekt-pink-deep:  #C9264A;
+
+  /* An accent FILL, as distinct from accent TEXT. Both are brand teal, and
+     the two part company in dark mode: text has to get lighter as the ground
+     darkens, while a fill that carries paper text has to stay dark enough to
+     hold it. This one therefore has the same value in both themes — paper on
+     it is 5.83:1 whatever is behind it — and the -deep variants above are
+     free to be rebound for text. Anything filled and labelled uses this. */
+  --fill-accent: #226E62;
+
   /* --- Teal on tinted dark surfaces -----------------------------------
      Brand teal clears AA on flat ink (5.72:1), but the map tiles carry a
      data-driven teal wash, and the busier the zone the lighter its tile —
@@ -79,6 +96,19 @@
   --text-body:        var(--konekt-slate);
   --text-on-inverse:  var(--konekt-paper);
   --text-muted-on-inverse: #9DB5B0; /* 7.85:1 on ink */
+
+  /* Small print: units, timestamps, the "of 252" after a count. Nine files
+     were already asking for this role and none of them were getting it — the
+     variable had never been declared, so every muted run silently inherited
+     its parent's colour and rendered at full strength.
+
+     It is only a step quieter than --text-body, and it cannot be more than
+     that: the console canvas is #F2F6F8 rather than white, and anything
+     lighter than this drops under 4.5:1 there. Muted is a matter of one step,
+     not of fading text out — see the note on StatTile, where 80% opacity was
+     measured at 3.55:1 and removed for the same reason.
+       #5F726E   4.69:1 on the console canvas, 5.10:1 on a white card       */
+  --text-muted: #5F726E;
   --text-accent:      var(--konekt-teal-deep);
 
   /* --- Line / border roles ------------------------------------------- */
@@ -336,24 +366,26 @@
      decoration.
 
      These five pass every check against the white panel they are drawn on:
-     lightness band, chroma floor, colour-blind separation (worst adjacent
-     pair ΔE 12.7, protanopia), normal-vision separation (worst 21.2), and
-     3:1 contrast against the surface. The order is load-bearing — a series
-     keeps its colour when the list is filtered, and gold sits between
+     3:1 contrast against the surface (worst: gold, 3.10), normal-vision
+     separation (worst pair ΔE 41.9), and colour-blind separation (worst
+     19.4 protanopia, 17.4 deuteranopia). The order is load-bearing — a
+     series keeps its colour when the list is filtered, and gold sits between
      crimson and green because those two collapse under deuteranopia when
      placed side by side.
 
-     Verified with the dataviz validator; re-run it before changing any
-     value here.
+     The green was #35701A until the dark ramp arrived and the checks were
+     rewritten as `npm run check:series`. Measured by that gate the old value
+     sat at ΔE 14.5 from the crimson under deuteranopia — below the 15 floor,
+     which is two series a green-blind reader cannot separate. Darkening it
+     four steps to #27600F clears the floor at 17.4 and costs nothing else.
 
-     There is deliberately no dark-surface variant: every chart in this
-     console is drawn on a white panel. An unvalidated dark ramp would be
-     worse than none.                                                    */
+     The dark-surface ramp is in section 10; re-run `npm run check:series`
+     before changing any value in either.                                */
   --series-1: #00897B;  /* teal    */
   --series-2: #5A4BA8;  /* indigo  */
   --series-3: #C2304F;  /* crimson */
   --series-4: #C08812;  /* gold    */
-  --series-5: #35701A;  /* green   */
+  --series-5: #27600F;  /* green   */
 
   /* The gap drawn between neighbouring marks, and the ring around an
      overlapping one: the surface itself, never a line. */
@@ -380,4 +412,162 @@
     --chev-notch-w: 112px;
     --chev-notch-d: 90px;       /* 90 / 56 = 1.607 -> 58.1deg */
   }
+}
+
+/* ===========================================================================
+   10. DARK MODE
+
+   Every colour in this build already resolves through a role — surface,
+   text, line, series — so the dark theme is a remap of those roles and
+   nothing else. No component knows which theme it is in.
+
+   The theme has three states, which is one more than it looks:
+     · `data-theme="dark"`  — the person chose dark
+     · `data-theme="light"` — the person chose light
+     · no attribute         — follow the operating system
+
+   That third state is why the media query is guarded with
+   `:not([data-theme='light'])`: a person who has chosen light on a machine
+   set to dark must get light, and a bare media query cannot be overridden by
+   an attribute selector of lower specificity later in the file.
+
+   The raw values live here once and both blocks below only rebind roles to
+   them, so the two blocks cannot drift apart in substance.
+   ======================================================================== */
+:root {
+  /* Grounds. Built off brand ink rather than neutral grey — the whole
+     palette is teal-biased and a neutral dark ground makes the teal read as
+     a colour cast rather than the house colour. */
+  --dark-canvas:  #0B1614;  /* the page itself                              */
+  --dark-raised:  #14201E;  /* cards and panels: one step up from the ground */
+  --dark-lift:    #1B2A27;  /* hover and pressed                            */
+  --dark-sunken:  #060F0D;  /* wells and inputs: one step down              */
+  --dark-tint:    #16332D;  /* the teal tint, at dark-surface weight        */
+
+  /* Text on those grounds. Measured on --dark-raised, the lightest of them,
+     which is the worst case:
+       strong  14.70:1
+       body     8.49:1
+       accent   7.98:1  (--konekt-teal-light, the tint built for dark tiles) */
+  --dark-text-strong: #EAF2EF;
+  --dark-text-body:   #A9BDB8;
+  --dark-text-muted:  #9DB2AE;  /* 7.50:1 on --dark-raised */
+
+  /* Lines. A hairline on a dark ground has to be lighter than the ground by
+     more than it would be darker on a light one — the eye reads a dark edge
+     on dark as an absence rather than a boundary. */
+  --dark-line-soft:   #22322E;
+  --dark-line-strong: #354A45;
+
+  /* --- Chart series, dark ---------------------------------------------
+     A separate ramp, not the light one lightened. Validated on
+     --dark-raised the same way the light ramp was validated on white:
+       contrast on panel   teal 8.07, indigo 5.91, crimson 5.95,
+                           gold 8.63, green 10.61   (floor is 3)
+       normal vision       worst adjacent pair dE 52.9
+       protanopia          worst pair dE 17.8   (gold / green)
+       deuteranopia        worst pair dE 21.6   (teal / crimson)
+
+     The green is deliberately much lighter than its light-mode counterpart.
+     At the same lightness as the gold it collapsed into it under
+     protanopia — dE 4.7, which is two series a red-blind reader cannot tell
+     apart. Lightness is doing the separating that hue cannot.
+
+     Re-run scripts/check-series.mjs before changing any value here.        */
+  --dark-series-1: #3FC8B4;  /* teal    */
+  --dark-series-2: #9C8CF0;  /* indigo  */
+  --dark-series-3: #F2708C;  /* crimson */
+  --dark-series-4: #E7B23C;  /* gold    */
+  --dark-series-5: #9AE07A;  /* green   */
+
+  /* Teal and green that carry text on a dark ground. The -deep variants are
+     built for the paper canvas and are 2.2:1 here, so they are rebound
+     rather than kept. */
+  --dark-accent-teal:  var(--konekt-teal-light);
+  --dark-accent-green: #86D06B;
+  --dark-accent-pink:  #F2708C;  /* 5.95:1 on --dark-raised */
+
+  /* A card that is missing its background is a card that is not there. This
+     is the one role the console referred to and the palette never defined. */
+  --surface-card: var(--surface-raised);
+}
+
+/* The operating system's choice, unless the person has overridden it. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --surface-canvas:   var(--dark-canvas);
+    --surface-raised:   var(--dark-raised);
+    --surface-card:     var(--dark-raised);
+    --surface-sunken:   var(--dark-sunken);
+    --surface-tint:     var(--dark-tint);
+    --surface-app:      var(--dark-canvas);
+    --surface-app-rail: var(--dark-raised);
+    --surface-inverse:  var(--dark-raised);
+    --surface-ink-soft: var(--dark-lift);
+    --surface-ink-lift: var(--dark-line-soft);
+    --surface-chrome:   color-mix(in srgb, var(--dark-canvas) 92%, transparent);
+
+    --text-strong: var(--dark-text-strong);
+    --text-body:   var(--dark-text-body);
+    --text-muted:  var(--dark-text-muted);
+    --text-accent: var(--dark-accent-teal);
+
+    --konekt-mist:       var(--dark-tint);
+    --konekt-teal-deep:  var(--dark-accent-teal);
+    --konekt-green-deep: var(--dark-accent-green);
+    --konekt-pink-deep:  var(--dark-accent-pink);
+
+    --line-soft:       var(--dark-line-soft);
+    --line-strong:     var(--dark-line-strong);
+    --line-app:        var(--dark-line-soft);
+    --line-on-inverse: var(--dark-line-strong);
+
+    --series-1: var(--dark-series-1);
+    --series-2: var(--dark-series-2);
+    --series-3: var(--dark-series-3);
+    --series-4: var(--dark-series-4);
+    --series-5: var(--dark-series-5);
+    --chart-grid: var(--dark-line-soft);
+  }
+}
+
+/* The person's own choice, on any machine. */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --surface-canvas:   var(--dark-canvas);
+  --surface-raised:   var(--dark-raised);
+  --surface-card:     var(--dark-raised);
+  --surface-sunken:   var(--dark-sunken);
+  --surface-tint:     var(--dark-tint);
+  --surface-app:      var(--dark-canvas);
+  --surface-app-rail: var(--dark-raised);
+  --surface-inverse:  var(--dark-raised);
+  --surface-ink-soft: var(--dark-lift);
+  --surface-ink-lift: var(--dark-line-soft);
+  --surface-chrome:   color-mix(in srgb, var(--dark-canvas) 92%, transparent);
+
+  --text-strong: var(--dark-text-strong);
+  --text-body:   var(--dark-text-body);
+  --text-muted:  var(--dark-text-muted);
+  --text-accent: var(--dark-accent-teal);
+
+  --konekt-mist:       var(--dark-tint);
+  --konekt-teal-deep:  var(--dark-accent-teal);
+  --konekt-green-deep: var(--dark-accent-green);
+  --konekt-pink-deep:  var(--dark-accent-pink);
+
+  --line-soft:       var(--dark-line-soft);
+  --line-strong:     var(--dark-line-strong);
+  --line-app:        var(--dark-line-soft);
+  --line-on-inverse: var(--dark-line-strong);
+
+  --series-1: var(--dark-series-1);
+  --series-2: var(--dark-series-2);
+  --series-3: var(--dark-series-3);
+  --series-4: var(--dark-series-4);
+  --series-5: var(--dark-series-5);
+  --chart-grid: var(--dark-line-soft);
 }

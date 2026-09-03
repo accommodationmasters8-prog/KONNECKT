@@ -26,6 +26,9 @@ const VIEWPORTS = [
   { name: 'phone', width: 412, height: 900 },
   { name: 'desktop', width: 1440, height: 900 },
 ];
+// Both themes. A dark palette that was never measured is a dark palette that
+// is wrong somewhere, and the place it is wrong is always the small print.
+const THEMES = ['light', 'dark'];
 
 const audit = () => {
   const srgb = (c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
@@ -200,10 +203,12 @@ let failures = 0;
 let checked = 0;
 const reportedSkips = new Set();
 
-for (const viewport of VIEWPORTS) {
+for (const theme of THEMES) {
+ for (const viewport of VIEWPORTS) {
   for (const path of PAGES) {
     const page = await browser.newPage({
       viewport: { width: viewport.width, height: viewport.height },
+      colorScheme: theme,
       // The reveal covers sit over content mid-animation; with motion reduced
       // they never exist, so every text node is measured against its real
       // background rather than an in-flight overlay.
@@ -221,7 +226,7 @@ for (const viewport of VIEWPORTS) {
     }
     if (bad.length) {
       failures += bad.length;
-      console.error(`\n${path} @ ${viewport.name} — ${bad.length} failure(s):`);
+      console.error(`\n${path} @ ${viewport.name}, ${theme} — ${bad.length} failure(s):`);
       for (const b of bad) {
         console.error(
           `  ${String(b.ratio).padStart(5)}:1 (needs ${b.required}) ` +
@@ -231,6 +236,7 @@ for (const viewport of VIEWPORTS) {
     }
     await page.close();
   }
+ }
 }
 
 await browser.close();
@@ -239,4 +245,7 @@ if (failures) {
   console.error(`\ncheck:contrast — FAILED (${failures} text runs below AA)`);
   process.exit(1);
 }
-console.log(`check:contrast — every rendered text run clears WCAG 2.1 AA across ${checked} page/viewport combinations.`);
+console.log(
+  `check:contrast — every rendered text run clears WCAG 2.1 AA across ${checked} ` +
+    'page/viewport/theme combinations.',
+);

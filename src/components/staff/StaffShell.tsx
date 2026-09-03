@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { KonektLogo } from '../KonektLogo';
 import { RailStateScript, RailToggle } from './RailToggle';
+import { ThemeToggle } from './ThemeToggle';
 import type { Locale } from '@/i18n';
 import type { StaffRole } from '@/lib/supabase/types';
 import {
@@ -174,6 +175,7 @@ export function StaffShell({
         </nav>
 
         <div className={styles.railFoot}>
+          <ThemeToggle />
           <RailToggle />
 
           {user ? (
