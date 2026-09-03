@@ -1,0 +1,70 @@
+.wrap { display: grid; gap: var(--space-md); }
+
+.grid {
+  display: grid;
+  gap: 2px;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: 7px var(--space-xs);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.row:hover { background: var(--surface-sunken); }
+
+.rowText { display: grid; gap: 0; min-inline-size: 0; }
+
+.rowLabel {
+  color: var(--text-strong);
+  font-size: var(--size-caption);
+  font-weight: var(--weight-semibold);
+}
+
+.rowUnit { color: var(--text-muted); font-size: var(--size-nano); }
+
+.foot {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  flex-wrap: wrap;
+  padding-block-start: var(--space-xs);
+  border-block-start: 1px solid var(--line-app);
+}
+
+.add {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  padding-block-start: var(--space-md);
+  border-block-start: 1px solid var(--line-app);
+}
+
+.field { display: grid; gap: var(--space-2xs); min-inline-size: 0; }
+
+.field > span {
+  color: var(--text-muted);
+  font-size: var(--size-nano);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.field input, .field select {
+  min-block-size: 36px;
+  padding-inline: var(--space-sm);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  font: inherit;
+  font-size: var(--size-caption);
+}
+
+.ok  { color: var(--konekt-green-deep); font-size: var(--size-caption); }
+.bad { color: var(--konekt-pink-deep); font-size: var(--size-caption); }

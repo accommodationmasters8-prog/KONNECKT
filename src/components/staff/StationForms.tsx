@@ -208,11 +208,24 @@ export interface ReportFields {
  * branch that meant 4,000 and typed 400 fixes that month rather than filing a
  * second one, and what it said before stays in the audit log.
  */
+/** One box on the filing form, described by the category rather than the code. */
+export interface ReportField {
+  /** The metric's key — 'portfolio', or whatever the bank called its own. */
+  key: string;
+  /** The input's name: the key for a built-in figure, `m_<id>` for an added one. */
+  name: string;
+  label: string;
+  unit: 'count' | 'money' | 'percent';
+  help?: string | null;
+  value?: number | string | null;
+}
+
 export function ReportForm({
   stationId,
   defaults,
   months,
   defaultKind = 'monthly',
+  fields,
 }: {
   stationId: string;
   defaults?: ReportFields;
@@ -220,6 +233,8 @@ export function ReportForm({
   months: string[];
   /** The rhythm this station is expected on. */
   defaultKind?: 'daily' | 'weekly' | 'monthly';
+  /** What this station's category tracks, in the order it chose. */
+  fields: ReportField[];
 }) {
   const [state, formAction, pending] = useActionState(saveReport, INITIAL);
   const [kind, setKind] = useState(defaultKind);
@@ -273,72 +288,28 @@ export function ReportForm({
           </label>
         )}
 
-        <label className={styles.field}>
-          <span className={styles.label}>People in it</span>
-          <input className={styles.input} type="number" min="0" name="portfolio"
-            defaultValue={defaults?.portfolio ?? ''} required />
-          <span className={styles.help}>The denominator for coverage.</span>
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Accounts opened</span>
-          <input className={styles.input} type="number" min="0" name="accounts_opened"
-            defaultValue={defaults?.accounts_opened ?? ''} />
-          <span className={styles.help}>Total ever opened here, not just this month.</span>
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Active accounts</span>
-          <input className={styles.input} type="number" min="0" name="active_accounts"
-            defaultValue={defaults?.active_accounts ?? ''} />
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Dormant accounts</span>
-          <input className={styles.input} type="number" min="0" name="dormant_accounts"
-            defaultValue={defaults?.dormant_accounts ?? ''} />
-          <span className={styles.help}>Active plus dormant cannot exceed accounts opened.</span>
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Deposits mobilised (TZS)</span>
-          <input className={styles.input} type="number" min="0" step="1000" name="deposits_tzs"
-            defaultValue={defaults?.deposits_tzs ?? ''} />
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Loans — how many</span>
-          <input className={styles.input} type="number" min="0" name="loans_count"
-            defaultValue={defaults?.loans_count ?? ''} />
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Loans — value (TZS)</span>
-          <input className={styles.input} type="number" min="0" step="1000" name="loans_value_tzs"
-            defaultValue={defaults?.loans_value_tzs ?? ''} />
-        </label>
-
-        {/* What turns an opened account into a customer. Grouped after the
-            account figures because they are all shares of accounts opened —
-            an activation cannot exist without an account. */}
-        <label className={styles.field}>
-          <span className={styles.label}>SimBanking activated</span>
-          <input className={styles.input} type="number" min="0" name="simbanking_activated"
-            defaultValue={defaults?.simbanking_activated ?? ''} />
-          <span className={styles.help}>Of the accounts here, how many switched it on.</span>
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Cards issued</span>
-          <input className={styles.input} type="number" min="0" name="cards_issued"
-            defaultValue={defaults?.cards_issued ?? ''} />
-        </label>
-
-        <label className={styles.field}>
-          <span className={styles.label}>Lipa Hapa registered</span>
-          <input className={styles.input} type="number" min="0" name="lipa_hapa_registered"
-            defaultValue={defaults?.lipa_hapa_registered ?? ''} />
-        </label>
+        {/* The figures this station's category tracks — not a fixed ten.
+            Which they are is a decision the bank makes per category, so a
+            boda stand is not asked for a graduation intake and a university
+            is not asked for a daily float. Anything filed against a figure
+            that is later switched off stays filed; it stops being asked for. */}
+        {fields.map((field) => (
+          <label key={field.name} className={styles.field}>
+            <span className={styles.label}>
+              {field.label}{field.unit === 'money' ? ' (TZS)' : ''}
+            </span>
+            <input
+              className={styles.input}
+              type="number"
+              min="0"
+              step={field.unit === 'money' ? '1000' : '1'}
+              name={field.name}
+              required={field.key === 'portfolio'}
+              defaultValue={field.value ?? ''}
+            />
+            {field.help ? <span className={styles.help}>{field.help}</span> : null}
+          </label>
+        ))}
 
         <label className={`${styles.field} ${styles.gridWide}`}>
           <span className={styles.label}>Note</span>

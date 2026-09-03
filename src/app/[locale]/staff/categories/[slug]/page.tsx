@@ -6,6 +6,7 @@ import { FoldPanel, Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
 import { BarTable } from '@/components/staff/Charts';
 import { AddCategoryLoanType, DeleteCategory } from '@/components/staff/CategoryForms';
+import { CategoryMetrics, type MetricOption } from '@/components/staff/CategoryMetrics';
 import { StationForm } from '@/components/staff/StationForms';
 import { ImportForm } from '@/components/staff/ImportForm';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
@@ -24,6 +25,29 @@ export const metadata: Metadata = {
 };
 
 /** What the category can be ranked and charted by. */
+/* The cards cycle through the tones rather than each having one assigned:
+   the set is chosen by the bank now, so there is no fixed list to colour. */
+const CARD_TONES = ['teal', 'green', 'gold', 'pink', 'ink'] as const;
+
+/** Metrics the station ranking below can sort by, keyed by metric. */
+const RANKABLE: Record<string, string | undefined> = {
+  accounts_opened: 'accounts',
+  portfolio: 'people',
+  deposits_tzs: 'deposits',
+  loans_value_tzs: 'loans',
+  simbanking_activated: 'simbanking',
+  lipa_hapa_registered: 'lipahapa',
+};
+
+interface TrackedMetric {
+  metric_id: string;
+  key: string;
+  label: string;
+  unit: 'count' | 'money' | 'percent';
+  total: number;
+  reporting: number;
+}
+
 const MEASURES = {
   accounts: { label: 'Accounts opened', kind: 'count' as const },
   people: { label: 'People in the portfolio', kind: 'count' as const },
@@ -87,7 +111,7 @@ export default async function CategoryPage({
   const stations = (stationRows as unknown as StationRow[]) ?? [];
   const ids = stations.map((s) => s.id);
 
-  const [latestRes, loanTypesRes] = await Promise.all([
+  const [latestRes, loanTypesRes, trackedRes, allMetricsRes] = await Promise.all([
     ids.length
       ? supabase.from('station_latest' as never).select('*').in('station_id', ids)
       : Promise.resolve({ data: [] }),
@@ -96,7 +120,30 @@ export default async function CategoryPage({
       .or(`category_id.eq.${category.id},category_id.is.null`)
       .eq('is_active', true)
       .order('display_order', { ascending: true }),
+    /* Summed in Postgres over every institution in the category. The totals
+       above it were reduced in JavaScript from the thousand rows this page
+       had loaded, so a category with sixteen thousand primary schools was
+       reporting the figures of one thousand of them. */
+    supabase.from('category_metric_totals' as never)
+      .select('metric_id, key, label, unit, total, reporting, display_order')
+      .eq('category_id', category.id)
+      .order('display_order', { ascending: true }),
+    supabase.from('metrics' as never)
+      .select('id, key, label, unit, column_name')
+      .eq('is_active', true)
+      .order('column_name', { ascending: true, nullsFirst: true })
+      .order('label', { ascending: true }),
   ]);
+
+  const tracked = (trackedRes.data as unknown as TrackedMetric[]) ?? [];
+
+  const allMetrics: MetricOption[] = ((allMetricsRes.data as unknown as {
+    id: string; key: string; label: string;
+    unit: 'count' | 'money' | 'percent'; column_name: string | null;
+  }[]) ?? []).map((m) => ({
+    id: m.id, key: m.key, label: m.label, unit: m.unit,
+    builtIn: m.column_name !== null,
+  }));
 
   const { data: branchData } = await supabase
     .from('branches' as never)
@@ -114,32 +161,6 @@ export default async function CategoryPage({
   const latest = new Map(
     ((latestRes.data as unknown as StationLatest[]) ?? []).map((r) => [r.station_id, r]),
   );
-
-  const totals = [...latest.values()].reduce(
-    (acc, r) => ({
-      portfolio: acc.portfolio + Number(r.portfolio ?? 0),
-      accounts: acc.accounts + Number(r.accounts_opened ?? 0),
-      active: acc.active + Number(r.active_accounts ?? 0),
-      dormant: acc.dormant + Number(r.dormant_accounts ?? 0),
-      deposits: acc.deposits + Number(r.deposits_tzs ?? 0),
-      loans: acc.loans + Number(r.loans_value_tzs ?? 0),
-      loanCount: acc.loanCount + Number(r.loans_count ?? 0),
-      simbanking: acc.simbanking + Number(
-        (r as unknown as { simbanking_activated?: number }).simbanking_activated ?? 0),
-      cards: acc.cards + Number(
-        (r as unknown as { cards_issued?: number }).cards_issued ?? 0),
-      lipaHapa: acc.lipaHapa + Number(
-        (r as unknown as { lipa_hapa_registered?: number }).lipa_hapa_registered ?? 0),
-    }),
-    {
-      portfolio: 0, accounts: 0, active: 0, dormant: 0, deposits: 0, loans: 0,
-      loanCount: 0, simbanking: 0, cards: 0, lipaHapa: 0,
-    },
-  );
-
-  const coverage = totals.portfolio > 0
-    ? Math.round((totals.accounts / totals.portfolio) * 1000) / 10
-    : null;
 
   const valueOf = (station: StationRow) => {
     const l = latest.get(station.id);
@@ -182,99 +203,59 @@ export default async function CategoryPage({
         <Link href={`/${locale}/staff/categories`} className={styles.link}>← All categories</Link>
       }
     >
+      {/* The cards this category tracks — its own set, not a fixed nine.
+          A university and a boda stand do not measure the same things, and
+          the bank decides which is which in Settings. Adding one there makes
+          it appear here and on the filing form, which is what lets the set
+          grow without a deploy. */}
       <div className={styles.metrics}>
-        <MetricCard
-          tone="teal"
-          label={`${noun[0].toUpperCase()}${noun.slice(1)} in the portfolio`}
-          value={count(totals.portfolio, locale)}
-          note={`${count(stations.length, locale)} stations`}
-        />
-        <MetricCard
-          tone="green"
-          label="Accounts opened"
-          value={count(totals.accounts, locale)}
-          note={coverage === null ? 'No portfolio reported' : `${coverage}% coverage`}
-        />
-        <MetricCard
-          tone="gold"
-          label="Deposits mobilised"
-          value={money(totals.deposits, locale, true)}
-          note={totals.loans > 0 ? `${money(totals.loans, locale, true)} in loans` : 'No loans reported'}
-        />
-        <MetricCard
-          tone="pink"
-          label="Active accounts"
-          value={count(totals.active, locale)}
-          note={
-            totals.accounts > 0
-              ? `${Math.round((totals.active / totals.accounts) * 1000) / 10}% of what was opened`
-              : 'Nothing opened yet'
-          }
-        />
-        <MetricCard
-          tone="ink"
-          label="Dormant accounts"
-          value={count(totals.dormant, locale)}
-          note={
-            totals.accounts > 0
-              ? `${Math.round((totals.dormant / totals.accounts) * 1000) / 10}% gone quiet — the number to attack`
-              : 'Nothing opened yet'
-          }
-        />
+        {tracked.length === 0 ? (
+          <p className={styles.sub}>
+            This category is not tracking anything yet.{' '}
+            <Link href={`/${locale}/staff/categories`} className={styles.link}>
+              Choose what it tracks
+            </Link>.
+          </p>
+        ) : (
+          tracked.map((metric, i) => (
+            <MetricCard
+              key={metric.metric_id}
+              tone={CARD_TONES[i % CARD_TONES.length]}
+              label={metric.label}
+              value={
+                metric.unit === 'money'
+                  ? money(Number(metric.total), locale, true)
+                  : metric.unit === 'percent'
+                    ? `${Math.round(Number(metric.total) * 10) / 10}%`
+                    : count(Number(metric.total), locale)
+              }
+              note={
+                metric.reporting > 0
+                  ? `${count(metric.reporting, locale)} filed`
+                  : 'Nothing filed yet'
+              }
+              href={RANKABLE[metric.key]
+                ? `/${locale}/staff/categories/${category.slug}?by=${RANKABLE[metric.key]}`
+                : undefined}
+              hint={RANKABLE[metric.key] ? 'Rank stations by it' : undefined}
+            />
+          ))
+        )}
       </div>
 
-      {/* The three channels, for this category alone. An account opened at a
-          bodaboda stand and never activated on SimBanking is a number on a
-          form, not a customer — and until these were carried per category
-          there was no way to tell which kind of place that happens in. */}
-      <div className={styles.metrics}>
-        <MetricCard
-          tone="teal"
-          label="SimBanking activated"
-          value={count(totals.simbanking, locale)}
-          note={
-            totals.accounts > 0
-              ? `${Math.round((totals.simbanking / totals.accounts) * 1000) / 10}% of the accounts opened here`
-              : 'Nothing opened yet'
-          }
-          href={`/${locale}/staff/categories/${category.slug}?by=simbanking`}
-          hint="Rank stations by it"
-        />
-        <MetricCard
-          tone="green"
-          label="Lipa Hapa registered"
-          value={count(totals.lipaHapa, locale)}
-          note={
-            totals.accounts > 0
-              ? `${Math.round((totals.lipaHapa / totals.accounts) * 1000) / 10}% of the accounts opened here`
-              : 'Nothing opened yet'
-          }
-          href={`/${locale}/staff/categories/${category.slug}?by=lipahapa`}
-          hint="Rank stations by it"
-        />
-        <MetricCard
-          tone="gold"
-          label="Cards issued"
-          value={count(totals.cards, locale)}
-          note={
-            totals.accounts > 0
-              ? `${Math.round((totals.cards / totals.accounts) * 1000) / 10}% of the accounts opened here`
-              : 'Nothing opened yet'
-          }
-        />
-        <MetricCard
-          tone="pink"
-          label="Loans given"
-          value={count(totals.loanCount, locale)}
-          note={
-            totals.loans > 0
-              ? `${money(totals.loans, locale, true)} lent`
-              : 'No loans reported in this category'
-          }
-          href={`/${locale}/staff/categories/${category.slug}?by=loans`}
-          hint="Rank stations by value"
-        />
-      </div>
+      {session.role === 'hq' ? (
+        <FoldPanel
+          title="What this category tracks"
+          count={tracked.length}
+          note="Changes the cards above, and the form its stations file"
+        >
+          <CategoryMetrics
+            categoryId={category.id}
+            all={allMetrics}
+            chosen={tracked.map((t) => t.metric_id)}
+          />
+        </FoldPanel>
+      ) : null}
 
       <FoldPanel
         title={`Stations ranked by ${MEASURES[measure].label.toLowerCase()}`}

@@ -22,6 +22,14 @@ import {
 import { resolveLocale } from '@/lib/page';
 import styles from '../../staff.module.css';
 
+/* The ten that are columns on `station_reports`. Anything else the bank
+   tracks is filed against the report instead, and submitted under `m_<id>`. */
+const BUILT_IN_KEYS = new Set([
+  'portfolio', 'accounts_opened', 'active_accounts', 'dormant_accounts',
+  'deposits_tzs', 'loans_count', 'loans_value_tzs', 'simbanking_activated',
+  'cards_issued', 'lipa_hapa_registered',
+]);
+
 export const metadata: Metadata = {
   title: 'Station — Konekt tracker',
   robots: { index: false, follow: false },
@@ -36,11 +44,14 @@ export const metadata: Metadata = {
  */
 export default async function StationPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; id: string }>;
+  searchParams: Promise<{ chart?: string }>;
 }) {
   const { locale } = await resolveLocale(params as Promise<{ locale: string }>);
   const { id } = await params;
+  const { chart } = await searchParams;
   const session = await getStaffSession();
   const supabase = await getServerClient();
   const nav = staffNav(locale, STAFF_LABELS);
@@ -86,7 +97,7 @@ export default async function StationPage({
   // category in Settings; this is where that scoping finally has an effect.
   // A type with no category is a CRDB product offered everywhere and stays on
   // every station's list.
-  const [accountTypes, loanTypes, scopeRes] = await Promise.all([
+  const [accountTypes, loanTypes, scopeRes, trackedRes] = await Promise.all([
     supabase.from('account_products' as never)
       .select('code, label_en, label_sw')
       .eq('is_active', true)
@@ -97,6 +108,12 @@ export default async function StationPage({
       .order('display_order', { ascending: true }),
     supabase.from('product_categories' as never)
       .select('kind, product_code, category_id').limit(5000),
+    /* What this station's category tracks. The filing form is generated from
+       it, so a category that does not track loans does not ask about them. */
+    supabase.from('category_metric_totals' as never)
+      .select('metric_id, key, label, unit, help, display_order')
+      .eq('category_id', station.category_id)
+      .order('display_order', { ascending: true }),
   ]);
 
   // Which types this station may file against.
@@ -135,8 +152,43 @@ export default async function StationPage({
   const branch = branchData as unknown as
     { id: string; name: string; zone_code: string | null } | null;
 
+  /* The filing form's boxes. A built-in figure keeps its own column name, so
+     the action that saves it does not change; anything the bank added since
+     is submitted as `m_<id>` and stored per report. */
+  const BUILT_IN_HELP: Record<string, string> = {
+    portfolio: 'The denominator for coverage.',
+    accounts_opened: 'Total ever opened here, not just this month.',
+    dormant_accounts: 'Active plus dormant cannot exceed accounts opened.',
+    simbanking_activated: 'Of the accounts here, how many switched it on.',
+  };
+
+  const trackedFields = ((trackedRes.data as unknown as {
+    metric_id: string; key: string; label: string;
+    unit: 'count' | 'money' | 'percent'; help: string | null;
+  }[]) ?? []).map((m) => ({
+    key: m.key,
+    name: BUILT_IN_KEYS.has(m.key) ? m.key : `m_${m.metric_id}`,
+    label: m.label,
+    unit: m.unit,
+    help: m.help ?? BUILT_IN_HELP[m.key] ?? null,
+  }));
+
   const newest = reports[0];
   const previous = reports[1];
+
+  /* Whatever was filed against the added metrics on the newest report, so
+     correcting a month shows what is already there rather than blanks. */
+  const filedValues = new Map<string, number>();
+  if (newest) {
+    const { data: valueRows } = await supabase
+      .from('station_report_values' as never)
+      .select('metric_id, value')
+      .eq('report_id', newest.id);
+    for (const row of (valueRows as unknown as
+      { metric_id: string; value: number }[]) ?? []) {
+      filedValues.set(`m_${row.metric_id}`, Number(row.value));
+    }
+  }
 
   // The split for the newest month only. Older months keep theirs, and it
   // shows in the history table; editing one is a matter of correcting that
@@ -182,6 +234,15 @@ export default async function StationPage({
 
   // Oldest first for the chart; the table below reads newest first.
   const series = reports.slice().reverse();
+
+  /* Which figure the run of periods is drawn for. The choice is in the URL
+     rather than in a dropdown, so a branch officer can send somebody the
+     chart they are looking at rather than the page it lives on. Only the
+     figures this category tracks are offered — and only the ones that are
+     columns, since an added figure is filed per report and has no run yet. */
+  const CHARTABLE = trackedFields.filter((f) => BUILT_IN_KEYS.has(f.key));
+  const drawn = CHARTABLE.find((f) => f.key === chart) ?? CHARTABLE.find(
+    (f) => f.key === 'deposits_tzs') ?? CHARTABLE[0];
   const label = (period: string) =>
     formatPeriod(period, locale).replace(/\s\d{4}$/, '');
 
@@ -250,15 +311,37 @@ export default async function StationPage({
       </div>
 
       <div className={styles.split}>
-        <Panel
-          title="Deposits over time"
-        >
-          <BarChart
-            points={series.map((r) => ({ label: label(r.period_month), value: Number(r.deposits_tzs) }))}
-            title={`Deposits mobilised at ${station.name}`}
-            format={(v) => money(v, locale, true)}
-            tone="teal"
-          />
+        <Panel title={drawn ? `${drawn.label} over time` : 'Over time'}>
+          {CHARTABLE.length > 1 ? (
+            <nav className={styles.measureBar} aria-label="Draw">
+              <span className={styles.measureLabel}>Draw</span>
+              {CHARTABLE.map((field) => (
+                <Link
+                  key={field.key}
+                  href={`/${locale}/staff/stations/${station.id}?chart=${field.key}`}
+                  className={field.key === drawn?.key ? styles.measureOn : styles.measureOff}
+                  aria-current={field.key === drawn?.key ? 'true' : undefined}
+                  scroll={false}
+                >
+                  {field.label}
+                </Link>
+              ))}
+            </nav>
+          ) : null}
+
+          {drawn ? (
+            <BarChart
+              points={series.map((r) => ({
+                label: label(r.period_month),
+                value: Number((r as unknown as Record<string, number | null>)[drawn.key] ?? 0),
+              }))}
+              title={`${drawn.label} at ${station.name}`}
+              format={(v) => (drawn.unit === 'money' ? money(v, locale, true) : count(v, locale))}
+              tone="teal"
+            />
+          ) : (
+            <PanelEmpty>This category is not tracking anything to draw.</PanelEmpty>
+          )}
         </Panel>
 
         <Panel
@@ -286,6 +369,12 @@ export default async function StationPage({
         title={newest ? 'File or correct a month' : 'File the first month'}
       >
         <ReportForm
+          fields={trackedFields.map((f) => ({
+            ...f,
+            value: BUILT_IN_KEYS.has(f.key) && newest
+              ? (newest as unknown as Record<string, number | null>)[f.key] ?? ''
+              : filedValues.get(f.name) ?? '',
+          }))}
           stationId={station.id}
           defaultKind={(station as unknown as { reporting_kind?: 'daily' | 'weekly' | 'monthly' }).reporting_kind ?? 'monthly'}
           months={reports.map((r) => r.period_month.slice(0, 7))}

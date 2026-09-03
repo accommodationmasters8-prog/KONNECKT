@@ -258,11 +258,37 @@ export async function saveReport(_prev: ActionResult, form: FormData): Promise<A
 
   if (error) return { ok: false, message: error.message };
 
+  const reportId = (data as unknown as { id: string } | null)?.id;
+
+  /* Anything the bank added to this category since the build. The ten
+     built-in figures are columns above; these arrive as `m_<metric id>` and
+     are stored against the report, which is what lets a new figure cost a row
+     rather than a migration. */
+  const added: { report_id: string; metric_id: string; value: number }[] = [];
+  for (const [field, raw] of form.entries()) {
+    if (!field.startsWith('m_')) continue;
+    const metricId = field.slice(2);
+    const text = String(raw).trim();
+    if (text === '') continue;
+    const value = Number(text.replace(/,/g, ''));
+    if (!Number.isFinite(value)) {
+      return { ok: false, message: 'Every figure has to be a number.' };
+    }
+    if (reportId) added.push({ report_id: reportId, metric_id: metricId, value });
+  }
+
+  if (added.length > 0) {
+    const { error: valueError } = await gate.supabase
+      .from('station_report_values' as never)
+      .upsert(added as never, { onConflict: 'report_id,metric_id' });
+    if (valueError) return { ok: false, message: valueError.message };
+  }
+
   revalidatePath('/', 'layout');
   return {
     ok: true,
     message: `${WORDING[kind]} beginning ${start} saved.`,
-    id: (data as unknown as { id: string } | null)?.id,
+    id: reportId,
   };
 }
 
