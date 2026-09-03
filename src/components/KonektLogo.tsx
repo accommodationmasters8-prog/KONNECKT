@@ -54,7 +54,7 @@ export const LOGO_CHEVRON = 'M150 37 L20 150 L150 263 L150 205 L78 150 L150 95 Z
 /**
  * The official artwork.
  *
- * `public/brand/konekt-official.svg` is the mark, and every logo in the product
+ * `public/brand/konekt-official.png` is the mark, and every logo in the product
  * renders through this one component: the nav, both auth screens, the console
  * rail, the footer, the printed reports and the empty states. Replacing that
  * one file replaces all of them — no code change, no second copy to keep in

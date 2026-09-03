@@ -145,6 +145,11 @@ async function main() {
 
   await writeFile(path.join(OUT, 'icon.svg'), markSvg());
 
+  /* NOTE: the product's logo is public/brand/konekt-official.png — the supplied
+   artwork. What this script draws is the older reconstruction, kept only for
+   the square app icons, where the shape is the chevron alone and reads the
+   same. It is not the logo and must not be treated as its source. The share
+   card is rendered from the real file, not from here. */
   await writeFile(path.join(BRAND, 'konekt-logo.svg'), logoSvg());
   await writeFile(path.join(BRAND, 'konekt-wordmark.svg'), logoSvg({ parent: false }));
   await writeFile(path.join(BRAND, 'konekt-mark.svg'), markSvg());
