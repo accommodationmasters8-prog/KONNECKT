@@ -62,8 +62,15 @@ export async function recordEngagement(
 
   const categoryId = String(form.get('category_id') ?? '').trim();
 
+  /* Empty when the visit was to somewhere not on the register — which is
+     allowed, and is why the institution is still stored as text. When it is
+     set, the visit hangs off the institution and rolls up with it instead of
+     being a name that happens to look like one. */
+  const stationId = String(form.get('station_id') ?? '').trim();
+
   const { error } = await supabase.from('engagements' as never).insert({
     institution,
+    station_id: stationId || null,
     branch_id: branchId,
     category_id: categoryId || null,
     engaged_on: engagedOn,

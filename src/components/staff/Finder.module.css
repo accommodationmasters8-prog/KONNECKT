@@ -1,0 +1,132 @@
+.wrap { position: relative; display: grid; gap: var(--space-2xs); min-inline-size: 0; }
+
+.label {
+  font-size: var(--size-nano);
+  font-weight: var(--weight-semibold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding-inline: var(--space-sm);
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.field:focus-within { border-color: var(--konekt-teal); }
+
+.icon { flex: none; color: var(--text-muted); }
+
+.input {
+  flex: 1 1 auto;
+  min-inline-size: 0;
+  min-block-size: 40px;
+  border: 0;
+  background: none;
+  color: var(--text-strong);
+  font: inherit;
+  font-size: var(--size-body);
+}
+
+.input:focus { outline: none; }
+.input::placeholder { color: var(--text-muted); }
+/* The browser's own clear button is a second, differently-styled control in
+   the middle of ours. */
+.input::-webkit-search-cancel-button { appearance: none; }
+
+/* A quiet pulse while an answer is on its way. Not a spinner: the list is
+   still usable and a spinner would say it is not. */
+.working {
+  flex: none;
+  inline-size: 6px;
+  block-size: 6px;
+  border-radius: 50%;
+  background: var(--konekt-teal);
+  animation: finderPulse 900ms var(--ease-out) infinite;
+}
+
+@keyframes finderPulse {
+  0%, 100% { opacity: 0.25; }
+  50%      { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .working { animation: none; opacity: 0.6; }
+}
+
+.list {
+  position: absolute;
+  inset-block-start: calc(100% + 4px);
+  inset-inline: 0;
+  z-index: var(--z-sticky);
+  margin: 0;
+  padding: var(--space-2xs);
+  list-style: none;
+  max-block-size: 20rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-pop, 0 14px 36px rgb(0 0 0 / 14%));
+  animation: finderIn var(--dur-fast) var(--ease-out);
+}
+
+@keyframes finderIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list { animation: none; }
+}
+
+.hit {
+  inline-size: 100%;
+  display: grid;
+  gap: 1px;
+  padding: 7px var(--space-xs);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+/* One highlight, driven by the keyboard cursor — hover sets the same cursor,
+   so the mouse and the arrow keys can never disagree about which row is
+   about to be taken. */
+.hitOn { background: var(--surface-sunken); }
+
+.hitName {
+  color: var(--text-strong);
+  font-size: var(--size-caption);
+  font-weight: var(--weight-semibold);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hitWhere {
+  color: var(--text-muted);
+  font-size: var(--size-nano);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.none, .hint {
+  margin: 0;
+  padding: var(--space-sm) var(--space-xs);
+  color: var(--text-muted);
+  font-size: var(--size-caption);
+}
+
+.hint { padding-inline: 0; }

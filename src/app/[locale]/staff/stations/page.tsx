@@ -3,11 +3,12 @@ import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
+import { Finder } from '@/components/staff/Finder';
 import { staffNav, STAFF_LABELS } from '@/lib/staff-nav';
 import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
 import {
-  count, formatPeriod, getCategories, getStationLatest, getStations, money,
+  count, currentPeriod, formatPeriod, getCategories, money,
 } from '@/lib/tracker';
 import { localeParams, resolveLocale } from '@/lib/page';
 import styles from '../staff.module.css';
@@ -21,12 +22,29 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+interface Row {
+  id: string;
+  name: string;
+  category_id: string;
+  district_name: string | null;
+  address: string | null;
+  portfolio: number | null;
+  last_report_month: string | null;
+}
+
 /**
- * Every station in scope, with where it stands.
+ * Find an institution.
  *
- * The list is deliberately a table rather than cards: this is the screen a
- * branch officer opens to find the one place they need to update, and forty
- * cards is forty things to read before finding it.
+ * This screen used to be the register printed out: the first thousand names
+ * in alphabetical order, in a table, to be scrolled. With twenty-one thousand
+ * institutions on the register that is not a slow way to find one — past
+ * roughly "K" it is not a way to find one at all, because the answer was
+ * never on the page.
+ *
+ * So the search is the screen. Under it are the only two lists worth keeping
+ * standing: what has not been filed this period, which is work, and what was
+ * touched most recently, which is where somebody probably left off. Both are
+ * short on purpose. Everything else is a keyword away.
  */
 export default async function StationsPage({
   params,
@@ -36,33 +54,44 @@ export default async function StationsPage({
   const { locale } = await resolveLocale(params);
   const session = await getStaffSession();
   const supabase = await getServerClient();
+  const period = currentPeriod();
 
-  const [stations, latest, categories] = await Promise.all([
-    getStations(),
-    getStationLatest(),
-    getCategories(),
-  ]);
-
-  let branches: { id: string; name: string }[] = [];
-  if (supabase && session.signedIn && session.role !== 'branch') {
-    const { data } = await supabase
-      .from('branches' as never)
-      .select('id, name')
-      .eq('is_active', true)
-      .order('name', { ascending: true })
-      .limit(300);
-    branches = (data as unknown as { id: string; name: string }[]) ?? [];
-  }
-
+  const categories = await getCategories();
   const categoryName = new Map(categories.map((c) => [c.id, c.name_en]));
-  const thisMonth = new Date().toISOString().slice(0, 7);
 
-  const reported = stations.filter(
-    (s) => s.last_report_month?.slice(0, 7) === thisMonth,
-  ).length;
+  /* Counts come from the views, which sum in Postgres. They used to be
+     `stations.length` over whatever the thousand-row query returned, so this
+     screen has been reporting a thousand institutions and the deposits of a
+     thousand institutions for as long as the register has been bigger than
+     that. */
+  const [countsRes, totalsRes, dueRes, recentRes] = supabase && session.signedIn
+    ? await Promise.all([
+        supabase.from('station_counts' as never).select('*').maybeSingle(),
+        supabase.from('overview_totals' as never).select('*').maybeSingle(),
+        supabase.from('stations' as never)
+          .select('id, name, category_id, district_name, address, portfolio, last_report_month')
+          .eq('status', 'active')
+          .or(`last_report_month.is.null,last_report_month.neq.${period}`)
+          .order('last_report_month', { ascending: true, nullsFirst: true })
+          .order('name', { ascending: true })
+          .limit(25),
+        supabase.from('stations' as never)
+          .select('id, name, category_id, district_name, address, portfolio, last_report_month')
+          .not('last_report_month', 'is', null)
+          .order('updated_at', { ascending: false })
+          .limit(10),
+      ])
+    : [null, null, null, null];
 
-  const totalPortfolio = [...latest.values()].reduce((n, r) => n + Number(r.portfolio ?? 0), 0);
-  const totalDeposits = [...latest.values()].reduce((n, r) => n + Number(r.deposits_tzs ?? 0), 0);
+  const counts = (countsRes?.data ?? {}) as Record<string, unknown>;
+  const totals = (totalsRes?.data ?? {}) as Record<string, unknown>;
+  const n = (v: unknown) => Number(v ?? 0);
+
+  const due = (dueRes?.data as unknown as Row[]) ?? [];
+  const recent = (recentRes?.data as unknown as Row[]) ?? [];
+
+  const tracked = n(counts.stations);
+  const reported = n(counts.reported_this_period);
 
   return (
     <StaffShell
@@ -92,87 +121,108 @@ export default async function StationsPage({
         </Panel>
       ) : (
         <>
+          <Panel title="Search">
+            <Finder
+              autoFocus
+              label="Institution"
+              placeholder="Type a name, a district or a region"
+              href={(station) => `/${locale}/staff/stations/${station.id}`}
+            />
+          </Panel>
+
           <div className={styles.metrics}>
-            <MetricCard tone="teal" label="Stations tracked" value={count(stations.length, locale)}
-              note={`${count(stations.filter((s) => s.status === 'active').length, locale)} active`} />
+            <MetricCard tone="teal" label="Stations tracked" value={count(tracked, locale)}
+              note={`${count(n(counts.active_stations), locale)} active`} />
             <MetricCard tone="green" label="Reported this month" value={count(reported, locale)}
-              note={reported === stations.length ? 'All in' : `${stations.length - reported} outstanding`} />
-            <MetricCard tone="gold" label="People covered" value={count(totalPortfolio, locale)}
+              note={n(counts.due_this_period) === 0
+                ? 'All in'
+                : `${count(n(counts.due_this_period), locale)} outstanding`} />
+            <MetricCard tone="gold" label="People covered" value={count(n(totals.portfolio), locale)}
               note="Sum of the newest report per station" />
-            <MetricCard tone="ink" label="Deposits mobilised" value={money(totalDeposits, locale, true)}
+            <MetricCard tone="ink" label="Deposits mobilised"
+              value={money(n(totals.deposits_tzs), locale, true)}
               note="Newest report per station" />
           </div>
 
-          <Panel
-            title="Every station you can reach"
-          >
-            {stations.length === 0 ? (
-              <PanelEmpty>
-                Nothing tracked yet. Add the first station below — an
-                institution, organisation, school or group your branch works
-                with.
-              </PanelEmpty>
+          <Panel title="Waiting on a report">
+            {due.length === 0 ? (
+              <PanelEmpty>Every station in your scope has filed this period.</PanelEmpty>
             ) : (
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th scope="col">Station</th>
-                      <th scope="col">Category</th>
-                      <th scope="col" className={styles.num}>People</th>
-                      <th scope="col" className={styles.num}>Accounts</th>
-                      <th scope="col" className={styles.num}>Coverage</th>
-                      <th scope="col" className={styles.num}>Deposits</th>
-                      <th scope="col">Last report</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stations.map((station) => {
-                      const l = latest.get(station.id);
-                      const isCurrent = station.last_report_month?.slice(0, 7) === thisMonth;
-                      return (
-                        <tr key={station.id}>
-                          <th scope="row">
-                            <Link href={`/${locale}/staff/stations/${station.id}`} className={styles.link}>
-                              {station.name}
-                            </Link>
-                            <span className={styles.sub}>
-                              {station.district_name ?? station.address ?? '—'}
-                            </span>
-                          </th>
-                          <td>{categoryName.get(station.category_id) ?? '—'}</td>
-                          <td className={styles.num}>
-                            {station.portfolio === null ? '—' : count(station.portfolio, locale)}
-                          </td>
-                          <td className={styles.num}>
-                            {l ? count(l.accounts_opened, locale) : '—'}
-                          </td>
-                          <td className={styles.num}>
-                            {l?.coverage_pct === null || l === undefined ? '—' : `${l.coverage_pct}%`}
-                          </td>
-                          <td className={styles.num}>
-                            {l ? money(Number(l.deposits_tzs), locale, true) : '—'}
-                          </td>
-                          <td>
-                            {station.last_report_month ? (
-                              <span className={isCurrent ? styles.chipActive : styles.chip}>
-                                {formatPeriod(station.last_report_month, locale)}
-                              </span>
-                            ) : (
-                              <span className={styles.chipWarn}>never</span>
-                            )}
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <StationTable
+                rows={due}
+                locale={locale}
+                categoryName={categoryName}
+                period={period}
+              />
             )}
           </Panel>
 
+          <Panel title="Filed most recently">
+            {recent.length === 0 ? (
+              <PanelEmpty>Nothing has been filed yet.</PanelEmpty>
+            ) : (
+              <StationTable
+                rows={recent}
+                locale={locale}
+                categoryName={categoryName}
+                period={period}
+              />
+            )}
+          </Panel>
         </>
       )}
     </StaffShell>
+  );
+}
+
+function StationTable({
+  rows, locale, categoryName, period,
+}: {
+  rows: Row[];
+  locale: string;
+  categoryName: Map<string, string>;
+  period: string;
+}) {
+  return (
+    <div className={styles.tableWrap}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th scope="col">Station</th>
+            <th scope="col">Category</th>
+            <th scope="col" className={styles.num}>People</th>
+            <th scope="col">Last report</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((station) => (
+            <tr key={station.id}>
+              <th scope="row">
+                <Link href={`/${locale}/staff/stations/${station.id}`} className={styles.link}>
+                  {station.name}
+                </Link>
+                <span className={styles.sub}>
+                  {station.district_name ?? station.address ?? '—'}
+                </span>
+              </th>
+              <td>{categoryName.get(station.category_id) ?? '—'}</td>
+              <td className={styles.num}>
+                {station.portfolio === null ? '—' : count(station.portfolio, locale)}
+              </td>
+              <td>
+                {station.last_report_month ? (
+                  <span className={station.last_report_month === period
+                    ? styles.chipActive : styles.chip}>
+                    {formatPeriod(station.last_report_month, locale)}
+                  </span>
+                ) : (
+                  <span className={styles.chipWarn}>never</span>
+                )}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 }

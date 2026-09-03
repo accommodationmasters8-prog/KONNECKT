@@ -1,6 +1,7 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useState } from 'react';
+import { Finder } from '@/components/staff/Finder';
 import { recordEngagement, type EngagementResult } from './actions';
 import styles from './engagements.module.css';
 
@@ -21,13 +22,29 @@ export function EngagementForm({
 
   const today = new Date().toISOString().slice(0, 10);
 
+  /* Picking an institution fills in what the register already knows about it.
+     Typing a school's name and then being asked which category it is, when the
+     register has said so since it was loaded, is the console making somebody
+     do its work. Both stay editable: the register is not always right, and a
+     visit can be to somewhere not on it at all. */
+  const [categoryId, setCategoryId] = useState('');
+  const [branchId, setBranchId] = useState('');
+
   return (
     <form action={action} className={styles.form}>
       <div className={styles.row}>
-        <label className={styles.field} style={{ gridColumn: 'span 2' }}>
-          <span>Institution</span>
-          <input name="institution" required maxLength={200} autoComplete="off" />
-        </label>
+        <div className={styles.field} style={{ gridColumn: 'span 2' }}>
+          <Finder
+            name="station_id"
+            textName="institution"
+            label="Institution"
+            placeholder="Type a name — or a place that is not on the register yet"
+            onPick={(station) => {
+              setCategoryId(station?.category_id ?? '');
+              if (!fixedBranch) setBranchId(station?.branch_id ?? '');
+            }}
+          />
+        </div>
 
         <label className={styles.field}>
           <span>Date</span>
@@ -39,7 +56,12 @@ export function EngagementForm({
         ) : (
           <label className={styles.field}>
             <span>Branch</span>
-            <select name="branch_id" required defaultValue="">
+            <select
+              name="branch_id"
+              required
+              value={branchId}
+              onChange={(e) => setBranchId(e.target.value)}
+            >
               <option value="" disabled>Pick one</option>
               {branches.map((b) => (
                 <option key={b.id} value={b.id}>{b.name}</option>
@@ -50,7 +72,11 @@ export function EngagementForm({
 
         <label className={styles.field}>
           <span>Category</span>
-          <select name="category_id" defaultValue="">
+          <select
+            name="category_id"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
+          >
             <option value="">—</option>
             {categories.map((c) => (
               <option key={c.id} value={c.id}>{c.name_en}</option>

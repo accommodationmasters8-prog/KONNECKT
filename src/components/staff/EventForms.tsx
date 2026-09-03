@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState } from 'react';
+import { Finder } from './Finder';
 import {
   saveEvent, addEventImage, removeEventImage, type ActionResult,
 } from '@/app/[locale]/staff/events/actions';
@@ -55,6 +56,12 @@ export function EventForm({
   const [state, formAction, pending] = useActionState(saveEvent, INITIAL);
   const editing = Boolean(event?.id);
 
+  /* Only needed to show the name of an already-linked station while editing;
+     finding a different one goes through the search. */
+  const initialStation = event?.station_id
+    ? { id: event.station_id, name: stations.find((s) => s.id === event.station_id)?.name ?? '' }
+    : null;
+
   return (
     <form action={formAction} className={styles.form}>
       {event?.id ? <input type="hidden" name="id" value={event.id} /> : null}
@@ -103,16 +110,20 @@ export function EventForm({
             placeholder="Town, district" />
         </label>
 
-        <label className={styles.field}>
-          <span className={styles.label}>At which station</span>
-          <select className={styles.select} name="station_id" defaultValue={event?.station_id ?? ''}>
-            <option value="">Not at a tracked station</option>
-            {stations.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-          </select>
+        <div className={styles.field}>
+          {/* Was a dropdown of whatever stations the page had loaded, which on
+              a register of twenty-one thousand is a dropdown that does not
+              contain the one you want. */}
+          <Finder
+            name="station_id"
+            label="At which station"
+            placeholder="Type a name — leave empty if it is not at a tracked one"
+            initial={initialStation}
+          />
           <span className={styles.help}>
             Linking it means this event shows up in that station&rsquo;s story.
           </span>
-        </label>
+        </div>
 
         <label className={styles.field}>
           <span className={styles.label}>Category</span>
