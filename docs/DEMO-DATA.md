@@ -13,6 +13,7 @@ Last regenerated 3 September 2026.
 | Institutions | 21,685 from the registers | 638 informal-sector ones (below) |
 | Branches | 252, from the branch register | their zone assignment (below) |
 | Reports | — | 52,182, across 8,378 institutions |
+| Filed against added figures | — | 13,740 |
 | Visits | — | 3,528, one run per branch |
 | Events | — | 772, two to four per branch |
 
@@ -25,6 +26,27 @@ Reports run monthly from April to September 2026, plus twelve weeks of weekly
 filing for the boda stands and barbershops — the two categories whose
 `reporting_kind` is `weekly`, which is what makes the reports screen's
 "filed as" filter show anything.
+
+## What each category tracks
+
+The ten built-in figures are columns on `station_reports` and every category
+starts out tracking all ten. Seven more were added to show what the feature is
+for — a figure that belongs to one kind of place and not another:
+
+| Category | Also tracks |
+|---|---|
+| Universities | Graduating this year, Campus staff |
+| Bodaboda | Riders in the stand, Daily float |
+| Hospitals | Health workers |
+| Content creators | Followers reached |
+| Mawinga, Vinyozi | Chairs |
+
+Two categories were also narrowed, so the screens genuinely differ rather than
+every category quietly tracking everything: the salons and barbershops do not
+track cards issued or loan value, and the creators do not track loans or
+dormancy. All of it is editable at HQ → Categories → the category → **What
+this category tracks**, and the figures filed against a metric survive it
+being switched off.
 
 ## The markers
 
@@ -52,6 +74,12 @@ delete from konekt.station_reports where note like 'Sample figure%';
 delete from konekt.engagements   where notes like 'DEMO%';
 delete from konekt.stations      where notes like 'DEMO %';
 ```
+
+Values filed against the added figures go with the reports they belong to —
+`station_report_values` cascades from `station_reports`. The *definitions* do
+not: `metrics` and `category_metrics` are the bank's configuration, not sample
+data, and clearing figures should not throw away the decision about what to
+measure.
 
 Events first: an event's station reference is `on delete set null` rather
 than a cascade, so clearing stations first would leave the demo events behind
