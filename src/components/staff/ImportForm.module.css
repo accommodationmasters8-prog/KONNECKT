@@ -206,7 +206,10 @@
 }
 
 .tagAdd { background: var(--konekt-mist); color: var(--konekt-teal-deep); }
-.tagUpdate { background: color-mix(in srgb, var(--metric-gold-from) 18%, var(--surface-raised)); color: var(--metric-gold-from); }
+/* Gold cannot carry its own label — it is 2.2:1 on white — so the
+   update tag borrows the status-chip pair, which was measured for exactly
+   this: 6.93:1 of brown on pale yellow. */
+.tagUpdate { background: var(--chip-warn-bg); color: var(--chip-warn-ink); }
 .tagSkip { background: color-mix(in srgb, var(--metric-pink-to) 12%, var(--surface-raised)); color: var(--metric-pink-to); }
 
 .reportList {

@@ -36,6 +36,8 @@
 .fill { display: block; block-size: 100%; background: var(--konekt-teal); }
 
 .pct { font-size: var(--size-caption); color: var(--text-body); font-variant-numeric: tabular-nums; }
-.go { color: var(--konekt-teal); }
+/* The -deep variants, not the brand values: brand teal is 2.87:1 on a white
+   card and brand green 2.81:1, so neither may carry text here. */
+.go { color: var(--text-accent); }
 
-.tick { color: var(--konekt-green); font-weight: var(--weight-bold); }
+.tick { color: var(--konekt-green-deep); font-weight: var(--weight-bold); }

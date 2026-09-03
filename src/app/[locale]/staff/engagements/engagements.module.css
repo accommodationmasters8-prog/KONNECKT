@@ -27,5 +27,7 @@
 
 .actions { display: flex; align-items: center; gap: var(--space-sm); flex-wrap: wrap; }
 
-.ok { color: var(--konekt-green); font-size: var(--size-caption); }
-.bad { color: var(--konekt-pink); font-size: var(--size-caption); }
+/* The -deep variants: these sit on a white card, where brand green is
+   2.81:1 and brand pink 3.78:1. */
+.ok { color: var(--konekt-green-deep); font-size: var(--size-caption); }
+.bad { color: var(--konekt-pink-deep); font-size: var(--size-caption); }

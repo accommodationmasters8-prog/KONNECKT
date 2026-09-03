@@ -487,6 +487,15 @@
   --dark-accent-green: #86D06B;
   --dark-accent-pink:  #F2708C;  /* 5.95:1 on --dark-raised */
 
+  /* The ink metric card is the one that stops working in dark mode. Every
+     other card is a colour on a dark ground; that one IS the dark ground, so
+     on the dark canvas it reads as a hole in the grid rather than a card —
+     and there is no shadow or border to save it, by design. Lifted two steps:
+     1.87:1 against the canvas, so the card has an edge, and paper on the
+     lighter stop is 7.50:1, so the figures on it are unchanged. */
+  --dark-metric-ink-from: #234A42;
+  --dark-metric-ink-to:   #2E5A51;
+
   /* A card that is missing its background is a card that is not there. This
      is the one role the console referred to and the palette never defined. */
   --surface-card: var(--surface-raised);
@@ -523,6 +532,9 @@
     --line-strong:     var(--dark-line-strong);
     --line-app:        var(--dark-line-soft);
     --line-on-inverse: var(--dark-line-strong);
+
+    --metric-ink-from: var(--dark-metric-ink-from);
+    --metric-ink-to:   var(--dark-metric-ink-to);
 
     --series-1: var(--dark-series-1);
     --series-2: var(--dark-series-2);
@@ -563,6 +575,9 @@
   --line-strong:     var(--dark-line-strong);
   --line-app:        var(--dark-line-soft);
   --line-on-inverse: var(--dark-line-strong);
+
+  --metric-ink-from: var(--dark-metric-ink-from);
+  --metric-ink-to:   var(--dark-metric-ink-to);
 
   --series-1: var(--dark-series-1);
   --series-2: var(--dark-series-2);
