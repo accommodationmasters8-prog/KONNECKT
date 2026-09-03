@@ -344,6 +344,14 @@ export async function clearDemoData(_prev: ActionResult): Promise<ActionResult> 
     .like('note', 'Sample figure%');
   if (reportError) return { ok: false, message: reportError.message };
 
+  // Visits carry the same marker. A real one recorded through the form has a
+  // note somebody typed, or none at all, and survives this.
+  const { error: engagementError, count: engagements } = await gate.supabase
+    .from('engagements' as never)
+    .delete({ count: 'exact' })
+    .like('notes', 'DEMO%');
+  if (engagementError) return { ok: false, message: engagementError.message };
+
   const { error: stationError, count: stations } = await gate.supabase
     .from('stations' as never)
     .delete({ count: 'exact' })
@@ -353,7 +361,7 @@ export async function clearDemoData(_prev: ActionResult): Promise<ActionResult> 
   revalidatePath('/', 'layout');
   return {
     ok: true,
-    message: `Cleared ${reports ?? 0} sample reports, ${stations ?? 0} sample stations and ${events ?? 0} sample events. Stations loaded from the register are still here, with nothing filed against them.`,
+    message: `Cleared ${reports ?? 0} reports, ${engagements ?? 0} visits, ${events ?? 0} events and ${stations ?? 0} stations. Institutions loaded from the registers are still here, with nothing filed against them.`,
   };
 }
 

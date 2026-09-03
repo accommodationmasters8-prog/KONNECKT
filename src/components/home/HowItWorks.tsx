@@ -26,7 +26,7 @@ export function HowItWorks({ t }: { locale: Locale; t: Dictionary }) {
         <div className={styles.head}>
           <p className={styles.eyebrow}>{t.how.eyebrow}</p>
           <h2 id="how-title" className={styles.title}>{t.how.title}</h2>
-          <p className={styles.lead}>{t.how.lead}</p>
+          {t.how.lead ? <p className={styles.lead}>{t.how.lead}</p> : null}
         </div>
 
         <ol className={styles.steps}>

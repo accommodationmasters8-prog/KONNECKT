@@ -33,8 +33,7 @@ const en: Dictionary = {
   hero: {
     eyebrow: 'Na CRDB',
     headline: 'Every youth CRDB reaches, station by station.',
-    subline:
-      'Accounts, SimBanking, Lipa Hapa, cards and loans. Recorded where they happen. Read by the branch, the zone and HQ at the same time.',
+    subline: 'Accounts, SimBanking, Lipa Hapa, cards and loans.',
     ctaPrimary: 'Sign in',
     ctaSecondary: 'See the map',
     statZones: 'zones',
@@ -45,23 +44,19 @@ const en: Dictionary = {
   how: {
     eyebrow: 'How it works',
     title: 'Three steps.',
-    lead:
-      'No more spreadsheets by email. Everyone files in one place, and everyone above them sees it as it lands.',
+    lead: '',
     step1Title: 'A branch adds its stations',
-    step1Body:
-      'Every school, campus, barracks, stand or salon the branch works with, filed under its category. Added once, corrected any time.',
+    step1Body: 'Every school, campus, barracks, stand or salon, under its category.',
     step2Title: 'It files the figures',
-    step2Body:
-      'People in the station, accounts opened, active and dormant, deposits mobilised and loans — daily, weekly or monthly, whichever suits. Filing the same period again corrects it rather than adding a second.',
+    step2Body: 'Portfolio, accounts, deposits, SimBanking, Lipa Hapa, loans.',
     step3Title: 'Zone and HQ read it live',
-    step3Body:
-      'A branch sees its own. A zone sees its branches. HQ sees the country. Same figures, same moment.',
+    step3Body: 'Branch, zone, HQ. Same figures, same moment.',
   },
 
   map: {
     eyebrow: 'The map',
     title: 'Eight zones. One network.',
-    lead: 'Every station Konekt tracks, pinned to the region the CRDB register places it in. The figures behind the pins are inside the tracker.',
+    lead: '',
     zoneColumn: 'Zone',
     stationsColumn: 'Stations',
     regionsColumn: 'Regions',
@@ -71,11 +66,9 @@ const en: Dictionary = {
     totalStations: 'stations tracked',
     totalCategories: 'categories',
     totalZones: 'zones',
-    sourceNote:
-      'Counts come straight from CRDB’s own registers, August 2026.',
-    pendingNote:
-      'Stations are grouped by the zone CRDB assigned them. The register carries no coordinates, so each is pinned to the centre of its region until a branch officer confirms a location.',
-    ctaMap: 'The live map opens in the next release',
+    sourceNote: '',
+    pendingNote: '',
+    ctaMap: '',
   },
 
   footer: {
@@ -123,13 +116,11 @@ const en: Dictionary = {
 
   pages: {
     map: {
-      title: 'Eight zones. 252 branches. One network.',
-      lead: 'Every station Konekt tracks, on one map, with the region it sits in and what else is tracked there.',
+      title: 'Eight zones. One network.',
+      lead: '',
       legend: 'Shading shows how many stations the register places in each zone',
-      densityNote:
-        'Every boundary here is real: Natural Earth 1:10m administrative data, all 30 regions, grouped into CRDB’s eight zones.',
-      pinNote:
-        'There are no pins yet, and that is deliberate. Not one record in the CRDB register carries a coordinate. Geocoding runs next, and no pin reaches this map until a branch officer has confirmed it.',
+      densityNote: '',
+      pinNote: 'No coordinates in the register yet — zones are shaded, not pinned.',
       tableCaption: 'Stations and regions by zone, from the CRDB register',
       colZone: 'Zone',
       colStations: 'Stations',

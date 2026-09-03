@@ -50,6 +50,9 @@ function readFields(form: FormData): ParsedEvent {
   const simbanking = num('simbanking_activated');
   const cards = num('cards_issued');
   const lipaHapa = num('lipa_hapa_registered');
+  const accountsActivated = num('accounts_activated');
+  const leadsExpected = num('leads_expected');
+  const leadsGot = num('leads_got');
   const deposits = num('deposits_tzs');
 
   if ([participants, budget, spend, accounts, deposits].some((v) => v !== null && Number.isNaN(v))) {
@@ -79,6 +82,9 @@ function readFields(form: FormData): ParsedEvent {
       budget_tzs: budget,
       actual_spend_tzs: spend,
       accounts_opened: accounts === null ? null : Math.round(accounts),
+      accounts_activated: accountsActivated === null ? 0 : Math.round(accountsActivated),
+      leads_expected: leadsExpected === null ? 0 : Math.round(leadsExpected),
+      leads_got: leadsGot === null ? 0 : Math.round(leadsGot),
       simbanking_activated: simbanking === null ? null : Math.round(simbanking),
       cards_issued: cards === null ? null : Math.round(cards),
       lipa_hapa_registered: lipaHapa === null ? null : Math.round(lipaHapa),

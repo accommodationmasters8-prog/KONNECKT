@@ -21,6 +21,9 @@ export interface EventFields {
   budget_tzs?: number | null;
   actual_spend_tzs?: number | null;
   accounts_opened?: number | null;
+  accounts_activated?: number | null;
+  leads_expected?: number | null;
+  leads_got?: number | null;
   simbanking_activated?: number | null;
   cards_issued?: number | null;
   lipa_hapa_registered?: number | null;
@@ -138,10 +141,27 @@ export function EventForm({
         </label>
 
         <label className={styles.field}>
+          <span className={styles.label}>Leads expected</span>
+          <input className={styles.input} type="number" min="0" name="leads_expected"
+            defaultValue={event?.leads_expected ?? ''} />
+        </label>
+
+        <label className={styles.field}>
+          <span className={styles.label}>Leads got</span>
+          <input className={styles.input} type="number" min="0" name="leads_got"
+            defaultValue={event?.leads_got ?? ''} />
+        </label>
+
+        <label className={styles.field}>
           <span className={styles.label}>Accounts opened</span>
           <input className={styles.input} type="number" min="0" name="accounts_opened"
             defaultValue={event?.accounts_opened ?? ''} />
-          <span className={styles.help}>What the event produced.</span>
+        </label>
+
+        <label className={styles.field}>
+          <span className={styles.label}>Accounts activated</span>
+          <input className={styles.input} type="number" min="0" name="accounts_activated"
+            defaultValue={event?.accounts_activated ?? ''} />
         </label>
 
         <label className={styles.field}>

@@ -149,9 +149,11 @@ export default async function MapPage({
             <h1 className="t-h1" style={{ color: 'var(--text-on-inverse)' }}>
               {t.pages.map.title}
             </h1>
-            <p className="t-lead" style={{ color: 'var(--text-muted-on-inverse)' }}>
-              {t.pages.map.lead}
-            </p>
+            {t.pages.map.lead ? (
+              <p className="t-lead" style={{ color: 'var(--text-muted-on-inverse)' }}>
+                {t.pages.map.lead}
+              </p>
+            ) : null}
           </div>
 
           {/* Zone filter. Links rather than a select, so the choice is in the
@@ -327,21 +329,9 @@ export default async function MapPage({
             </p>
           ) : null}
 
-          {/* The one call to action on a public page. Everything above is
-              geography; the numbers behind it are one sign-in away, and a
-              staff member arriving here from a phone should not have to guess
-              where that is. */}
+          {/* The one call to action on a public page: the figures behind the
+              shading are one sign-in away. */}
           <div className={styles.cta}>
-            <p className="t-h3">
-              {session.signedIn
-                ? 'The figures behind this map are in the tracker.'
-                : 'Staff sign in for the figures behind this map.'}
-            </p>
-            <p className={styles.panelSub}>
-              This page shows where CRDB reaches. What each station has opened,
-              activated and lent is recorded in Konekt, branch by branch, and
-              rolled up to the zone and to HQ.
-            </p>
             <Link
               href={session.signedIn ? `/${locale}/staff` : `/${locale}/staff/sign-in`}
               className="btn btn--primary"
@@ -351,12 +341,7 @@ export default async function MapPage({
           </div>
 
           <div className={styles.notes}>
-            <p className={`t-caption ${styles.note}`}>{t.pages.map.densityNote}</p>
-            <p className={`t-caption ${styles.note}`}>
-              Stations are pinned to the centre of the region recorded for them.
-              No individual station is named on this page.
-            </p>
-            <p className={`t-caption ${styles.note}`}>{t.map.sourceNote}</p>
+            <p className={`t-caption ${styles.note}`}>{t.pages.map.pinNote}</p>
           </div>
         </div>
       </div>

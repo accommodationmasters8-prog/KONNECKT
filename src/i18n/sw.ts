@@ -49,7 +49,7 @@ const sw: Dictionary = {
     eyebrow: 'Inavyofanya kazi',
     title: 'Hatua tatu, mara moja kwa mwezi.',
     lead:
-      'Konekt inachukua nafasi ya majedwali yaliyokuwa yakisafiri kati ya tawi na makao makuu kwa barua pepe. Kila mtu anaingiza mahali pamoja, na walio juu yao wanaona mara moja.',
+      '',
     step1Title: 'Tawi linaongeza vituo vyake',
     step1Body:
       'Kila taasisi, sehemu ya kazi au kikundi ambacho tawi linafanya nacho kazi, chini ya kundi lake. Huongezwa mara moja; hurekebishwa wakati wowote.',
@@ -64,7 +64,7 @@ const sw: Dictionary = {
   map: {
     eyebrow: 'Ramani',
     title: 'Kanda nane. Mtandao mmoja.',
-    lead: 'Kila kituo ambacho Konekt inafuatilia, kimewekwa alama kwenye mkoa ambao daftari la CRDB linakiweka. Takwimu zake zipo ndani ya mfumo.',
+    lead: '',
     zoneColumn: 'Kanda',
     stationsColumn: 'Vituo',
     regionsColumn: 'Mikoa',
@@ -75,10 +75,10 @@ const sw: Dictionary = {
     totalCategories: 'makundi',
     totalZones: 'kanda',
     sourceNote:
-      'Idadi hizi zinatoka moja kwa moja katika daftari za CRDB, Agosti 2026.',
+      '',
     pendingNote:
-      'Vituo vimepangwa kwa kanda ambazo CRDB imeviwekea. Daftari halina viwianishi, hivyo kila kimoja kimewekwa alama katikati ya mkoa wake hadi afisa wa tawi athibitishe mahali.',
-    ctaMap: 'Ramani hai itafunguliwa katika toleo lijalo',
+      '',
+    ctaMap: '',
   },
 
   footer: {
