@@ -378,3 +378,27 @@
 @media (prefers-reduced-motion: reduce) {
   .railToggle svg { transition: none; }
 }
+
+/* --- The rail, tightened ------------------------------------------------
+   Thirteen sections at 44px each, plus the brand, the account block and Sign
+   out, came to more than a laptop viewport: the nav scrolled on every screen
+   and the section you wanted was as often as not below the fold. On a desktop
+   rail the pointer is a mouse, so the 44px touch target is not what is
+   holding the row apart — 34px is comfortable and buys back four rows. The
+   phone layout keeps 44px, because there the pointer really is a thumb.
+   ---------------------------------------------------------------------- */
+@media (min-width: 60rem) {
+  .rail { padding: var(--space-md) var(--space-sm); gap: var(--space-sm); }
+
+  .brandLogo { inline-size: 128px; }
+
+  .navLink,
+  .signOut { min-block-size: 34px; }
+
+  .navIcon { inline-size: 17px; block-size: 17px; }
+
+  .who { padding: var(--space-2xs) var(--space-xs); }
+  .avatar { inline-size: 30px; block-size: 30px; }
+
+  .railFoot { padding-block-start: var(--space-sm); }
+}

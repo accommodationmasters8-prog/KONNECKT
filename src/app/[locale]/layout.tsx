@@ -159,6 +159,12 @@ export default async function LocaleLayout({
     <html
       lang={localeTags[typed]}
       className={`${archivo.variable} ${jakarta.variable}`}
+      /* RailStateScript stamps data-rail on this element before first paint,
+         so the served HTML and the hydrating client necessarily disagree about
+         it. That is the whole point of the script — without it the rail flashes
+         open on every navigation for anyone who collapsed it — so the mismatch
+         is expected and suppressed rather than a bug to chase. */
+      suppressHydrationWarning
     >
       <body>{children}</body>
     </html>

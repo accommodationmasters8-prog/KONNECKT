@@ -52,21 +52,23 @@ export const LOGO_TRI_DOWN = 'M26 192 L96 224 L26 256 Z';
 export const LOGO_CHEVRON = 'M150 37 L20 150 L150 263 L150 205 L78 150 L150 95 Z';
 
 /**
- * The official artwork, if it has been supplied.
+ * The official artwork.
  *
- * Everything below this line is a reconstruction — the wordmark redrawn as
- * outlines from a picture of the logo, because the artwork itself was never in
- * the repository. It is close, and close is not the same file. Drop the real
- * export at `public/brand/konekt-official.svg` and set this to its path, and
- * every logo in the product switches at once: the nav, both auth screens, the
- * console rail, the footer, the printed reports and the empty states all render
- * through this one component.
+ * `public/brand/konekt-official.svg` is the mark, and every logo in the product
+ * renders through this one component: the nav, both auth screens, the console
+ * rail, the footer, the printed reports and the empty states. Replacing that
+ * one file replaces all of them — no code change, no second copy to keep in
+ * step.
  *
- * SVG is the format to supply. A PNG works — change the extension here — but it
- * is the same picture at every size, and this mark is drawn at 24px in the rail
- * and 260px on the sign-in panel.
+ * The fallback below it is the older reconstruction, kept only so the component
+ * still draws something if the file is ever missing.
  */
-const OFFICIAL_ARTWORK: string | null = null;
+const OFFICIAL_ARTWORK: string | null = '/brand/konekt-official.svg';
+
+/* The same mark without the "Na CRDB" line. In the console rail the lockup is
+   about 110px wide, and at that size the parent line is four pixels tall and
+   reads as a smudge — worse than absent. Tight chrome gets this one. */
+const OFFICIAL_ARTWORK_COMPACT = '/brand/konekt-official-compact.svg';
 
 export function KonektLogo({
   /**
@@ -75,12 +77,15 @@ export function KonektLogo({
    * is already in the text beside it.
    */
   label = 'KONEKT Na CRDB',
+  /** Sit the mark on a white plate. For dark surfaces only — see below. */
+  plate = false,
   /** Drop "Na CRDB" and crop to the wordmark. For tight chrome only. */
   parent = true,
   animate = false,
   className,
 }: {
   label?: string;
+  plate?: boolean;
   parent?: boolean;
   animate?: boolean;
   className?: string;
@@ -88,19 +93,27 @@ export function KonektLogo({
   const decorative = label === '';
 
   if (OFFICIAL_ARTWORK) {
+    /* The artwork is drawn for paper: the wordmark is CRDB green and the mark
+       a green-teal, and on the ink surfaces — the sign-in panel, the footer —
+       green on dark green is close to invisible. Recolouring somebody's logo
+       to suit a background is not ours to do, so the background gives instead
+       and the mark sits on a white plate, which is how it appears on CRDB's
+       own dark collateral. */
     // Deliberately a plain <img>, not next/image: the mark appears on every
     // screen at a dozen sizes, and the optimiser would fetch a dozen variants
     // of a file that is already a few kilobytes.
     // eslint-disable-next-line @next/next/no-img-element
-    return (
+    const mark = (
       <img
-        src={OFFICIAL_ARTWORK}
+        src={parent ? OFFICIAL_ARTWORK : OFFICIAL_ARTWORK_COMPACT}
         alt={decorative ? '' : label}
         aria-hidden={decorative ? true : undefined}
-        className={className}
+        className={plate ? styles.plateImage : className}
         draggable={false}
       />
     );
+
+    return plate ? <span className={`${styles.plate} ${className ?? ''}`}>{mark}</span> : mark;
   }
 
   return (

@@ -18,7 +18,7 @@ export function SiteFooter({ locale, t }: { locale: Locale; t: Dictionary }) {
     <footer className={`on-ink ${styles.footer}`}>
       <div className={`shell ${styles.inner}`}>
         {/* Decorative: the line underneath names the bank. */}
-        <KonektLogo label="" className={styles.logo} />
+        <KonektLogo label="" plate className={styles.logo} />
         <p className="t-micro">&copy; {new Date().getFullYear()} CRDB Bank Plc</p>
       </div>
     </footer>

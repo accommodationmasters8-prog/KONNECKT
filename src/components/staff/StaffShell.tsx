@@ -131,7 +131,7 @@ export function StaffShell({
             breathing room. It is the one place in the console that is pure
             brand, so nothing else competes with it in this block. */}
         <Link href={`/${locale}`} className={styles.brand}>
-          <KonektLogo label="KONEKT Na CRDB" className={styles.brandLogo} />
+          <KonektLogo label="KONEKT" parent={false} className={styles.brandLogo} />
           <span className="visually-hidden">Back to the public site</span>
         </Link>
 
