@@ -357,7 +357,9 @@
 .table tbody th { font-weight: 600; color: var(--text-strong); }
 .table tbody td { color: var(--text-muted); }
 
-.cellNo { opacity: 0.5; }
+/* Half-opacity muted text is 2.3:1. A cell that says no is still a cell
+   somebody has to read. */
+.cellNo { color: var(--text-body); }
 
 /* --- callouts ----------------------------------------------------------- */
 

@@ -10,6 +10,10 @@ export interface CardOption {
 
 const STORE = 'konekt.cards';
 
+/** The id of the stylesheet the pre-paint script writes, so the component can
+    take it back down once it owns the state. */
+const BOOT = 'konekt-card-boot';
+
 /**
  * Which of the headline figures this person wants to see.
  *
@@ -41,6 +45,11 @@ export function CardChooser({ options }: { options: CardOption[] }) {
       }
     } catch { /* private browsing, or storage disabled — show everything */ }
     setChosen(next);
+
+    // The pre-paint stylesheet has done its job. Leaving it up would mean a
+    // card the person switches back on stays hidden by a rule React cannot
+    // reach.
+    document.getElementById(BOOT)?.remove();
   }, [options]);
 
   useEffect(() => {
@@ -95,5 +104,33 @@ export function CardChooser({ options }: { options: CardOption[] }) {
         </div>
       </div>
     </details>
+  );
+}
+
+/**
+ * Hides the cards this browser switched off, before the page paints.
+ *
+ * Without this the server sends all nine, they paint, and then the effect
+ * above hides six of them — a full row of figures appearing and vanishing on
+ * every navigation. The rail and the theme both solve this the same way, and
+ * the reasoning is the same: the first frame is the flash.
+ *
+ * It writes a `:not()` rule rather than hiding each card, because the stored
+ * value is the list to keep and the script has no way to know the full set.
+ */
+export function CardStateScript() {
+  return (
+    <script
+      dangerouslySetInnerHTML={{
+        __html:
+          `try{var k=JSON.parse(localStorage.getItem('${STORE}')||'[]');` +
+          `if(Array.isArray(k)&&k.length){` +
+          `var s=document.createElement('style');s.id='${BOOT}';` +
+          `s.textContent='[data-card]:not('+k.map(function(x){` +
+          `return '[data-card=\"'+String(x).replace(/[^a-zA-Z0-9_-]/g,'')+'\"]'` +
+          `}).join(',')+'){display:none!important}';` +
+          `document.head.appendChild(s)}}catch(e){}`,
+      }}
+    />
   );
 }

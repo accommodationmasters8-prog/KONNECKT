@@ -35,6 +35,21 @@
   box-shadow: var(--shadow-pop, 0 12px 32px rgb(0 0 0 / 12%));
   display: grid;
   gap: 1px;
+  /* A popover that appears has to come from somewhere, or the eye reads it as
+     the page having changed rather than as something having opened. 120ms and
+     four pixels is the whole effect — long enough to be seen, short enough
+     that nobody waits for it. */
+  transform-origin: top right;
+  animation: menuIn var(--dur-fast) var(--ease-out);
+}
+
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-4px) scale(0.985); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .menu { animation: none; }
 }
 
 .row {

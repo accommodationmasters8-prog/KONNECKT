@@ -122,13 +122,15 @@
 .foldHint {
   margin-inline-start: auto;
   font-size: var(--size-nano);
-  color: var(--text-body);
+  /* This is the "click to open" hint, so it is the one piece of small print
+     that must not be faded: at 75% opacity it measured about 3.6:1, which is
+     an instruction people cannot read. Muted by colour instead. */
+  color: var(--text-muted);
   white-space: nowrap;
-  opacity: 0.75;
-  transition: opacity var(--dur-fast) var(--ease-out);
+  transition: color var(--dur-fast) var(--ease-out);
 }
 
-.foldHead:hover .foldHint { opacity: 1; }
+.foldHead:hover .foldHint { color: var(--text-accent); }
 
 .hintClose { display: none; }
 

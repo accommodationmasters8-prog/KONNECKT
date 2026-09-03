@@ -5,7 +5,7 @@ import { MetricCard } from '@/components/staff/MetricCard';
 import { BarTable } from '@/components/staff/Charts';
 import { FoldPanel, Panel, PanelEmpty } from '@/components/staff/Panel';
 import { FilingBar } from '@/components/staff/FilingBar';
-import { CardChooser } from '@/components/staff/CardChooser';
+import { CardChooser, CardStateScript } from '@/components/staff/CardChooser';
 import {
   AccountsIcon, CategoriesIcon, EventsIcon, StationsIcon,
 } from '@/components/staff/StaffIcons';
@@ -71,6 +71,7 @@ export default async function TrackerOverview({
       actions={
         session.signedIn ? (
           <>
+          <CardStateScript />
           <CardChooser options={CARDS} />
           <Link
             href={
