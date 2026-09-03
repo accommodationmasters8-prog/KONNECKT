@@ -15,7 +15,7 @@ import { zoneWording } from '@/lib/access-scope';
  * the real one.
  */
 
-export type ReportKind = 'reports' | 'stations' | 'events' | 'branches' | 'event';
+export type ReportKind = 'reports' | 'stations' | 'events' | 'branches' | 'event' | 'engagements';
 
 export interface ReportRequest {
   kind: string;
@@ -26,6 +26,13 @@ export interface ReportRequest {
   category?: string;
   /** One event, in full, with its pictures. */
   eventId?: string;
+  /** daily | weekly | monthly. Empty means every kind. */
+  periodKind?: string;
+  /** Roll the rows up to this level instead of one row per station. */
+  groupBy?: string;
+  /** Column keys to keep, in the order the report defines them. Empty means
+   *  every column — a report nobody has narrowed is the whole thing. */
+  columns?: string[];
 }
 
 export interface EventDossier {
@@ -59,7 +66,31 @@ const KINDS: Record<ReportKind, string> = {
   events: 'Events and KPIs',
   branches: 'Branches and zones',
   event: 'Event report',
+  engagements: 'Engagements and leads',
 };
+
+/**
+ * One column of a report.
+ *
+ * `group` says what happens to it when rows are rolled up: 'sum' adds, 'key'
+ * is what they are grouped by and survives, and anything else disappears
+ * because it has no meaning across a group — averaging a station name is not
+ * a thing, and neither is showing one station's note for forty.
+ */
+interface Column {
+  key: string;
+  label: string;
+  get: (row: Record<string, unknown>) => string | number | null;
+  group?: 'sum' | 'key';
+}
+
+/** Cut a report down to the columns asked for, keeping the report's order. */
+function pick(columns: Column[], wanted?: string[]): Column[] {
+  if (!wanted || wanted.length === 0) return columns;
+  const set = new Set(wanted);
+  const kept = columns.filter((c) => set.has(c.key));
+  return kept.length ? kept : columns;
+}
 
 const money = (n: number) =>
   `TZS ${Math.round(n).toLocaleString('en-TZ')}`;
@@ -70,7 +101,7 @@ const EMPTY: BuiltReport = {
 };
 
 export async function buildReport(req: ReportRequest): Promise<BuiltReport> {
-  const kind = (['reports', 'stations', 'events', 'branches', 'event'] as const)
+  const kind = (['reports', 'stations', 'events', 'branches', 'event', 'engagements'] as const)
     .find((k) => k === req.kind) ?? 'reports';
 
   const supabase = await getServerClient();
@@ -79,7 +110,7 @@ export async function buildReport(req: ReportRequest): Promise<BuiltReport> {
   const [stationRes, branchRes, catRes] = await Promise.all([
     supabase.from('stations' as never)
       .select('id, name, short_name, category_id, branch_id, zone_code, district_name, region_name, status, portfolio, last_report_month, contact_name, contact_phone')
-      .limit(10000),
+      .limit(30000),
     supabase.from('branches' as never).select('id, name, zone_code, is_active, year_established').limit(2000),
     supabase.from('tracker_categories' as never).select('id, name_en').limit(200),
   ]);
@@ -255,52 +286,199 @@ export async function buildReport(req: ReportRequest): Promise<BuiltReport> {
     };
   }
 
-  // Monthly figures.
-  const ids = stations.map((s) => s.id as string);
+  // Engagements — the visits branches booked, and what came of them.
+  if (kind === 'engagements') {
+    let eq = supabase.from('engagements' as never)
+      .select('institution, engaged_on, branch_id, category_id, zone_code, leads_expected, leads_got, accounts_opened, accounts_activated, simbanking_activated, lipa_hapa_registered, deposits_tzs, notes')
+      .order('engaged_on', { ascending: false })
+      .limit(50000);
+
+    if (req.from) eq = eq.gte('engaged_on', req.from);
+    if (req.to) eq = eq.lte('engaged_on', req.to);
+    if (req.zone) eq = eq.eq('zone_code', req.zone);
+    if (req.branch) eq = eq.eq('branch_id', req.branch);
+    if (req.category) eq = eq.eq('category_id', req.category);
+
+    const { data: engData } = await eq;
+    const rows = (engData as unknown as Record<string, unknown>[]) ?? [];
+    const n = (v: unknown) => Number(v ?? 0);
+
+    const columns: Column[] = [
+      { key: 'date', label: 'Date', get: (r) => String(r.engaged_on ?? ''), group: 'key' },
+      { key: 'institution', label: 'Institution', get: (r) => String(r.institution ?? '') },
+      { key: 'branch', label: 'Branch', get: (r) => branchName.get(r.branch_id as string) ?? '', group: 'key' },
+      { key: 'zone', label: 'Zone', get: (r) => (r.zone_code as string) ?? '', group: 'key' },
+      { key: 'category', label: 'Category', get: (r) => catName.get(r.category_id as string) ?? '', group: 'key' },
+      { key: 'expected', label: 'Leads expected', get: (r) => n(r.leads_expected), group: 'sum' },
+      { key: 'got', label: 'Leads got', get: (r) => n(r.leads_got), group: 'sum' },
+      { key: 'conversion', label: 'Conversion %', get: (r) => n(r.leads_expected) > 0
+          ? Math.round((n(r.leads_got) / n(r.leads_expected)) * 1000) / 10 : null },
+      { key: 'opened', label: 'Accounts opened', get: (r) => n(r.accounts_opened), group: 'sum' },
+      { key: 'activated', label: 'Accounts activated', get: (r) => n(r.accounts_activated), group: 'sum' },
+      { key: 'simbanking', label: 'SimBanking', get: (r) => n(r.simbanking_activated), group: 'sum' },
+      { key: 'lipahapa', label: 'Lipa Hapa', get: (r) => n(r.lipa_hapa_registered), group: 'sum' },
+      { key: 'deposits', label: 'Deposits TZS', get: (r) => n(r.deposits_tzs), group: 'sum' },
+      { key: 'note', label: 'Note', get: (r) => (r.notes as string) ?? '' },
+    ];
+
+    const built = shape(rows, columns, req.groupBy, req.columns);
+    const expected = rows.reduce((a, r) => a + n(r.leads_expected), 0);
+    const got = rows.reduce((a, r) => a + n(r.leads_got), 0);
+
+    return {
+      kind, title: KINDS[kind], scope,
+      headers: built.headers, rows: built.rows,
+      summary: [
+        { label: 'Visits', value: rows.length.toLocaleString() },
+        { label: 'Leads expected', value: expected.toLocaleString() },
+        { label: 'Leads got', value: got.toLocaleString() },
+        {
+          label: 'Conversion',
+          value: expected > 0 ? `${Math.round((got / expected) * 1000) / 10}%` : '—',
+        },
+      ],
+    };
+  }
+
+  // Period figures.
+  //
+  // Filtered through an inner join on stations rather than by listing station
+  // ids in the query string. With nineteen thousand institutions on the
+  // register that list is a URL no server will accept, and the report simply
+  // failed rather than coming back short.
   let query = supabase.from('station_reports' as never)
-    .select('station_id, period_month, period_kind, portfolio, accounts_opened, active_accounts, dormant_accounts, simbanking_activated, cards_issued, lipa_hapa_registered, deposits_tzs, loans_count, loans_value_tzs, note')
+    .select('period_month, period_kind, portfolio, accounts_opened, active_accounts, dormant_accounts, simbanking_activated, cards_issued, lipa_hapa_registered, deposits_tzs, loans_count, loans_value_tzs, note, stations!inner(id, name, category_id, branch_id, zone_code)')
     .order('period_month', { ascending: false })
     .limit(50000);
 
-  if (ids.length) query = query.in('station_id', ids);
   if (req.from) query = query.gte('period_month', req.from);
   if (req.to) query = query.lte('period_month', req.to);
+  if (req.periodKind) query = query.eq('period_kind', req.periodKind);
+  if (req.zone) query = query.eq('stations.zone_code', req.zone);
+  if (req.branch) query = query.eq('stations.branch_id', req.branch);
+  if (req.category) query = query.eq('stations.category_id', req.category);
 
-  const { data } = ids.length ? await query : { data: [] };
+  const { data } = await query;
   const reports = (data as unknown as Record<string, unknown>[]) ?? [];
-  const byId = new Map(stations.map((s) => [s.id as string, s]));
+  const st = (r: Record<string, unknown>) =>
+    (r.stations ?? {}) as Record<string, unknown>;
+  const num = (v: unknown) => Number(v ?? 0);
 
-  const deposits = reports.reduce((a, r) => a + Number(r.deposits_tzs ?? 0), 0);
-  const opened = reports.reduce((a, r) => a + Number(r.accounts_opened ?? 0), 0);
+  const columns: Column[] = [
+    { key: 'period', label: 'Period', get: (r) => String(r.period_month ?? ''), group: 'key' },
+    { key: 'covers', label: 'Covers', get: (r) => String(r.period_kind ?? 'monthly'), group: 'key' },
+    { key: 'station', label: 'Station', get: (r) => (st(r).name as string) ?? '' },
+    { key: 'category', label: 'Category', get: (r) => catName.get(st(r).category_id as string) ?? '', group: 'key' },
+    { key: 'branch', label: 'Branch', get: (r) => branchName.get(st(r).branch_id as string) ?? '', group: 'key' },
+    { key: 'zone', label: 'Zone', get: (r) => (st(r).zone_code as string) ?? '', group: 'key' },
+    { key: 'people', label: 'People', get: (r) => num(r.portfolio), group: 'sum' },
+    { key: 'opened', label: 'Accounts opened', get: (r) => num(r.accounts_opened), group: 'sum' },
+    { key: 'active', label: 'Active', get: (r) => num(r.active_accounts), group: 'sum' },
+    { key: 'dormant', label: 'Dormant', get: (r) => num(r.dormant_accounts), group: 'sum' },
+    { key: 'coverage', label: 'Coverage %', get: (r) => num(r.portfolio) > 0
+        ? Math.round((num(r.accounts_opened) / num(r.portfolio)) * 1000) / 10 : null },
+    { key: 'simbanking', label: 'SimBanking', get: (r) => num(r.simbanking_activated), group: 'sum' },
+    { key: 'cards', label: 'Cards', get: (r) => num(r.cards_issued), group: 'sum' },
+    { key: 'lipahapa', label: 'Lipa Hapa', get: (r) => num(r.lipa_hapa_registered), group: 'sum' },
+    { key: 'deposits', label: 'Deposits TZS', get: (r) => num(r.deposits_tzs), group: 'sum' },
+    { key: 'loans', label: 'Loans', get: (r) => num(r.loans_count), group: 'sum' },
+    { key: 'loanvalue', label: 'Loan value TZS', get: (r) => num(r.loans_value_tzs), group: 'sum' },
+    { key: 'note', label: 'Note', get: (r) => (r.note as string) ?? '' },
+  ];
+
+  const built = shape(reports, columns, req.groupBy, req.columns);
+  const deposits = reports.reduce((a, r) => a + num(r.deposits_tzs), 0);
+  const opened = reports.reduce((a, r) => a + num(r.accounts_opened), 0);
 
   return {
     kind, title: KINDS[kind], scope,
-    headers: ['Period', 'Covers', 'Station', 'Category', 'Branch', 'Zone', 'People',
-      'Accounts opened', 'Active', 'Dormant', 'Coverage %', 'SimBanking',
-      'Cards', 'Lipa Hapa', 'Deposits TZS', 'Loans', 'Loan value TZS', 'Note'],
-    rows: reports.map((r) => {
-      const s = byId.get(r.station_id as string) ?? {};
-      const people = Number(r.portfolio ?? 0);
-      const o = Number(r.accounts_opened ?? 0);
-      return [
-        String(r.period_month), String(r.period_kind ?? 'monthly'),
-        (s.name as string) ?? '', catName.get(s.category_id as string) ?? '',
-        branchName.get(s.branch_id as string) ?? '', (s.zone_code as string) ?? '',
-        people, o, (r.active_accounts as number) ?? null,
-        (r.dormant_accounts as number) ?? null,
-        people > 0 ? Math.round((o / people) * 1000) / 10 : null,
-        (r.simbanking_activated as number) ?? null,
-        (r.cards_issued as number) ?? null,
-        (r.lipa_hapa_registered as number) ?? null,
-        (r.deposits_tzs as number) ?? null, (r.loans_count as number) ?? null,
-        (r.loans_value_tzs as number) ?? null, (r.note as string) ?? '',
-      ];
-    }),
+    headers: built.headers,
+    rows: built.rows,
     summary: [
-      { label: 'Rows', value: reports.length.toLocaleString() },
-      { label: 'Stations', value: new Set(reports.map((r) => r.station_id)).size.toLocaleString() },
+      { label: 'Rows', value: built.rows.length.toLocaleString() },
+      { label: 'Stations', value: new Set(reports.map((r) => st(r).id)).size.toLocaleString() },
       { label: 'Accounts opened', value: opened.toLocaleString() },
       { label: 'Deposits', value: money(deposits) },
     ],
+  };
+}
+
+/**
+ * Apply the grouping and the column choice.
+ *
+ * Grouping is a fold on one column's value: every numeric column marked 'sum'
+ * is added up, the columns marked 'key' survive if they are constant within
+ * the group, and everything else is dropped — a station name means nothing
+ * across forty stations, and neither does one of their notes. A derived
+ * column such as coverage is recomputed from the summed columns rather than
+ * averaged, because the average of forty percentages is not a percentage of
+ * anything.
+ */
+function shape(
+  rows: Record<string, unknown>[],
+  columns: Column[],
+  groupBy?: string,
+  wanted?: string[],
+): { headers: string[]; rows: (string | number | null)[][] } {
+  if (!groupBy || groupBy === 'none') {
+    const cols = pick(columns, wanted);
+    return {
+      headers: cols.map((c) => c.label),
+      rows: rows.map((r) => cols.map((c) => c.get(r))),
+    };
+  }
+
+  const keyCol = columns.find((c) => c.key === groupBy);
+  if (!keyCol) {
+    const cols = pick(columns, wanted);
+    return {
+      headers: cols.map((c) => c.label),
+      rows: rows.map((r) => cols.map((c) => c.get(r))),
+    };
+  }
+
+  const sums = columns.filter((c) => c.group === 'sum');
+  const buckets = new Map<string, { key: string | number | null; total: Map<string, number>; n: number }>();
+
+  for (const row of rows) {
+    const k = String(keyCol.get(row) ?? '');
+    let bucket = buckets.get(k);
+    if (!bucket) {
+      bucket = { key: keyCol.get(row), total: new Map(), n: 0 };
+      buckets.set(k, bucket);
+    }
+    bucket.n += 1;
+    for (const c of sums) {
+      bucket.total.set(c.key, (bucket.total.get(c.key) ?? 0) + Number(c.get(row) ?? 0));
+    }
+  }
+
+  // Coverage is the one derived column here, and it is derived again from the
+  // group's own totals rather than carried through the fold.
+  const coverage = (b: { total: Map<string, number> }) => {
+    const people = b.total.get('people') ?? 0;
+    const got = b.total.get('opened') ?? 0;
+    return people > 0 ? Math.round((got / people) * 1000) / 10 : null;
+  };
+
+  const shown = pick(
+    [
+      { key: keyCol.key, label: keyCol.label, get: () => null },
+      { key: '_rows', label: 'Rows', get: () => null },
+      ...columns.filter((c) => c.group === 'sum' || c.key === 'coverage'),
+    ].filter((c, i, all) => all.findIndex((x) => x.key === c.key) === i),
+    wanted && wanted.length ? [keyCol.key, '_rows', ...wanted] : undefined,
+  );
+
+  return {
+    headers: shown.map((c) => c.label),
+    rows: [...buckets.values()]
+      .sort((a, b) => String(a.key).localeCompare(String(b.key)))
+      .map((b) => shown.map((c) => {
+        if (c.key === keyCol.key) return b.key;
+        if (c.key === '_rows') return b.n;
+        if (c.key === 'coverage') return coverage(b);
+        return b.total.get(c.key) ?? 0;
+      })),
   };
 }

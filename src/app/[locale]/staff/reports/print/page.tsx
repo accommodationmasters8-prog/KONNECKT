@@ -30,7 +30,7 @@ export default async function ReportPrintPage({
   searchParams,
 }: {
   params: Promise<{ locale: string }>;
-  searchParams: Promise<Record<string, string | undefined>>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { locale } = await resolveLocale(params);
   const q = await searchParams;
@@ -44,14 +44,21 @@ export default async function ReportPrintPage({
     );
   }
 
+  const one = (v: string | string[] | undefined) => (Array.isArray(v) ? v[0] : v);
+  const many = (v: string | string[] | undefined) =>
+    v === undefined ? [] : Array.isArray(v) ? v : [v];
+
   const report = await buildReport({
-    kind: q.kind ?? 'reports',
-    from: q.from,
-    to: q.to,
-    zone: q.zone,
-    branch: q.branch,
-    category: q.category,
-    eventId: q.event,
+    kind: one(q.kind) ?? 'reports',
+    from: one(q.from),
+    to: one(q.to),
+    zone: one(q.zone),
+    branch: one(q.branch),
+    category: one(q.category),
+    eventId: one(q.event),
+    periodKind: one(q.covers),
+    groupBy: one(q.group),
+    columns: many(q.col),
   });
 
   const dossier = report.dossier;

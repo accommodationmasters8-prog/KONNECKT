@@ -50,6 +50,10 @@ export async function GET(
     branch: q.get('branch') ?? undefined,
     category: q.get('category') ?? undefined,
     eventId: q.get('event') ?? undefined,
+    periodKind: q.get('covers') ?? undefined,
+    groupBy: q.get('group') ?? undefined,
+    // Repeated ?col= parameters, so the URL stays readable and shareable.
+    columns: q.getAll('col'),
   });
 
   const stamp = new Date().toISOString().slice(0, 10);

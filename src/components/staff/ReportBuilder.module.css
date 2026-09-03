@@ -71,3 +71,83 @@
   align-items: center;
   gap: var(--space-md);
 }
+
+/* --- Columns ------------------------------------------------------------
+   Ticking nothing means everything, so the control shows "all" rather than
+   eighteen ticked boxes — the difference matters when you share the URL.
+   ---------------------------------------------------------------------- */
+.columns {
+  border: 1px solid var(--line-app);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+}
+
+.columnsHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  font-size: var(--size-caption);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+  cursor: pointer;
+  list-style: none;
+}
+
+.columnsHead::-webkit-details-marker { display: none; }
+
+.columnsCount {
+  padding: 1px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  color: var(--text-body);
+  font-weight: var(--weight-medium);
+  font-size: var(--size-nano);
+}
+
+.columnsHint {
+  margin-inline-start: auto;
+  font-size: var(--size-nano);
+  font-weight: var(--weight-regular);
+  color: var(--text-body);
+  opacity: 0.75;
+}
+
+.columns[open] .columnsHint { visibility: hidden; }
+
+.columnsBody {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 2px;
+  padding: var(--space-sm) var(--space-md) var(--space-md);
+  border-block-start: 1px solid var(--line-app);
+}
+
+.column {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2xs);
+  padding: 5px 6px;
+  border-radius: var(--radius-sm);
+  font-size: var(--size-caption);
+  color: var(--text-strong);
+  cursor: pointer;
+}
+
+.column:hover { background: var(--surface-sunken); }
+
+.columnsReset {
+  grid-column: 1 / -1;
+  justify-self: start;
+  margin-block-start: var(--space-2xs);
+  padding: 5px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--konekt-teal-deep);
+  font: inherit;
+  font-size: var(--size-caption);
+  cursor: pointer;
+}
+
+.columnsReset:hover { background: var(--surface-sunken); }
