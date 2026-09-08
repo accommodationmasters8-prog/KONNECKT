@@ -124,7 +124,7 @@ a trigger — not a code review comment — and each is exercised by
 | Source attribution is never optional | `source` and `source_reference` are NOT NULL; event- and referral-sourced accounts must name the event or referrer |
 | An account number cannot be recorded twice | `unique` on `accounts_opened.account_number` |
 | Never place an unverified pin on the map | RLS on `locations` restricts anon and authenticated reads to `geocode_status = 'verified'` |
-| A branch user cannot read another zone | `konekt.staff_can_reach()` composed into every scoped policy |
+| A branch user cannot read another zone | Every scoped policy compares the row's zone/branch against `scope_is_hq()`, `scope_zone()` and `scope_branch()` |
 | Nothing publishes unverified | `published_opportunity_is_verified` check |
 | Sponsorship cannot skip due diligence | `approval_requires_due_diligence` check |
 | Maker-checker on campaign send | `maker_is_not_checker` and `sending_requires_approval` checks |
@@ -178,3 +178,53 @@ All four from the build prompt's §3.2, plus a fifth the data made obvious.
    organisational change rather than a data entry.
 5. **Nothing has coordinates.** Geocoding is a first-class workflow with a
    human verification gate, not a script that runs once.
+
+## How a scoped policy is written, and why
+
+Every policy that restricts rows to a signed-in person's scope has the same
+shape:
+
+```sql
+using (
+  (select konekt.scope_is_hq())
+  or zone_code = (select konekt.scope_zone())
+  or branch_id = (select konekt.scope_branch())
+)
+```
+
+The `(select ...)` wrappers are load-bearing. The three helpers take no
+arguments, so wrapped this way Postgres evaluates each **once per query** as an
+InitPlan, and what remains per row is a comparison against a constant.
+
+This replaced `konekt.staff_can_reach(zone_code, branch_id)`, which took the
+row's own columns as arguments — so the planner could not hoist it, and it ran
+once per row, each run querying `staff_users`. On the 21,685-row station table
+that was 21,685 lookups to render one page, and 43,370 where a `FOR ALL` policy
+overlapped a `FOR SELECT` one. Measured on the overview: **6,161 ms**, which was
+the console's five-to-seven second page load. The same query is now 5 ms.
+
+Two rules follow from that, and breaking either brings the seconds back:
+
+1. **Never pass a row's columns to a policy function.** Compare the row against
+   the caller's scope; do not ask a function whether the caller can reach the
+   row.
+2. **Never leave a `FOR ALL` policy on a table that also has a `FOR SELECT`
+   one.** Both apply to reads, and the cost is paid twice. Split writes into
+   `INSERT`/`UPDATE`/`DELETE`.
+
+Each helper returns NULL unless the role actually carries that scope — a branch
+officer's zone is NULL — which is what makes the rewritten predicate exactly
+equivalent to the function it replaced. That equivalence is not assumed: HQ,
+zone and branch each see the same row counts on `stations`, `station_current`,
+`station_reports`, `engagements` and `tracked_events` as they did before.
+
+Two tables carry a copy of the scope they are reached through —
+`station_current` and `station_reports` both hold `zone_code` and `branch_id`,
+stamped by trigger from the station. Without it their policies needed a
+subquery, and the planner answered it by hashing every visible station id
+before it could filter. A station moving branch takes both with it.
+
+`accounts_opened`, `campaigns`, `deposit_submissions`, `members` and
+`submissions` still use the old per-row function. All five are empty, so it
+costs nothing today — but they need the same treatment before anything is
+written to them.

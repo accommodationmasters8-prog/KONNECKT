@@ -14,7 +14,7 @@ Last regenerated 3 September 2026.
 | Branches | 252, from the branch register | their zone assignment (below) |
 | Reports | — | 52,182, across 8,378 institutions |
 | Filed against added figures | — | 13,740 |
-| Visits | — | 3,528, one run per branch |
+| Visits | — | 3,528, one run per branch — 988 of them attached to the event they came out of |
 | Events | — | 772, two to four per branch |
 
 The generated institutions are the ones no national register lists: boda
