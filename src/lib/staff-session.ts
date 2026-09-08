@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { getServerClient } from '@/lib/supabase/server';
 import type { StaffUser } from '@/components/staff/StaffShell';
 import type { StaffRole } from '@/lib/supabase/types';
@@ -33,7 +34,7 @@ const NOT_SIGNED_IN: StaffSession = {
 };
 
 /**
- * Who is using the console, resolved once per request.
+ * Who is using the console, resolved once per request — and now actually once.
  *
  * The role comes from `konekt.staff_users`, read under the user's own session,
  * so a forged cookie cannot promote anyone: the row is only visible if RLS
@@ -45,39 +46,39 @@ const NOT_SIGNED_IN: StaffSession = {
  * session rather than throwing, so the console still renders the public
  * register instead of a 500.
  */
-export async function getStaffSession(): Promise<StaffSession> {
+export const getStaffSession = cache(async (): Promise<StaffSession> => {
   const supabase = await getServerClient();
   if (!supabase) return NOT_SIGNED_IN;
 
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth?.user) return NOT_SIGNED_IN;
+  /* One round trip, not two.
+   *
+   * This used to call `auth.getUser()` — a request to the auth server — and
+   * then query `staff_users` with the id it came back with. Two network hops,
+   * one after the other, before a page could start fetching anything it was
+   * actually for.
+   *
+   * `my_staff_profile()` resolves the row from `auth.uid()` inside the
+   * database, which reads it from the JWT the database has already verified
+   * on this connection. So the identity is still checked against a signature
+   * rather than trusted from a cookie — it is checked in the one place that
+   * was always going to check it, instead of in two places in series. A
+   * forged cookie fails the database's own verification and returns nothing.
+   */
+  const { data } = await supabase.rpc('my_staff_profile' as never);
 
-  // Filtered on the auth id, not just limited to one row. `staff_self_read`
-  // lets an HQ user see every staff row, so an unfiltered `limit(1)` would
-  // hand them whichever row the planner returned first — someone else's role,
-  // someone else's scope. The policy is not the filter here; this is.
-  const { data } = await supabase
-    .from('staff_users' as never)
-    .select('id, role, full_name, email, zone_code, branch_id')
-    .eq('auth_user_id', auth.user.id)
-    .maybeSingle();
-
-  const staff = data as {
+  const staff = (Array.isArray(data) ? data[0] : data) as {
     id: string;
     role: StaffRole;
     full_name: string | null;
     email: string | null;
     zone_code: string | null;
     branch_id: string | null;
-  } | null;
+  } | null | undefined;
 
-  if (!staff) {
-    // Authenticated, but not a staff user. That is not an error and must not
-    // read as one: they simply see what any visitor sees.
-    return {
-      ...NOT_SIGNED_IN,
-      scopeLabel: 'Signed in, but this account is not a staff user',
-    };
+  if (!staff?.id) {
+    // Either nobody is signed in, or they are but they are not staff. Both
+    // see what any visitor sees, and neither is an error.
+    return NOT_SIGNED_IN;
   }
 
   // Stamp when this account was last using the console.
@@ -98,8 +99,8 @@ export async function getStaffSession(): Promise<StaffSession> {
     zone: staff.zone_code ?? null,
     branchId: staff.branch_id ?? null,
     user: {
-      name: staff.full_name || staff.email || auth.user.email || 'Staff user',
-      email: staff.email ?? auth.user.email ?? undefined,
+      name: staff.full_name || staff.email || 'Staff user',
+      email: staff.email ?? undefined,
     },
     scopeLabel:
       staff.role === 'hq'
@@ -108,4 +109,4 @@ export async function getStaffSession(): Promise<StaffSession> {
           ? `${staff.zone_code.replace(/_/g, ' ')} zone`
           : 'Branch scope',
   };
-}
+});

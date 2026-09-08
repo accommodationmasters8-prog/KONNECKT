@@ -7,7 +7,7 @@ import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
 import { count, money } from '@/lib/tracker';
 import { localeParams, resolveLocale } from '@/lib/page';
-import { EngagementForm } from './EngagementForm';
+import { EngagementsPanel, type EngagementRow } from './EngagementsPanel';
 import styles from '../staff.module.css';
 
 export function generateStaticParams() {
@@ -19,11 +19,19 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/* The shape the list and the correction form share. `tracked_events` is
+   embedded rather than fetched separately and joined here: one round trip
+   instead of two, and no chance of the two lists disagreeing about which
+   event a visit belongs to. */
 interface Row {
   id: string;
   institution: string;
   engaged_on: string;
   branch_id: string;
+  station_id: string | null;
+  category_id: string | null;
+  event_id: string | null;
+  notes: string | null;
   leads_expected: number;
   leads_got: number;
   accounts_opened: number;
@@ -31,6 +39,7 @@ interface Row {
   simbanking_activated: number;
   lipa_hapa_registered: number;
   deposits_tzs: number;
+  tracked_events: { name: string } | null;
 }
 
 /**
@@ -52,24 +61,34 @@ export default async function EngagementsPage({
   let rows: Row[] = [];
   let branches: { id: string; name: string }[] = [];
   let categories: { id: string; name_en: string }[] = [];
+  let events: { id: string; name: string; event_date: string }[] = [];
   let totals = { bookings: 0, leads_expected: 0, leads_got: 0, accounts_opened: 0,
     accounts_activated: 0, simbanking_activated: 0, lipa_hapa_registered: 0, deposits_tzs: 0 };
 
   if (supabase && session.signedIn) {
-    const [listRes, totalRes, branchRes, catRes] = await Promise.all([
+    const [listRes, totalRes, branchRes, catRes, eventRes] = await Promise.all([
       supabase.from('engagements' as never)
-        .select('id, institution, engaged_on, branch_id, leads_expected, leads_got, accounts_opened, accounts_activated, simbanking_activated, lipa_hapa_registered, deposits_tzs')
+        .select('id, institution, engaged_on, branch_id, station_id, category_id, event_id, notes, leads_expected, leads_got, accounts_opened, accounts_activated, simbanking_activated, lipa_hapa_registered, deposits_tzs, tracked_events(name)')
         .order('engaged_on', { ascending: false })
         .limit(200),
       supabase.from('engagement_totals' as never).select('*').maybeSingle(),
       supabase.from('branches' as never).select('id, name').eq('is_active', true)
         .order('name').limit(500),
       supabase.from('tracker_categories' as never).select('id, name_en').order('name_en'),
+      /* Events a visit can be attached to. Most recent first and capped:
+         a picker is a list somebody reads, and this year's activations are
+         what a visit being recorded today belongs to. */
+      supabase.from('tracked_events' as never)
+        .select('id, name, event_date')
+        .order('event_date', { ascending: false })
+        .limit(200),
     ]);
     rows = (listRes.data as unknown as Row[]) ?? [];
     if (totalRes.data) totals = { ...totals, ...(totalRes.data as typeof totals) };
     branches = (branchRes.data as unknown as { id: string; name: string }[]) ?? [];
     categories = (catRes.data as unknown as { id: string; name_en: string }[]) ?? [];
+    events = (eventRes.data as unknown as
+      { id: string; name: string; event_date: string }[]) ?? [];
   }
 
   const branchName = new Map(branches.map((b) => [b.id, b.name] as const));
@@ -114,54 +133,32 @@ export default async function EngagementsPage({
               value={n(totals.deposits_tzs) === 0 ? '—' : money(n(totals.deposits_tzs), locale, true)} />
           </div>
 
-          <FoldPanel title="Record a visit" open={rows.length === 0}>
-            <EngagementForm
-              branches={branches}
-              categories={categories}
-              fixedBranch={session.role === 'branch' ? session.branchId : null}
-            />
-          </FoldPanel>
-
-          <Panel title="Visits" >
-            {rows.length === 0 ? (
-              <PanelEmpty>None recorded.</PanelEmpty>
-            ) : (
-              <div className={styles.tableWrap}>
-                <table className={styles.table}>
-                  <thead>
-                    <tr>
-                      <th scope="col">Institution</th>
-                      <th scope="col">Branch</th>
-                      <th scope="col">Date</th>
-                      <th scope="col" className={styles.num}>Expected</th>
-                      <th scope="col" className={styles.num}>Got</th>
-                      <th scope="col" className={styles.num}>Accounts</th>
-                      <th scope="col" className={styles.num}>SimBanking</th>
-                      <th scope="col" className={styles.num}>Lipa Hapa</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {rows.map((r) => (
-                      <tr key={r.id}>
-                        <th scope="row">{r.institution}</th>
-                        <td>{branchName.get(r.branch_id) ?? '—'}</td>
-                        <td>
-                          {new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', {
-                            day: 'numeric', month: 'short', year: 'numeric',
-                          }).format(new Date(r.engaged_on))}
-                        </td>
-                        <td className={styles.num}>{count(n(r.leads_expected), locale)}</td>
-                        <td className={styles.num}>{count(n(r.leads_got), locale)}</td>
-                        <td className={styles.num}>{count(n(r.accounts_opened), locale)}</td>
-                        <td className={styles.num}>{count(n(r.simbanking_activated), locale)}</td>
-                        <td className={styles.num}>{count(n(r.lipa_hapa_registered), locale)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </Panel>
+          <EngagementsPanel
+            rows={rows.map((r): EngagementRow => ({
+              id: r.id,
+              institution: r.institution,
+              station_id: r.station_id,
+              branch_id: r.branch_id,
+              category_id: r.category_id,
+              event_id: r.event_id,
+              engaged_on: r.engaged_on,
+              notes: r.notes,
+              leads_expected: n(r.leads_expected),
+              leads_got: n(r.leads_got),
+              accounts_opened: n(r.accounts_opened),
+              accounts_activated: n(r.accounts_activated),
+              simbanking_activated: n(r.simbanking_activated),
+              lipa_hapa_registered: n(r.lipa_hapa_registered),
+              deposits_tzs: n(r.deposits_tzs),
+              event_name: r.tracked_events?.name ?? null,
+            }))}
+            branches={branches}
+            categories={categories}
+            events={events}
+            fixedBranch={session.role === 'branch' ? session.branchId : null}
+            branchName={Object.fromEntries(branchName)}
+            locale={locale}
+          />
         </>
       )}
     </StaffShell>
