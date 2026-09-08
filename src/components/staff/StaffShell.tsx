@@ -27,6 +27,12 @@ export interface StaffNavItem {
   label: string;
   /** Roles that may see this panel at all. */
   roles: StaffRole[];
+  /**
+   * Which block of the rail it belongs to. `work` is the tracker and stays
+   * open all day; `admin` is gone to on purpose and left again, so it sits
+   * quieter, tighter and at the foot.
+   */
+  group: 'work' | 'admin';
 }
 
 export interface StaffUser {
@@ -118,6 +124,8 @@ export function StaffShell({
   children: ReactNode;
 }) {
   const visible = nav.filter((item) => item.roles.includes(role));
+  const work = visible.filter((item) => item.group === 'work');
+  const admin = visible.filter((item) => item.group === 'admin');
   const today = new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', {
     weekday: 'long',
     day: 'numeric',
@@ -150,31 +158,26 @@ export function StaffShell({
           </Link>
         )}
 
+        {/* Prefetched, deliberately. These are the console's whole navigation
+            and every one of them renders on the server, so with prefetch off
+            each click paid for a cold round trip before anything moved. They
+            are a dozen links and all of them are in the viewport, which is
+            exactly the case prefetching is for. */}
         <nav className={styles.nav} aria-label="Console sections">
-          {visible.map((item) => {
-            const Icon = ICONS[item.key];
-            return (
-              <Link
-                key={item.key}
-                href={item.href}
-                /* Prefetched, deliberately. These ten links are the console's
-                   whole navigation and every one of them renders on the
-                   server, so with prefetch off each click paid for a cold
-                   round trip before anything moved. There are ten of them and
-                   they are all in the viewport, which is exactly the case
-                   prefetching is for. */
-                className={styles.navLink}
-                aria-current={active === item.key ? 'page' : undefined}
-                title={item.label}
-              >
-                <Icon className={styles.navIcon} />
-                <span className={styles.navLabel}>{item.label}</span>
-              </Link>
-            );
-          })}
+          {work.map((item) => (
+            <NavLink key={item.key} item={item} active={active} />
+          ))}
         </nav>
 
         <div className={styles.railFoot}>
+          {admin.length > 0 ? (
+            <nav className={styles.navQuiet} aria-label="Administration">
+              {admin.map((item) => (
+                <NavLink key={item.key} item={item} active={active} quiet />
+              ))}
+            </nav>
+          ) : null}
+
           {/* Appearance and collapse sit on one line. They are the two least
               used controls in the rail and they were taking two full rows of
               it, which is space the navigation wanted. */}
@@ -208,5 +211,33 @@ export function StaffShell({
         <main className={styles.panelBody}>{children}</main>
       </div>
     </div>
+  );
+}
+
+/**
+ * One row of the rail.
+ *
+ * `quiet` is the foot of the rail: same row, shorter, smaller icon, lighter
+ * ink. It reads as secondary without being hidden, which is the point — an
+ * HQ administrator still needs Access and Settings, just not every minute.
+ */
+function NavLink({
+  item, active, quiet = false,
+}: {
+  item: StaffNavItem;
+  active: StaffSection;
+  quiet?: boolean;
+}) {
+  const Icon = ICONS[item.key];
+  return (
+    <Link
+      href={item.href}
+      className={quiet ? styles.navLinkQuiet : styles.navLink}
+      aria-current={active === item.key ? 'page' : undefined}
+      title={item.label}
+    >
+      <Icon className={quiet ? styles.navIconQuiet : styles.navIcon} />
+      <span className={styles.navLabel}>{item.label}</span>
+    </Link>
   );
 }

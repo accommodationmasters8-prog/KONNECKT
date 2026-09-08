@@ -183,3 +183,55 @@ Two developer scripts are not gates but are worth knowing about:
 `scripts/dev/measure.sh` (clean rebuild + Lighthouse, with a guard that aborts
 if the page would be measured unstyled) and `scripts/dev/lcp-probe.mjs` (real
 browser LCP under real throttling).
+
+---
+
+## Where the console's page time actually goes
+
+The console was reported as taking five to six seconds a page — overview,
+categories and performance alike — after the row-policy work below had already
+taken the queries themselves down to double-digit milliseconds. Both facts are
+true at once, and the gap between them is not in the database and not in the
+data fetching.
+
+Measured, on the live project:
+
+| Query, as an authenticated HQ session | Time |
+| --- | --- |
+| `overview_totals` | 5–21 ms |
+| `monthly_totals` | 26–59 ms |
+| `category_metric_totals` | 31–37 ms |
+| `zone_scoreboard` | 96 ms |
+| `branch_scoreboard` | 40 ms |
+| session lookup (`my_staff_profile`) | 2 ms |
+| station keyword search | 44 ms |
+
+The overview is also already shaped as tightly as it can be: two sequential
+waits, `getStaffSession()` and then eleven queries in one `Promise.all`. There
+is no third wave to remove and no query left worth optimising.
+
+**The database is in `eu-west-1` (Ireland). The application had no region
+pinned**, so Vercel placed its functions in the account's default region — for
+most accounts `iad1`, Washington DC. Every one of those eleven queries was
+therefore a transatlantic HTTPS request: roughly 80–100 ms per round trip
+before the query runs at all, and a connection that has to be opened pays TCP
+and TLS on top, which is two further round trips each. Eleven of them in
+parallel do not cost eleven times that, but they do open several connections,
+and a cold function pays the whole bill at once. That is how 50 ms of database
+work arrives as five seconds of page.
+
+`vercel.json` now pins `"regions": ["dub1"]` — Dublin, the same place as
+`eu-west-1`. The round trip goes from ~90 ms to ~2 ms, and the handshakes stop
+mattering.
+
+Two things this does not fix, and both need doing in the Vercel dashboard
+rather than in this repository:
+
+- **The region only applies to new deployments.** It has to be redeployed
+  before anything changes, and promoted to production rather than left on a
+  preview URL.
+- **Cold starts are separate.** A function that has not been hit recently pays
+  its own start-up regardless of region. It shows up as the first page after a
+  quiet period being slow and every page after it being fast — which is a
+  different symptom from *every* page being slow, and worth telling apart
+  before chasing it.

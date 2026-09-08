@@ -162,33 +162,62 @@
     gap: var(--space-2xs);
   }
   .nav::-webkit-scrollbar { display: none; }
-  .navLink { white-space: nowrap; }
+  .navLink,
+  .navLinkQuiet { white-space: nowrap; }
+
+  .navQuiet {
+    display: flex;
+    flex-direction: row;
+    overflow-x: auto;
+    scrollbar-width: none;
+    gap: var(--space-2xs);
+  }
+  .navQuiet::-webkit-scrollbar { display: none; }
 }
 
-.navLink {
+.navLink,
+.navLinkQuiet {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  min-block-size: 44px;
   padding-inline: var(--space-sm);
   border-radius: var(--radius-md);
   color: var(--text-body);
   text-decoration: none;
-  font-size: var(--size-caption);
   font-weight: var(--weight-medium);
   transition: background-color var(--dur-fast) var(--ease-out),
               color var(--dur-fast) var(--ease-out);
 }
 
+/* 38px, not 44. The pointer target is still the full width of the rail — a
+   250px-wide row is not a small target at any height — and the seven work
+   rows plus the six quiet ones plus the brand, the name and the foot have to
+   come inside one laptop screen without scrolling. At 44 they did not. */
+.navLink {
+  min-block-size: 38px;
+  font-size: var(--size-caption);
+}
+
+/* The foot block. Shorter and lighter, so it reads as somewhere you go on
+   purpose rather than as six more sections competing with the work above. */
+.navLinkQuiet {
+  min-block-size: 30px;
+  font-size: var(--size-nano);
+  color: var(--text-muted);
+}
+
 .navIcon { inline-size: 20px; block-size: 20px; flex: none; }
+.navIconQuiet { inline-size: 15px; block-size: 15px; flex: none; opacity: 0.85; }
 
 .navLabel { min-inline-size: 0; }
 
-.navLink:hover { background: var(--surface-sunken); color: var(--text-strong); }
+.navLink:hover,
+.navLinkQuiet:hover { background: var(--surface-sunken); color: var(--text-strong); }
 
 /* The active section is a filled pill rather than a marker in the margin:
    at a glance, from across a desk, fill reads and a 5px triangle does not. */
-.navLink[aria-current='page'] {
+.navLink[aria-current='page'],
+.navLinkQuiet[aria-current='page'] {
   background: var(--fill-accent);
   color: var(--text-on-inverse);
   font-weight: var(--weight-semibold);
@@ -197,9 +226,18 @@
 /* Separated from the sections by a rule, because leaving is a different kind
    of action from navigating and should not read as the eleventh item in a list
    of ten. */
+.navQuiet {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-block-end: var(--space-2xs);
+  margin-block-end: var(--space-2xs);
+  border-block-end: 1px solid var(--line-app);
+}
+
 .railFoot {
   margin-block-start: auto;
-  padding-block-start: var(--space-md);
+  padding-block-start: var(--space-sm);
   border-block-start: 1px solid var(--line-app);
   display: grid;
   gap: 2px;
@@ -214,7 +252,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  min-block-size: 44px;
+  min-block-size: 38px;
   padding-inline: var(--space-sm);
   border: 0;
   border-radius: var(--radius-md);
@@ -313,6 +351,7 @@
   }
 
   :global(html[data-rail='collapsed']) .navLink,
+  :global(html[data-rail='collapsed']) .navLinkQuiet,
   :global(html[data-rail='collapsed']) .signOut {
     justify-content: center;
     padding-inline: 0;

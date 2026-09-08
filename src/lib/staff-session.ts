@@ -23,8 +23,20 @@ export interface StaffSession {
   branchId: string | null;
 }
 
+/**
+ * Nobody is signed in.
+ *
+ * The role is `branch` — the least any account has — and not `hq`. Nothing
+ * here is a security boundary: every page checks `signedIn` before it fetches,
+ * and the row policies would return nothing to an anonymous caller in any
+ * case. But the rail is drawn from the role, so an `hq` default meant a
+ * stranger who opened /staff was shown Access, Settings, Activity and Import
+ * by name. That tells them the shape of the administration surface for no
+ * reason at all, and on a bank's console the default should be the smallest
+ * thing that works, not the largest.
+ */
 const NOT_SIGNED_IN: StaffSession = {
-  role: 'hq',
+  role: 'branch',
   user: null,
   scopeLabel: 'Not signed in — showing register figures only',
   signedIn: false,
