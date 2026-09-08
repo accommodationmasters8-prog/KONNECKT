@@ -13,9 +13,14 @@
    and an overview that needs scrolling to be seen is not an overview. 10.5rem
    fits five across at 1280px and four at 1024, so the set lands in two rows on
    both. */
+/* auto-fill, not auto-fit. With auto-fit the empty tracks collapse, so
+   choosing three cards stretched those three across the whole row and a
+   figure that fits in 10rem was rendered 30rem wide. auto-fill keeps the
+   track, so a shorter selection stays a row of normal cards reading left to
+   right instead of ballooning. */
 .metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(10.5rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
   gap: var(--space-sm);
 }
 

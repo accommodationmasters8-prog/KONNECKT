@@ -60,6 +60,16 @@ export default async function TrackerOverview({
   /* Colour cycles rather than being assigned: the set is HQ's now, so there is
      no fixed list to hand-colour. The first three keep the tones and the
      drill-through links the screen has always had for them. */
+  /* The nine the bank reads, on by default. The other two — cards issued and
+     loan value — are there to be switched on, not to be scrolled past every
+     morning. Order comes from the metric itself, so portfolio is first,
+     accounts opened second and deposits mobilised third wherever they appear. */
+  const DEFAULT_CARDS = [
+    'portfolio', 'accounts_opened', 'deposits_tzs', 'active_accounts',
+    'dormant_accounts', 'simbanking_activated', 'lipa_hapa_registered',
+    'loans_count', 'bookings',
+  ];
+
   const TONES = ['teal', 'green', 'gold', 'pink', 'ink'] as const;
   const LINKS: Record<string, { href: string; hint: string } | undefined> = {
     portfolio: { href: `/${locale}/staff/stations`, hint: 'Stations' },
@@ -81,7 +91,7 @@ export default async function TrackerOverview({
         session.signedIn ? (
           <>
           <CardStateScript />
-          <CardChooser options={CARDS} />
+          <CardChooser options={CARDS} defaults={DEFAULT_CARDS} />
           <Link
             href={
               session.role === 'branch' && session.branchId

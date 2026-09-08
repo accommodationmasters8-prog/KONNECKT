@@ -26,11 +26,20 @@ const BOOT = 'konekt-card-boot';
  * The cards themselves are rendered by the server; this only hides them, so
  * the page still works with JavaScript off (everything shows).
  */
-export function CardChooser({ options }: { options: CardOption[] }) {
+export function CardChooser({
+  options,
+  defaults,
+}: {
+  options: CardOption[];
+  /** What is on when nobody has chosen — the nine the bank reads first. */
+  defaults?: string[];
+}) {
   const [chosen, setChosen] = useState<string[] | null>(null);
 
   useEffect(() => {
-    let next: string[] = options.map((o) => o.key);
+    let next: string[] = defaults && defaults.length > 0
+      ? options.filter((o) => defaults.includes(o.key)).map((o) => o.key)
+      : options.map((o) => o.key);
     try {
       const raw = window.localStorage.getItem(STORE);
       if (raw) {
@@ -50,7 +59,7 @@ export function CardChooser({ options }: { options: CardOption[] }) {
     // card the person switches back on stays hidden by a rule React cannot
     // reach.
     document.getElementById(BOOT)?.remove();
-  }, [options]);
+  }, [options, defaults]);
 
   useEffect(() => {
     if (!chosen) return;
@@ -101,6 +110,17 @@ export function CardChooser({ options }: { options: CardOption[] }) {
           >
             Show all
           </button>
+          {defaults && defaults.length > 0 ? (
+            <button
+              type="button"
+              className={styles.reset}
+              onClick={() => setChosen(
+                options.filter((o) => defaults.includes(o.key)).map((o) => o.key),
+              )}
+            >
+              Back to the usual nine
+            </button>
+          ) : null}
         </div>
       </div>
     </details>
