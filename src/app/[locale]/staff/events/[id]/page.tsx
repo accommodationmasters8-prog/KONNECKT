@@ -75,7 +75,7 @@ export default async function EventPage({
     );
   }
 
-  const [eventRes, imagesRes, stationsRes, categories] = await Promise.all([
+  const [eventRes, imagesRes, stationsRes, categories, visitsRes] = await Promise.all([
     supabase.from('tracked_events' as never)
       .select('id, name, event_date, end_date, venue, address, station_id, category_id, branch_id, zone_code, participants, budget_tzs, actual_spend_tzs, accounts_opened, simbanking_activated, cards_issued, lipa_hapa_registered, deposits_tzs, album_url, notes')
       .eq('id', id)
@@ -89,7 +89,21 @@ export default async function EventPage({
       .order('name', { ascending: true })
       .limit(1000),
     getCategories(),
+    /* The visits booked out of this event. An activation's real yield is the
+       calls it produced, and until an engagement could point at an event
+       there was no way for this page to say so. */
+    supabase.from('engagements' as never)
+      .select('id, institution, engaged_on, leads_expected, leads_got, accounts_opened, simbanking_activated, lipa_hapa_registered')
+      .eq('event_id', id)
+      .order('engaged_on', { ascending: false })
+      .limit(100),
   ]);
+
+  const visits = (visitsRes.data as unknown as {
+    id: string; institution: string; engaged_on: string;
+    leads_expected: number; leads_got: number; accounts_opened: number;
+    simbanking_activated: number; lipa_hapa_registered: number;
+  }[]) ?? [];
 
   const event = eventRes.data as unknown as EventRow | null;
 
@@ -182,6 +196,69 @@ export default async function EventPage({
           }
         />
       </div>
+
+      <Panel title="Visits booked out of this event">
+        {visits.length === 0 ? (
+          <PanelEmpty>
+            None yet. A visit records against an event on the engagements
+            screen, and its leads then count towards this one.
+          </PanelEmpty>
+        ) : (
+          <div className={styles.tableWrap}>
+            <table className={styles.table}>
+              <thead>
+                <tr>
+                  <th scope="col">Institution</th>
+                  <th scope="col">Date</th>
+                  <th scope="col" className={styles.num}>Expected</th>
+                  <th scope="col" className={styles.num}>Got</th>
+                  <th scope="col" className={styles.num}>Accounts</th>
+                  <th scope="col" className={styles.num}>SimBanking</th>
+                  <th scope="col" className={styles.num}>Lipa Hapa</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visits.map((v) => (
+                  <tr key={v.id}>
+                    <th scope="row">{v.institution}</th>
+                    <td>
+                      {new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', {
+                        day: 'numeric', month: 'short', year: 'numeric',
+                      }).format(new Date(v.engaged_on))}
+                    </td>
+                    <td className={styles.num}>{count(Number(v.leads_expected ?? 0), locale)}</td>
+                    <td className={styles.num}>{count(Number(v.leads_got ?? 0), locale)}</td>
+                    <td className={styles.num}>{count(Number(v.accounts_opened ?? 0), locale)}</td>
+                    <td className={styles.num}>{count(Number(v.simbanking_activated ?? 0), locale)}</td>
+                    <td className={styles.num}>{count(Number(v.lipa_hapa_registered ?? 0), locale)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th scope="row">{visits.length} visit{visits.length === 1 ? '' : 's'}</th>
+                  <td />
+                  <td className={styles.num}>
+                    {count(visits.reduce((n, v) => n + Number(v.leads_expected ?? 0), 0), locale)}
+                  </td>
+                  <td className={styles.num}>
+                    {count(visits.reduce((n, v) => n + Number(v.leads_got ?? 0), 0), locale)}
+                  </td>
+                  <td className={styles.num}>
+                    {count(visits.reduce((n, v) => n + Number(v.accounts_opened ?? 0), 0), locale)}
+                  </td>
+                  <td className={styles.num}>
+                    {count(visits.reduce((n, v) => n + Number(v.simbanking_activated ?? 0), 0), locale)}
+                  </td>
+                  <td className={styles.num}>
+                    {count(visits.reduce((n, v) => n + Number(v.lipa_hapa_registered ?? 0), 0), locale)}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        )}
+      </Panel>
 
       <Panel
         title="Pictures"

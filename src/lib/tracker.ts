@@ -181,7 +181,7 @@ export interface OverviewEvent {
 }
 
 export interface ActivityItem {
-  kind: 'station' | 'report' | 'event';
+  kind: 'station' | 'report' | 'event' | 'engagement';
   id: string;
   title: string;
   detail: string;
@@ -284,7 +284,7 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
      showing the sum of whatever came back first. */
   const [
     totalsRes, countsRes, engagementRes, categoryRes, trendRes,
-    eventsRes, dueRes, recentStationsRes, recentReportsRes,
+    eventsRes, dueRes, recentStationsRes, recentReportsRes, recentVisitsRes,
   ] = await Promise.all([
     supabase.from('overview_totals' as never).select('*').maybeSingle(),
     supabase.from('station_counts' as never).select('*').maybeSingle(),
@@ -311,8 +311,16 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
       .order('created_at', { ascending: false })
       .limit(6),
     supabase.from('station_reports' as never)
-      .select('id, station_id, period_month, submitted_at')
+      .select('id, station_id, period_month, submitted_at, stations(name)')
       .order('submitted_at', { ascending: false })
+      .limit(6),
+    /* Visits belong in the activity feed for the same reason reports do: a
+       branch recording one is the most common thing that happens in this
+       console, and until now the overview was the only screen that could not
+       see it. */
+    supabase.from('engagements' as never)
+      .select('id, institution, engaged_on, leads_got, created_at')
+      .order('created_at', { ascending: false })
       .limit(6),
   ]);
 
@@ -345,11 +353,6 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
     { id: string; name: string; last_report_month: string | null }[]) ?? [])
     .map((s) => ({ id: s.id, name: s.name, lastReport: s.last_report_month }));
 
-  const stationName = new Map(
-    ((recentStationsRes.data as unknown as { id: string; name: string }[]) ?? [])
-      .map((s) => [s.id, s.name] as const),
-  );
-
   const recent: ActivityItem[] = [
     ...((recentStationsRes.data as unknown as
       { id: string; name: string; created_at: string }[]) ?? [])
@@ -360,14 +363,29 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
         detail: 'added',
         at: s.created_at,
       })),
+    /* The name comes back with the report. It used to be looked up in a map
+       built from the six most recently *created* stations, which are almost
+       never the six that most recently *filed* — so nearly every line of this
+       feed read "A station reported 2026-09". */
     ...((recentReportsRes.data as unknown as
-      { id: string; station_id: string; period_month: string; submitted_at: string }[]) ?? [])
+      { id: string; station_id: string; period_month: string; submitted_at: string;
+        stations: { name: string } | null }[]) ?? [])
       .map((r) => ({
         kind: 'report' as const,
         id: r.id,
-        title: stationName.get(r.station_id) ?? 'A station',
+        title: r.stations?.name ?? 'A station',
         detail: `reported ${r.period_month.slice(0, 7)}`,
         at: r.submitted_at,
+      })),
+    ...((recentVisitsRes.data as unknown as
+      { id: string; institution: string; engaged_on: string;
+        leads_got: number; created_at: string }[]) ?? [])
+      .map((v) => ({
+        kind: 'engagement' as const,
+        id: v.id,
+        title: v.institution,
+        detail: `visited · ${Number(v.leads_got ?? 0)} leads`,
+        at: v.created_at,
       })),
     ...events.slice(0, 6).map((e) => ({
       kind: 'event' as const,

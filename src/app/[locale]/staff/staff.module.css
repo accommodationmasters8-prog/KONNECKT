@@ -101,6 +101,7 @@
 .station { background: var(--metric-teal-to); }
 .report  { background: var(--metric-green-to); }
 .event   { background: var(--metric-gold-from); }
+.engagement { background: var(--metric-pink-to); }
 
 .activityText { min-inline-size: 0; }
 .activityText strong { color: var(--text-strong); font-weight: var(--weight-semibold); }
