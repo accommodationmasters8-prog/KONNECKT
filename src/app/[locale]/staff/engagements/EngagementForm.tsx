@@ -40,7 +40,7 @@ export function EngagementForm({
   events,
   fixedBranch,
   editing,
-  onDone,
+  doneHref,
 }: {
   branches: { id: string; name: string }[];
   categories: { id: string; name_en: string }[];
@@ -49,7 +49,8 @@ export function EngagementForm({
   fixedBranch: string | null;
   /** When set, the form corrects this visit instead of recording a new one. */
   editing?: EngagementDraft | null;
-  onDone?: () => void;
+  /** Where "Done" goes — a link, so the table stays on the server. */
+  doneHref?: string;
 }) {
   const [state, action, pending] = useActionState<EngagementResult | null, FormData>(
     editing ? updateEngagement : recordEngagement,
@@ -192,10 +193,8 @@ export function EngagementForm({
         <button type="submit" className="btn btn--primary btn--sm" disabled={pending}>
           {pending ? 'Saving…' : editing ? 'Save changes' : 'Record visit'}
         </button>
-        {editing && onDone ? (
-          <button type="button" className="btn btn--quiet btn--sm" onClick={onDone}>
-            Done
-          </button>
+        {editing && doneHref ? (
+          <a href={doneHref} className="btn btn--quiet btn--sm">Done</a>
         ) : null}
         {state ? (
           <p className={state.ok ? styles.ok : styles.bad} role="status">{state.message}</p>

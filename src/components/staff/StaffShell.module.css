@@ -295,7 +295,9 @@
 
 @media (min-width: 60rem) {
   :global(html[data-rail='collapsed']) .console {
-    grid-template-columns: 4.5rem minmax(0, 1fr);
+    /* 3.5rem, not 4.5. Collapsed, the rail holds a 44px target and nothing
+       else, so the extra rem was margin around an icon. */
+    grid-template-columns: 3.5rem minmax(0, 1fr);
   }
 
   :global(html[data-rail='collapsed']) .rail {
@@ -337,10 +339,15 @@
     margin-inline: auto;
   }
 
+  :global(html[data-rail='collapsed']) .railTools {
+    flex-direction: column;
+    gap: 0;
+  }
+
   :global(html[data-rail='collapsed']) .railToggle,
   :global(html[data-rail='collapsed']) .themeToggle {
     justify-content: center;
-    inline-size: 44px;
+    inline-size: 40px;
     margin-inline: auto;
   }
 
@@ -348,6 +355,34 @@
 }
 
 /* --- the control itself -------------------------------------------------- */
+
+/* Side by side, and only as wide as they need to be. Stacked they cost two
+   rows of the rail for the two things people press least. */
+.railTools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.railTools .railToggle,
+.railTools .themeToggle {
+  inline-size: auto;
+  flex: 1 1 0;
+  min-inline-size: 0;
+  justify-content: center;
+  padding-inline: var(--space-2xs);
+}
+
+/* The icon carries the state — a sun, a moon, or the half-filled disc that
+   means "whatever the machine says" — and the title carries the words. */
+.railTools .railToggleLabel {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
 /* Two controls, one shape: collapse the rail, and choose the appearance.
    They are separate classes rather than one because only the chevron turns

@@ -175,8 +175,13 @@ export function StaffShell({
         </nav>
 
         <div className={styles.railFoot}>
-          <ThemeToggle />
-          <RailToggle />
+          {/* Appearance and collapse sit on one line. They are the two least
+              used controls in the rail and they were taking two full rows of
+              it, which is space the navigation wanted. */}
+          <div className={styles.railTools}>
+            <ThemeToggle />
+            <RailToggle />
+          </div>
 
           {user ? (
             <form method="post" action={`/${locale}/staff/sign-out`}>

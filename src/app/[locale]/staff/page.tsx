@@ -44,19 +44,28 @@ export default async function TrackerOverview({
 
   const nothingYet = data.stations === 0;
 
-  /* One list, used by both the picker and the cards below, so the menu can
-     never offer a card that is not there or miss one that is. */
+  /* The cards, and the menu that hides them, both read the same list — so the
+     menu can never offer a card that is not there or miss one that is.
+     
+     That list is no longer written here. A figure is on this screen because
+     some category tracks it, which is a decision HQ makes in Settings; adding
+     one there puts it here, and dropping the last category that tracks it
+     takes it away. The bookings card is appended because a visit is not a
+     station figure — it belongs to the branch, not to a category. */
   const CARDS = [
-    { key: 'portfolio', label: 'Total portfolio' },
-    { key: 'accounts', label: 'Accounts opened' },
-    { key: 'deposits', label: 'Deposits mobilised' },
-    { key: 'active', label: 'Active accounts' },
-    { key: 'dormant', label: 'Dormant accounts' },
-    { key: 'simbanking', label: 'SimBanking' },
-    { key: 'lipahapa', label: 'Lipa Hapa' },
-    { key: 'loans', label: 'Loans disbursed' },
+    ...data.metrics.map((m) => ({ key: m.key, label: m.label })),
     { key: 'bookings', label: 'Institutions booked' },
   ];
+
+  /* Colour cycles rather than being assigned: the set is HQ's now, so there is
+     no fixed list to hand-colour. The first three keep the tones and the
+     drill-through links the screen has always had for them. */
+  const TONES = ['teal', 'green', 'gold', 'pink', 'ink'] as const;
+  const LINKS: Record<string, { href: string; hint: string } | undefined> = {
+    portfolio: { href: `/${locale}/staff/stations`, hint: 'Stations' },
+    accounts_opened: { href: `/${locale}/staff/categories`, hint: 'By category' },
+    deposits_tzs: { href: `/${locale}/staff/network`, hint: 'By zone' },
+  };
   const dash = (v: number) => (nothingYet || v === 0 ? '—' : count(v, locale));
 
   return (
@@ -100,68 +109,29 @@ export default async function TrackerOverview({
             total={data.activeStations}
           />
 
-          {/* The nine the bank tracks, in the order it reads them. */}
           <div className={styles.metrics}>
-            <MetricCard
-              tone="teal"
-              cardKey="portfolio"
-              label="Total portfolio"
-              value={dash(data.portfolio)}
-              icon={<StationsIcon />}
-              href={`/${locale}/staff/stations`}
-              hint="Stations"
-            />
-            <MetricCard
-              tone="green"
-              cardKey="accounts"
-              label="Accounts opened"
-              value={dash(data.accountsOpened)}
-              note={data.coveragePct === null ? undefined : `${data.coveragePct}% of portfolio`}
-              icon={<AccountsIcon />}
-              href={`/${locale}/staff/categories`}
-              hint="By category"
-            />
-            <MetricCard
-              tone="gold"
-              cardKey="deposits"
-              label="Deposits mobilised"
-              value={nothingYet || data.deposits === 0 ? '—' : money(data.deposits, locale, true)}
-              icon={<CategoriesIcon />}
-              href={`/${locale}/staff/network`}
-              hint="By zone"
-            />
-            <MetricCard
-              tone="teal"
-              cardKey="active"
-              label="Active accounts"
-              value={dash(data.activeAccounts)}
-            />
-            <MetricCard
-              tone="pink"
-              cardKey="dormant"
-              label="Dormant accounts"
-              value={dash(data.dormantAccounts)}
-              note={data.dormancyPct === null ? undefined : `${data.dormancyPct}% dormant`}
-            />
-            <MetricCard
-              tone="ink"
-              cardKey="simbanking"
-              label="SimBanking"
-              value={dash(data.simbanking)}
-            />
-            <MetricCard
-              tone="green"
-              cardKey="lipahapa"
-              label="Lipa Hapa"
-              value={dash(data.lipaHapa)}
-            />
-            <MetricCard
-              tone="gold"
-              cardKey="loans"
-              label="Loans disbursed"
-              value={nothingYet || data.loansValue === 0 ? '—' : money(data.loansValue, locale, true)}
-              note={data.loansCount > 0 ? `${count(data.loansCount, locale)} loans` : undefined}
-            />
+            {data.metrics.map((metric, i) => (
+              <MetricCard
+                key={metric.key}
+                cardKey={metric.key}
+                tone={TONES[i % TONES.length]}
+                label={metric.label}
+                value={
+                  nothingYet || metric.total === 0
+                    ? '—'
+                    : metric.unit === 'money'
+                      ? money(metric.total, locale, true)
+                      : count(metric.total, locale)
+                }
+                note={
+                  metric.categories === 1
+                    ? 'One category'
+                    : `${metric.categories} categories`
+                }
+                href={LINKS[metric.key]?.href}
+                hint={LINKS[metric.key]?.hint}
+              />
+            ))}
             <MetricCard
               tone="teal"
               cardKey="bookings"

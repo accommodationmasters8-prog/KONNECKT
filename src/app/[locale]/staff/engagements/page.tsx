@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { StaffShell } from '@/components/staff/StaffShell';
 import { Panel, PanelEmpty, FoldPanel } from '@/components/staff/Panel';
 import { MetricCard } from '@/components/staff/MetricCard';
@@ -7,7 +8,7 @@ import { getStaffSession } from '@/lib/staff-session';
 import { getServerClient } from '@/lib/supabase/server';
 import { count, money } from '@/lib/tracker';
 import { localeParams, resolveLocale } from '@/lib/page';
-import { EngagementsPanel, type EngagementRow } from './EngagementsPanel';
+import { EngagementForm } from './EngagementForm';
 import styles from '../staff.module.css';
 
 export function generateStaticParams() {
@@ -51,10 +52,13 @@ interface Row {
  */
 export default async function EngagementsPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ edit?: string }>;
 }) {
   const { locale } = await resolveLocale(params);
+  const { edit } = await searchParams;
   const session = await getStaffSession();
   const supabase = await getServerClient();
 
@@ -70,7 +74,7 @@ export default async function EngagementsPage({
       supabase.from('engagements' as never)
         .select('id, institution, engaged_on, branch_id, station_id, category_id, event_id, notes, leads_expected, leads_got, accounts_opened, accounts_activated, simbanking_activated, lipa_hapa_registered, deposits_tzs, tracked_events(name)')
         .order('engaged_on', { ascending: false })
-        .limit(200),
+        .limit(50),
       supabase.from('engagement_totals' as never).select('*').maybeSingle(),
       supabase.from('branches' as never).select('id, name').eq('is_active', true)
         .order('name').limit(500),
@@ -93,6 +97,29 @@ export default async function EngagementsPage({
 
   const branchName = new Map(branches.map((b) => [b.id, b.name] as const));
   const n = (v: number) => Number(v ?? 0);
+
+  /* The one row the form is correcting, if any. Looked up in the list that is
+     already in hand — no second query for a row that is on the page. */
+  const found = edit ? rows.find((r) => r.id === edit) ?? null : null;
+  const editing = found
+    ? {
+        id: found.id,
+        institution: found.institution,
+        station_id: found.station_id,
+        branch_id: found.branch_id,
+        category_id: found.category_id,
+        event_id: found.event_id,
+        engaged_on: found.engaged_on,
+        notes: found.notes,
+        leads_expected: n(found.leads_expected),
+        leads_got: n(found.leads_got),
+        accounts_opened: n(found.accounts_opened),
+        accounts_activated: n(found.accounts_activated),
+        simbanking_activated: n(found.simbanking_activated),
+        lipa_hapa_registered: n(found.lipa_hapa_registered),
+        deposits_tzs: n(found.deposits_tzs),
+      }
+    : null;
   const conversion = n(totals.leads_expected) > 0
     ? Math.round((n(totals.leads_got) / n(totals.leads_expected)) * 100)
     : null;
@@ -133,32 +160,75 @@ export default async function EngagementsPage({
               value={n(totals.deposits_tzs) === 0 ? '—' : money(n(totals.deposits_tzs), locale, true)} />
           </div>
 
-          <EngagementsPanel
-            rows={rows.map((r): EngagementRow => ({
-              id: r.id,
-              institution: r.institution,
-              station_id: r.station_id,
-              branch_id: r.branch_id,
-              category_id: r.category_id,
-              event_id: r.event_id,
-              engaged_on: r.engaged_on,
-              notes: r.notes,
-              leads_expected: n(r.leads_expected),
-              leads_got: n(r.leads_got),
-              accounts_opened: n(r.accounts_opened),
-              accounts_activated: n(r.accounts_activated),
-              simbanking_activated: n(r.simbanking_activated),
-              lipa_hapa_registered: n(r.lipa_hapa_registered),
-              deposits_tzs: n(r.deposits_tzs),
-              event_name: r.tracked_events?.name ?? null,
-            }))}
-            branches={branches}
-            categories={categories}
-            events={events}
-            fixedBranch={session.role === 'branch' ? session.branchId : null}
-            branchName={Object.fromEntries(branchName)}
-            locale={locale}
-          />
+          {/* Correcting a visit is a URL, not client state. The row being
+              edited is the only one that crosses to the browser — the table
+              below stays on the server, where 50 rows cost nothing to render
+              and nothing to ship. */}
+          <FoldPanel
+            title={editing ? `Correcting ${editing.institution}` : 'Record a visit'}
+            open={rows.length === 0 || editing !== null}
+          >
+            <EngagementForm
+              branches={branches}
+              categories={categories}
+              events={events}
+              fixedBranch={session.role === 'branch' ? session.branchId : null}
+              editing={editing}
+              doneHref={`/${locale}/staff/engagements`}
+            />
+          </FoldPanel>
+
+          <Panel title="Visits">
+            {rows.length === 0 ? (
+              <PanelEmpty>None recorded.</PanelEmpty>
+            ) : (
+              <div className={styles.tableWrap}>
+                <table className={styles.table}>
+                  <thead>
+                    <tr>
+                      <th scope="col">Institution</th>
+                      <th scope="col">Event</th>
+                      <th scope="col">Branch</th>
+                      <th scope="col">Date</th>
+                      <th scope="col" className={styles.num}>Expected</th>
+                      <th scope="col" className={styles.num}>Got</th>
+                      <th scope="col" className={styles.num}>Accounts</th>
+                      <th scope="col" className={styles.num}>SimBanking</th>
+                      <th scope="col" className={styles.num}>Lipa Hapa</th>
+                      <th scope="col"><span className="visually-hidden">Correct</span></th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rows.map((r) => (
+                      <tr key={r.id}>
+                        <th scope="row">{r.institution}</th>
+                        <td>{r.tracked_events?.name ?? '—'}</td>
+                        <td>{branchName.get(r.branch_id) ?? '—'}</td>
+                        <td>
+                          {new Intl.DateTimeFormat(locale === 'sw' ? 'sw-TZ' : 'en-TZ', {
+                            day: 'numeric', month: 'short', year: 'numeric',
+                          }).format(new Date(r.engaged_on))}
+                        </td>
+                        <td className={styles.num}>{count(n(r.leads_expected), locale)}</td>
+                        <td className={styles.num}>{count(n(r.leads_got), locale)}</td>
+                        <td className={styles.num}>{count(n(r.accounts_opened), locale)}</td>
+                        <td className={styles.num}>{count(n(r.simbanking_activated), locale)}</td>
+                        <td className={styles.num}>{count(n(r.lipa_hapa_registered), locale)}</td>
+                        <td>
+                          <Link
+                            href={`/${locale}/staff/engagements?edit=${r.id}#top`}
+                            className={styles.link}
+                          >
+                            Correct
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </Panel>
         </>
       )}
     </StaffShell>

@@ -168,6 +168,8 @@ export interface TrackerOverview {
   /** The next few and the last few, for the overview's own panel. */
   eventList: OverviewEvent[];
   recent: ActivityItem[];
+  /** What HQ has decided is worth tracking, and where it has got to. */
+  metrics: OverviewMetric[];
 }
 
 export interface OverviewEvent {
@@ -178,6 +180,17 @@ export interface OverviewEvent {
   participants: number | null;
   accounts_opened: number | null;
   past: boolean;
+}
+
+/** A figure the overview shows because some category tracks it. */
+export interface OverviewMetric {
+  key: string;
+  label: string;
+  unit: 'count' | 'money' | 'percent';
+  /** How many categories track it — the difference between a bank-wide figure
+   *  and one that belongs to a single kind of place. */
+  categories: number;
+  total: number;
 }
 
 export interface ActivityItem {
@@ -202,6 +215,7 @@ const EMPTY: TrackerOverview = {
   events: { total: 0, past: 0, upcoming: 0, participants: 0, budget: 0, spend: 0 },
   eventList: [],
   recent: [],
+  metrics: [],
 };
 
 /** First of the current month, as the reports store it. */
@@ -285,6 +299,7 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
   const [
     totalsRes, countsRes, engagementRes, categoryRes, trendRes,
     eventsRes, dueRes, recentStationsRes, recentReportsRes, recentVisitsRes,
+    metricsRes,
   ] = await Promise.all([
     supabase.from('overview_totals' as never).select('*').maybeSingle(),
     supabase.from('station_counts' as never).select('*').maybeSingle(),
@@ -322,6 +337,14 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
       .select('id, institution, engaged_on, leads_got, created_at')
       .order('created_at', { ascending: false })
       .limit(6),
+    /* The cards. Not a list in the page any more: a metric is here because a
+       category tracks it, so adding one in Settings puts it on this screen
+       and dropping the last category that tracks it takes it off. */
+    supabase.from('overview_metric_totals' as never)
+      .select('key, label, unit, categories, total, display_order, built_in')
+      .order('built_in', { ascending: false })
+      .order('display_order', { ascending: true })
+      .order('label', { ascending: true }),
   ]);
 
   const n = (v: unknown) => Number(v ?? 0);
@@ -455,6 +478,16 @@ export async function getTrackerOverview(): Promise<TrackerOverview> {
       return [...upcoming, ...past].map(shape);
     })(),
     recent,
+    metrics: ((metricsRes.data as unknown as {
+      key: string; label: string; unit: 'count' | 'money' | 'percent';
+      categories: number; total: number;
+    }[]) ?? []).map((m) => ({
+      key: m.key,
+      label: m.label,
+      unit: m.unit,
+      categories: Number(m.categories ?? 0),
+      total: Number(m.total ?? 0),
+    })),
   };
 }
 
